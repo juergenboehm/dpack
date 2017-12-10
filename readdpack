@@ -1,0 +1,205 @@
+
+MAPLEHOME := `/home/juergen/maple`:
+DPACKPATH := cat ( MAPLEHOME, `/packages/dpack/` ):
+
+if not has ( [libname], convert( DPACKPATH, string) ) then
+	libname := libname, DPACKPATH:
+fi:
+
+
+
+#
+#
+
+initprintcnt := 0:
+
+
+
+initprint := proc ( stra )
+
+local str;
+global initprintcnt;
+
+str := convert(convert (stra, string), list);
+
+str := str[1..-6];
+
+str := op(foldl ((x,y)->cat(x,y),"", op(str))) ;
+
+
+printf ( "+ %12.12s +", str );
+
+initprintcnt := initprintcnt + 1;
+
+if initprintcnt = 4 then
+
+	printf ( "\n" );
+
+	initprintcnt := 0;
+	
+fi;
+
+RETURN ();
+
+end:
+
+
+
+READDPACK := proc ( name )
+
+local filename;
+
+global DPACKPATH, view;
+
+filename := cat ( DPACKPATH, name );
+
+if has ( [args], view ) then
+
+	interface ( echo = 3 );
+	printlevel := 5;
+	
+fi;
+
+read filename;
+
+if has ( [args], view ) then
+
+	interface ( echo = 1 );
+	printlevel := 1;
+	
+fi;
+
+end:
+
+#
+#
+
+
+printf ( "\n" );
+printf ( "%s", `   dpack version 0.1.0\n` );
+printf ( "%s", `   a package for differential equations ` );
+
+printf ("\n\n");
+
+#
+#
+
+kernelopts ( ASSERT = true ):
+
+#
+#
+
+macro ( dcoeffs = dpack[dcoeffs] ):
+macro ( dsubs = dpack[dsubs] ):
+
+
+READDPACK ( `vsubs`  );
+initprint ( `vsubs read` );
+
+READDPACK ( `dtdsubs`  );
+initprint ( `dtdsubs read` );
+
+READDPACK ( `dpackc` );
+initprint ( `dpackc read` );
+
+READDPACK ( `dcotes` );
+initprint ( `dcotes read` );
+
+READDPACK ( `ddepend` );
+initprint ( `ddepend read` );
+
+READDPACK ( `dorders` );
+initprint ( `dorders read` );
+
+READDPACK ( `dsort` );
+initprint ( `dsort read` );
+
+READDPACK ( `dextd` );
+initprint ( `dextd read` );
+
+READDPACK ( `djanetbase` );
+initprint ( `djanetbase read` );
+
+READDPACK ( `dlie` );
+initprint ( `dlie read` );
+
+READDPACK ( `dprolong1` );
+initprint ( `dprolong1 read` );
+
+READDPACK ( `dxpack` );
+initprint ( `dxpack read` );
+
+READDPACK ( `dsymm` );
+initprint ( `dsymm read` );
+
+READDPACK ( `class` );
+initprint ( `class read` );
+
+READDPACK ( `dexperi` );
+initprint ( `dexperi read` );
+
+READDPACK ( `dlieclass` );
+initprint ( `dlieclass read` );
+
+READDPACK ( `dsolvexpde` );
+initprint ( `dsolvexpde read` );
+
+READDPACK ( `dsolvelpde1` );
+initprint ( `dsolvelpde1 read` );
+
+READDPACK ( `dsolvexpdeX` );
+initprint ( `dsolvexpdeX read` );
+
+READDPACK ( `driccati` );
+initprint ( `driccati read` );
+
+READDPACK ( `dintegrate` );
+initprint ( `dintegrate read` );
+
+READDPACK ( `dcancoord` );
+initprint ( `dcancoord read` );
+
+READDPACK ( `groupdiscuss` );
+initprint ( `groupdiscuss read` );
+
+READDPACK ( `dgenjanetbase` );
+initprint ( `dgenjanetbase read` );
+
+READDPACK ( `dtypinfo` );
+initprint ( `dtypinfo read` );
+
+READDPACK ( `dfilecomm` );
+initprint ( `dfilecomm read` );
+
+READDPACK ( `dbasisprog` );
+initprint ( `dbasisprog read` );
+
+READDPACK ( `dbasislist` );
+initprint ( `dbasislist read` );
+
+READDPACK ( `dbasismath` );
+initprint ( `dbasismath read` );
+
+READDPACK ( `dbasisconv` );
+initprint ( `dbasisconv read` );
+
+READDPACK ( `dmakejac` );
+initprint ( `dmakejac read` );
+
+READDPACK ( `dmisc` );
+initprint ( `dmisc read` );
+
+READDPACK ( `dintrat` );
+initprint ( `dintrat read` );
+
+READDPACK ( `ejanetbase` );
+initprint ( `ejanetbase read` );
+
+READDPACK ( `efactor` );
+initprint ( `efactor read` );
+
+
+macro ( dcoeffs = dcoeffs ):
+macro ( dsubs = dsubs ):
+
+printf ("\n\n");

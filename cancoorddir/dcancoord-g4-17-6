@@ -1,0 +1,59 @@
+
+remdep ( [xi, eta, sigma, rho] );
+
+depend ( [xi, eta, sigma, rho], [x,y] );
+
+
+####################################################################################
+#
+#   Group g 4, 17, 6
+#
+#
+
+
+read cat ( DPACKPATH, `cancoorddir/dcancoord-g4-17-gener1` ):
+
+
+
+
+KNOWNSOLS_4_17_6 := [ SIGMA, SIGMA^2, exp ( SIGMA ), 1];
+
+
+
+dcancoord_g4_17_6_ffff := proc ( jb, fs )
+
+dcancoord_g4_17_generic1 ( jb, fs, [4,17,6,ffff], KNOWNSOLS_4_17_6 );
+
+end;
+
+#
+#
+#
+
+dcancoord_g4_17_6_tfff := proc ( jb, fs )
+
+dcancoord_g4_17_generic1 ( jb, fs, [4,17,6,tfff], KNOWNSOLS_4_17_6 );
+
+end;
+
+#
+#
+#
+
+dcancoord_g4_17_6_ftff := proc ( jb, fs )
+
+dcancoord_g4_17_generic1 ( jb, fs, [4,17,6,ftff], KNOWNSOLS_4_17_6 );
+
+end;
+
+
+#
+#
+#
+
+
+cancoordsetup_g4_17_6 := proc ()
+
+cancoordsetup_g4_17_generic1 ( [4,17,6, XXXX] );
+
+end;

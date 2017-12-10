@@ -1,0 +1,279 @@
+############################################################################
+#
+# Initialisierungen
+#
+#
+
+#
+#	initialization for forget
+#
+
+init := proc ()
+
+### WARNING: persistent store makes one-argument readlib obsolete
+readlib ( forget );
+
+end;
+
+
+init ();	
+
+
+
+
+###########################################################################
+#
+#
+# Zusaetzliche Kontrollstrukturen
+#
+#
+
+condev1 := proc ( cnd, e )
+
+if evalb ( cnd ) then
+
+	e;
+
+fi;
+
+end;
+
+#
+#
+
+condev2 := proc ( cnd, e1, e2 )
+
+if evalb ( cnd ) then
+
+	e1;
+
+else
+
+	e2;
+
+fi;
+
+end;
+
+################################################################################
+
+#
+#	a timing function for profiling expression evaluation
+#
+
+measure := proc ( e, n )
+
+local i, st;
+
+st := time ();
+
+for i from 1 to n do 
+
+	eval ( e );
+
+od;
+
+RETURN ( time () - st );
+
+end;
+
+
+
+##################################################################################
+#
+#	Verarbeitung von Optionslisten
+#
+#
+
+
+cutoptl := proc ( optl )
+
+local optl1,
+		optlnam,
+		optleq,
+		optlrest;
+
+optl1 := splitlist ( type, optl, name );
+
+optlnam := optl1[1];
+
+optl1 := optl1[2];
+
+optl1 := splitlist ( type, optl1, name = anything );
+
+optleq := optl1[1];
+
+optlrest := optl1[2];
+
+[optlnam, optleq, optlrest];
+
+end;
+
+#
+#
+
+hasoptname := proc ( optl, optnam )
+
+local optlcut;
+
+optlcut := cutoptl ( optl );
+
+has ( 
+	[optlcut[1], map ( lhs, optlcut[2] ), optlcut[3] ], optnam );
+
+end;
+
+#
+#
+
+getoptval := proc ( optl, optnam )
+
+local eq;
+
+eq := selectfirst ( (xx,yy) -> lhs(xx) = yy, cutoptl ( optl )[2], optnam );
+
+if type ( eq, equation ) then
+
+	rhs ( eq );
+	
+else
+
+	FAIL;
+	
+fi; 
+
+end;
+
+#
+#
+
+changeoptval := proc ( optl, optnam, newval )
+
+local optlcut,
+		optleq,
+		optleq1,
+		eq;
+
+optlcut := cutoptl ( optl );
+
+optleq := optlcut[2];
+
+optleq1 := remove ( (xx,yy) -> lhs (xx) = yy, optleq, optnam );
+
+eq := selectfirst ( (xx,yy) -> lhs (xx) = yy, optleq, optnam );
+
+if type ( eq, equation ) then
+
+	eq := lhs ( eq ) = newval;
+	
+	optleq1 := [op(optleq1), eq];
+	
+else
+
+	optleq1 := optleq;
+	
+fi;
+
+[op(optlcut[1]), op(optleq1), op(optlcut[3])];
+
+end;
+
+#
+#
+#
+
+selectopts := proc ( optl, optnaml )
+
+local optlcut,
+		res;
+
+optlcut := cutoptl ( optl );
+
+res := 
+	[select ( has, optlcut[1], optnaml ),
+	 select ( (xx,yy)-> member ( lhs(xx), yy ), optlcut[2], optnaml ),
+	 select ( has, optlcut[3], optnaml ) ];
+	
+res := flatten1 ( res );
+	
+end;
+
+#
+#
+#
+
+removeopts := proc ( optl, optnaml )
+
+local optlcut,
+		res;
+
+optlcut := cutoptl ( optl );
+
+res := 
+	[remove ( has, optlcut[1], optnaml ),
+	 remove ( (xx,yy)-> member ( lhs(xx), yy ), optlcut[2], optnaml ),
+	 remove ( has, optlcut[3], optnaml ) ];
+	
+res := flatten1 ( res );
+	
+end;
+
+####################################################################################
+
+
+explode := proc ( s :: {string, name} )
+
+local i;
+
+[seq( substring(s,i), i=1..length(s) )];
+
+end;
+
+#
+#
+#
+
+uniquesubslist := proc ( idtl, var )
+
+local i;
+
+[seq ( idtl[i] = cat (var, i ), i=1..nops(idtl) )];
+
+end;
+
+#
+#
+
+nameprotect := proc ( x )
+
+XXXQQQ||x;
+
+end;
+
+#
+#
+#
+
+genname := proc ( i, j )
+
+local QQQQ;
+
+QQQQ||i||XX||j;
+
+end;
+
+#
+#
+#
+
+chkcreatetable := proc( a )
+
+if eval(a) = evaln(a) then
+
+    assign(a,table());
+    lprint(`created `,a);
+fi
+end;
+
+
+

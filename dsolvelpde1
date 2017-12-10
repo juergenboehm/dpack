@@ -1,0 +1,740 @@
+#
+#
+
+pdeloessimp := proc ( e )
+
+dsimplify ( e, symbolic );
+
+end:
+
+
+#
+#
+#
+
+
+#
+#
+
+
+#
+#
+
+hasconsts := proc ( fnlist, varlist )
+
+local vars, xx;
+
+vars := indets ( fnlist );
+
+vars := select ( x->type ( x, name ), vars );
+
+vars := vars intersect {op(varlist)};
+
+xx := map ( (x,y)-> map((u,v)->diff(v,u),y,x), fnlist, [op(vars)] );
+
+xx := select ( x->convert ( map ( u->evalb(u=0), x ), `and` ), xx );
+
+evalb ( nops ( xx ) > 0 );
+
+end;
+
+#
+#
+#
+
+
+#
+#
+#
+
+
+#
+#
+#
+#
+
+lpdesolvesys := proc ( eqset, fn )
+
+local vars,n,partloes,i,newvars,j,loes1,jdet,sl,sl1,eqsnew,newfun,eqsnew1,
+        loessys,cc,varorder,orderlist,eqset1,nequ,lsteq,loes,
+		noliebrack,
+		WW, QQ, loessysret, lenloesmin, loesstr, lenloes;
+ 
+global _xvers, _verbose;
+
+vars := [op ( fn )];
+n := nops ( vars );
+
+
+noliebrack := evalb ( has ( [args], nobrackets ) );
+
+
+if nargs = 3 and args[3] <> nobrackets then
+
+	partloes := args[3];
+	
+	loessysret := FAIL;
+	
+	lenloesmin := 10^10;
+
+	for i from 1 to n do
+
+		newvars := [seq ( WW||j||QQ||n, j=1..n ) ];
+
+		loes1 := [partloes, op(vars[1..i-1]), op(vars[i+1..n])];
+
+		jdet := linalg[det](linalg[jacobian](loes1,vars));
+
+		if normal ( jdet ) = 0 then
+
+			next;
+
+		fi;
+
+		sl := zip ( (x,y)-> x = y, newvars, loes1 );
+
+#		sl1 := solve3 ( {op(sl)}, {op(vars)} );
+		sl1 := solve ( {op(sl)}, {op(vars)} );
+
+		if nops ( [sl1] ) = 0 then
+		
+			next;
+			
+		fi;
+		
+		if nops ( sl1 ) < n then
+
+			next;
+
+		fi;
+
+		sl1 := [op(sl1)];
+
+
+		eqsnew := eqset;
+
+		newfun := FF ( op(newvars[2..n]) );
+
+		eqsnew1 := vsubs ( newvars, sl1, [fn=newfun], eqsnew, extsubs );
+
+		eqsnew1 := convert ( eqsnew1, diff );
+
+		eqsnew1 := pdeloessimp ( eqsnew1 );
+
+		eqsnew1 := select ( x->x<>0, eqsnew1 );
+
+
+		loessys := lpdesolvesys ( eqsnew1, newfun );
+
+		if nops ( loessys ) = 0 then
+
+			next;
+
+		fi;
+
+		loessys := subs ( sl, loessys );
+
+		loessys := pdeloessimp ( loessys );
+		
+		loesstr := convert ( loessys, string );
+		
+		lenloes := length ( loesstr );
+		
+		if lenloes < lenloesmin then
+			
+			lenloesmin := lenloes;
+			
+			loessysret := loessys;
+			
+		fi;
+		
+		
+
+#		RETURN ( loessys );
+	
+	od;
+	
+	if loessysret <> FAIL then 
+	
+		RETURN ( loessysret );
+		
+	fi;
+
+	RETURN ( [] );
+
+fi;		
+	
+cc := 0;	
+
+varorder := [seq( n+1-i, i=1..n)];
+
+while true do
+
+
+cc := cc + 1;
+
+if cc = n + 1 then RETURN ([]); fi;
+
+#print ( varorder );
+
+orderlist := [[1, 0 $ n], [0, op(varorder)]];
+
+orderlist := [[fn,op(fn)], op(orderlist) ];
+
+varorder := [op(varorder[2..n]),varorder[1]];
+
+setcotes ( [fn], orderlist );
+
+_xvers := true;
+
+
+if not ( _lpdexvers = true ) then
+
+	eqset1 := makeJanetBase ( eqset, [fn] );
+
+	eqset1 := csimpJanetBase ( eqset1, [fn] );
+
+else
+
+	if noliebrack then
+
+		eqset1 := makeJacobianForm ( eqset, fn, nobrackets );
+
+	else
+
+		eqset1 := makeJacobianForm ( eqset, fn );
+
+	fi;
+
+fi;
+
+
+remcotes ( [fn] );
+
+nequ := nops ( eqset1 );
+
+lsteq := eqset1[nequ];
+
+if n > 1 then
+
+	# print ( lsteq );
+
+	try
+		loes := timelimit(300, pdsolve ( lsteq, op(0,fn) ));
+	catch "time expired" : loes := op([]);
+	end try;
+
+
+	if nops ( [loes] ) = 0 then
+
+		next;
+
+	fi;
+
+	loes := PDEtools[build] ( loes );
+
+	loes := [op(rhs(loes))];
+	
+	loes := pdeloessimp ( loes );
+
+	if  has (loes, [Int, Intat]) or has ( loes, [int,intat] )
+	then
+
+		next;
+
+	fi;
+
+else
+
+	loes := dsolve ( lsteq, fn );
+
+	if nops ( [loes] ) = 0 or rhs(loes) = _C1 then
+
+		next;
+
+	fi;
+	
+	loes := [rhs(loes)];	
+
+	loes := pdeloessimp ( loes );
+
+fi;
+
+
+if nequ = 1 then
+
+	RETURN ( loes );
+
+else
+
+	break;
+	
+fi;
+
+
+od;
+
+
+for i from 1 to n do
+
+	newvars := [seq ( WW||j||QQ||n, j=1..n ) ];
+
+	loes1 := [op(loes), vars[i]];
+	
+	jdet := linalg[det](linalg[jacobian](loes1,vars));
+	
+	if normal ( jdet ) = 0 then
+	
+		next;
+		
+	fi;
+	
+	sl := zip ( (x,y)-> x = y, newvars, loes1 );
+	
+#	sl1 := solve3 ( {op(sl)}, {op(vars)} );
+	sl1 := solve ( {op(sl)}, {op(vars)} );
+	
+
+	if nops ( [sl1] ) = 0 then
+	
+		next;
+		
+	fi;
+
+
+	if nops ( sl1 ) < n then
+	
+		next;
+		
+	fi;
+	
+	sl1 := [op(sl1)];
+	
+
+	eqsnew := eqset1[1..nequ-1];
+	
+	newfun := FF ( op(newvars[1..n-1]) );
+	
+	eqsnew1 := vsubs ( newvars, sl1, [fn=newfun], eqsnew, extsubs );
+	
+	eqsnew1 := convert ( eqsnew1, diff );
+	
+	eqsnew1 := pdeloessimp ( eqsnew1 );
+	
+	eqsnew1 := select ( x->x<>0, eqsnew1 );
+	
+	
+	loessys := lpdesolvesys ( eqsnew1, newfun, nobrackets );
+	
+	if nops ( loessys ) = 0 then
+	
+		next;
+		
+	fi;
+	
+	loessys := subs ( sl, loessys );
+	
+	loessys := pdeloessimp ( loessys );
+	
+	RETURN ( loessys );
+
+od;
+
+RETURN ( [] );
+
+end:
+
+#
+#
+#
+
+lowerEquation := proc  ( veclist, vBLists, varLists )
+
+local n,veclist1,a,vbl,i,j;
+
+n := nops ( veclist );
+
+veclist1 := map ( (z,u,v, o)-> dprolong ( z, u, v, o ), 
+						veclist, vBLists, varLists, n - 2 );
+
+a := array(1..n,1..n);
+
+vbl := flatten2( makevbaselist ( vBLists, n - 2 ));
+
+veclist1 := collect ( veclist1, vbl );
+
+for i from 1 to n do
+	for j from 1 to n do
+		
+		a[i,j] := coeff ( veclist1[i], vbl[j] );
+		
+	od;
+od;
+
+factor ( linalg[det] ( a ) );
+
+end:
+
+#
+#
+#
+
+invariantEquation := proc ( veclist, vBLists, varLists )
+
+local order,veclist1,ff,eqlist,phi1,veclist2,phi2, res;
+
+global _erg, _spfunlpde;
+
+_erg := [];
+
+
+if veclist = [] then
+
+	res := [varLists[1], varLists[2] ];
+
+	RETURN ( vectostdform ( res, vBLists, varLists ) );
+
+fi;
+
+
+order := nops ( veclist );
+
+
+veclist1 := map ( dprolong, 
+						veclist, vBLists, varLists, order - 1 );
+						
+ff := makegenericfun ( GGG, varLists, order - 1 );
+
+eqlist := map ( vecapply, veclist1, vBLists,
+					varLists, ff );
+					
+_spfunlpde := makeloesrational;
+
+phi1 := lpdesolvesys ( eqlist, ff );
+
+# print ( phi1 );
+
+_erg := [op(_erg), phi1];
+
+if nops (phi1) = 0 then
+
+	RETURN ( [] );
+	
+fi;
+
+veclist2 := map ( (z,u,v, o)-> dprolong ( z, u, v, o ), 
+						veclist, vBLists, varLists, order );
+						
+ff := makegenericfun ( GGG, varLists, order );
+
+eqlist := map ( (x, vb, vl, f ) -> vecapply ( x, vb, vl, f ), veclist2, vBLists,
+					varLists, ff );
+
+
+phi2 := lpdesolvesys ( eqlist, ff, op(phi1) );
+
+_erg := [op(_erg), phi2];
+
+
+unassign ( '_spfunlpde' );
+
+# print ( phi2 );
+
+[phi1, phi2];
+
+end:
+
+#
+#
+
+lieinvarsX := proc ( typinfo )
+
+local vf,
+		loweq,
+		invs;
+
+vf := getliealgX ( typinfo );
+
+loweq := lowerEquation ( vf, [[p],[q]], [[x],[y]] );
+
+invs := invariantEquation ( vf, [[p],[q]], [[x],[y]] );
+
+print ( `Typ `, typinfo );
+
+print ( `Gruppe `, vf );
+
+print ( `Lower Equation:` );
+
+print ( loweq );
+
+print ( `Invariants :` );
+
+print ( invs );
+
+[invs, loweq];
+
+end;
+
+#
+#
+
+lieinvars := proc ( n )
+
+local excllist,i,vf,vff,inveq, incllist;
+
+excllist := select ( (x,y)->has(x,y), [args[2..nargs]], exclude );
+
+incllist := select ( has, [args[2..nargs]], include );
+
+if nops ( incllist ) > 0 then
+
+	incllist := rhs ( incllist[1] );
+	
+fi;
+
+
+if nops ( excllist ) > 0 then
+
+	excllist := rhs ( excllist[1] );
+
+fi;
+
+
+for i from 1 to 27 do
+
+	if has ( excllist, i ) then
+	
+		next;
+		
+	fi;
+	
+	if nops ( incllist ) > 0 and not member ( i, incllist ) then
+	
+		next;
+		
+	fi;
+	
+
+	vf := getliealg ( i, n );
+	
+	if nops ( vf ) = 0 then
+	
+		next;
+		
+	fi;
+	
+	if i < 17 or i > 18 then
+	
+		vf := [vf];
+		
+	fi;
+
+	if nops(vf[1]) <> n then
+	
+		next;
+		
+	fi;
+	
+	print ( );
+	
+	print ( `Fall S 3 `||n||` , `||i );
+	
+	for vff in vf do
+	
+		print ( `Gruppe : `||vff );
+	
+		print ( `Lower Equation:` );
+
+		print ( lowerEquation ( vff, [[p],[q]], [[x],[y]] ) );
+		
+		print ( `Invariants:` );
+		
+		inveq := invariantEquation ( vff, [[p],[q]], [[x],[y]] );
+		
+		print ( inveq );
+		
+	od;
+	
+od;
+		
+end:
+
+#
+#
+#
+
+
+makeloesrational := proc ( e )
+
+local ls,
+		rsf,
+		rsargs;
+
+ls := lhs ( e );
+
+rsf := op(0, rhs(e) );
+
+rsargs := op ( rhs ( e ) );
+
+ls = rsf ( rsargs );
+
+end;
+
+#
+#
+#
+
+`type/isrational` := proc ( x )
+
+local dits;
+
+dits := select ( xx->type(xx,diffmonom) or type(xx,name), [op(indets(x))] );
+
+evalb ( type ( x, ratpoly ( constant, dits ) ) );
+
+end;
+
+#
+#
+#
+
+
+
+solve3 := proc ()
+
+local fd;
+
+fd := fopen ( testfile, WRITE );
+
+tempforgetdep ();
+
+fprintf ( fd, `xxxxx:=solve(op(%a));\n`, [args] );
+fprintf ( fd, `save xxxxx, testresult;\n` );
+fprintf (fd, `quit;\n` );
+
+fclose ( fd );
+
+
+system ( cat ( MAPLENAME, ` < testfile` ) );
+
+read testresult;
+
+restoredep ();
+
+RETURN ( xxxxx );
+
+end;
+
+#
+#
+
+pdsolve3 := proc (eql, fn)
+
+local fd;
+
+fd := fopen ( testfile, WRITE );
+
+fprintf ( fd, `read ``/home/juergen/maple/packages/pdetools/pdetools``;\n` );
+fprintf ( fd, `xxxxx:=pdsolve(%a,%a);\n`, eql, fn );
+
+fprintf ( fd, `save xxxxx, testresult;\n` );
+
+fprintf ( fd, `quit;\n` );
+
+fclose ( fd );
+
+system ( cat ( MAPLENAME, ` < testfile` ) );
+
+read testresult;
+
+RETURN ( xxxxx );
+
+end;
+
+#
+#
+
+build3 := proc ( loes )
+
+local fd;
+
+fd := fopen ( testfile, WRITE );
+
+fprintf ( fd, `read ``/home/juergen/maple/packages/pdetools/pdetools``;\n` );
+fprintf ( fd, `xxxxx:=build(%a);\n`, loes );
+
+fprintf ( fd, `save xxxxx, testresult;\n` );
+
+fprintf ( fd, `quit;\n` );
+
+fclose ( fd );
+
+system ( cat ( MAPLENAME, ` < testfile` ) );
+
+read testresult;
+
+RETURN ( xxxxx );
+
+end;
+
+#
+#
+#
+
+simplify3 := proc ( )
+
+local fd;
+
+fd := fopen ( testfile, WRITE );
+
+fprintf ( fd, `xxxxx:=simplify(op(%a));\n`, [args] );
+
+fprintf ( fd, `save xxxxx, testresult;\n` );
+
+fprintf ( fd, `quit;\n` );
+
+fclose ( fd );
+
+system ( cat ( MAPLENAME, ` < testfile` ) );
+
+read testresult;
+
+RETURN ( xxxxx );
+
+end;
+
+#
+#
+#
+
+makeJanetBase3 := proc ( eql, fs, order )
+
+local fd;
+
+fd := fopen ( testfile, WRITE );
+
+fprintf ( fd, `read ``/home/juergen/maple/packages/dpack/readdpack``;\n` );
+
+fprintf ( fd, `setcotes ( %a, %a );\n`, fs, order );
+
+fprintf ( fd, `_xvers:=true;\n` );
+
+fprintf ( fd, `xxxxx:=makeJanetBase(%a,%a);\n`, eql, fs );
+
+fprintf ( fd, `xxxxx:=csimpJanetBase(xxxxx,%a);\n`, fs );
+
+fprintf ( fd, `save xxxxx, testresult;\n` );
+
+fprintf ( fd, `quit;\n` );
+
+fclose ( fd );
+
+system ( cat ( MAPLENAME, ` < testfile` ) );
+
+read testresult;
+
+RETURN ( xxxxx );
+
+end;
+
+

@@ -1,0 +1,630 @@
+
+
+initjac := proc ()
+
+if not assigned ( pffge ) then
+
+	with ( share );
+	
+	readshare ( pffge, linalg );
+	
+fi;
+
+end; 
+
+
+#
+#
+#
+#
+
+jmatrixtoeql := proc ( A, fn )
+
+local vars,
+		dfs,
+		i,
+		n,
+		eql,
+		eql1;
+
+vars := [ op ( fn ) ];
+
+dfs := map ((x,y) -> diff ( y, x ), vars, fn );
+
+n := linalg[rowdim](A);
+
+eql := [];
+
+for i from 1 to n do
+
+	eql1 := linalg[row] ( A, i );
+	
+	eql1 := convert ( eql1, list );
+
+	eql1 := convert ( zip ( (x,y) -> x*y, eql1, dfs ), `+` );
+
+	eql := [op(eql), eql1];
+	
+od;
+
+eql;
+
+end;
+
+#
+#
+#
+
+jeqltomatrix := proc ( eql, fn )
+
+local vars,
+		dfs,
+		n,
+		m,
+		A,
+		i,
+		eql1;
+
+vars := [ op ( fn ) ];
+
+dfs := map ((x,y) -> diff ( y, x ), vars, fn );
+
+n := nops ( eql );
+
+m := nops ( vars );
+
+A := linalg[matrix] ( n, m );
+
+for i from 1 to n do
+
+	eql1 := numer ( eql[i] );
+	
+	eql1 := coeffslin ( eql1, dfs );
+	
+	eql1 := convert ( [eql1], matrix );
+	
+	A := linalg[copyinto] ( eql1, A, i, 1 );
+	
+od;
+
+eval ( A );	
+		
+end;
+
+#
+# jtridiag ( A, m ) bringt die Matrix A ab Zeile m auf
+# Tridiagonalform
+#
+#
+
+jtridiag := proc ( A )
+
+local n,
+		m,
+		B,
+		C,
+		r,
+		i, D,
+		j,
+		tl,
+		tt,
+		ss;
+
+n := linalg[rowdim] ( A );
+
+if nargs = 2 then m := args[2] else m := 1; fi;
+
+B := A;
+
+C := linalg[submatrix] ( A, m..n, 1..linalg[coldim] ( A ) );
+
+C := pffge ( C, 'r' );
+
+# print ( `upper triangular form achieved` );
+
+B := linalg[copyinto] ( C, B, m, 1 );
+
+
+if r + m <= linalg[rowdim] ( B ) then
+
+	B := linalg[delrows] ( B, r+m..n );
+
+fi;
+
+
+# B := jgaussjord ( B );
+	
+
+evalm ( B );
+
+end;
+
+#
+#
+#
+#
+
+jprimpart := proc ( A, i )
+
+local tl,
+		ss,
+		j;
+
+
+tl := [seq ( tt[j], j = 1..linalg[coldim] ( A ) )];
+
+ss := add ( A[i,j] * tl[j], j = 1..linalg[coldim] ( A ) );
+
+ss := numer ( ss );
+
+ss := primpart ( ss, tl );
+
+ss := coeffslin ( ss, tl );
+
+ss := convert ( [ss], matrix );
+
+A := linalg[copyinto] ( ss, A, i, 1 );
+
+evalm ( A );
+
+end;
+
+#
+#
+#
+
+jgaussjord := proc ( A )
+
+local m, n,
+		k, i, j,
+		l, cc, p,
+		tl, tt,
+		q,
+		ss;
+
+
+m := linalg[rowdim] ( A );
+
+n := linalg[coldim] ( A );
+
+k := n;
+
+for i from m to 2 by -1 do
+
+	# print ( `Zeile i = `, i );
+
+	A := jprimpart ( A, i );
+
+	for j from 1 to k do
+	
+		if A[i,j] <> 0 then break; fi;
+		
+	od;
+
+	if A[i,j] = 0 then next; fi;
+
+	# print ( A[i,j], `k= `, k, `j = `, j, `i= `, i );
+
+	for l from i-1 to 1 by -1 do
+	
+		cc := A[l, j] / A[i, j];
+		
+		for p from j to n do
+		
+			A[l,p] := normal ( A[l,p] - cc * A[i, p] );
+			
+		od;
+		
+	od;
+
+	k := k - 1;
+	
+	if k < 1 then break; fi;
+	
+
+od;
+
+A := jprimpart ( A, 1 );
+
+evalm ( A );
+
+end;
+
+#
+#
+# Lieklammern der Vektoren v1, v2 mit Ergebnisvektor v3
+#
+#
+
+jliebracket := proc ( v1, v2, vars )
+
+local n,
+		v3,
+		i, j,
+		s;
+
+n := nops ( vars );
+
+v3 := linalg[vector] ( n );
+
+for j from 1 to n do
+
+	s := add ( v1[i] * diff ( v2[j], vars[i] ) - v2[i] * diff ( v1[j], vars[i] ),
+				i = 1..n );
+				
+	v3[j] := normal ( s );
+	
+od;
+
+eval ( v3 );
+
+end;
+
+#
+#
+#
+
+jextendrow := proc ( A, v )
+
+local n,
+		B;
+
+n := linalg[rowdim] ( A );
+
+B := linalg[extend] ( A, 1, 0, 0 );
+
+B := linalg[copyinto] ( convert ( linalg[transpose](v), matrix ), B, n+1, 1 );
+
+eval ( B );
+
+end;
+
+#
+#
+#
+
+jlinturnh := proc ( A )
+
+local m, n, B, i;
+
+m := linalg[rowdim](A);
+
+n := linalg[coldim](A);
+
+B := array ( 1..m, 1..n );
+
+
+for i from 1 to m do
+
+	B := linalg[copyinto] ( linalg[submatrix]( A, i..i , 1..n ), B, m - i + 1, 1 )
+
+od;
+
+eval ( B );
+
+end;
+
+#
+#
+#
+
+jlinturnv := proc ( A )
+
+local m, n,
+		B,
+		i;
+
+m := linalg[rowdim](A);
+
+n := linalg[coldim](A);
+
+B := array ( 1..m, 1..n );
+
+
+for i from 1 to n do
+
+	B := linalg[copyinto] ( linalg[submatrix]( A, 1..m, i..i ), B, 1, n - i + 1 )
+
+od;
+
+eval ( B );
+
+end;
+
+#
+#
+#
+
+
+jlindep := proc ( A0, k, v0 )
+
+local 	rnd,
+		idts,
+		sl,
+		A,
+		v,
+		m, n,
+		jmin, j, i,
+		v1, v2;
+
+A := A0;
+
+v := v0;
+
+if _jlindeprand = true then
+
+	rnd := rand ( 1..100 );
+
+	idts := indets ( [convert ( A, listlist ), convert ( v, list )] );
+
+	sl := map ( subs ( RND = rnd(), zz -> zz = RND ), [op(idts)] );
+
+	A := map ( subs ( SL = sl, zz -> subs ( SL, zz ) ), A );
+
+	v := map ( subs ( SL = sl, zz -> subs ( SL, zz ) ), v ); 
+
+fi;
+
+v1 := v;
+
+m := linalg[rowdim] ( A );
+
+n := linalg[coldim] ( A );
+
+jmin := 1;
+
+for i from k to m do
+
+	if linalg[iszero] ( v1 ) then
+	
+		RETURN ( true );
+		
+	fi;
+		
+	v2 := linalg[row] ( A, i );
+		
+	for j from jmin to n do
+
+		if v1[j] <> 0 or v2[j] <> 0 then 
+		
+			jmin := j;
+		
+			break;
+		
+		fi;
+		
+	od;
+
+	if v1[j] <> 0 then
+	
+		if v2[j] = 0 then
+		
+			RETURN ( false );
+			
+		else
+		
+			v1 := map ( normal, evalm ( v1 - v2 * v1[j] / v2[j] ));
+		
+		fi;
+		
+	fi;
+	
+od;
+
+if linalg[iszero] ( v1 ) then true; else false; fi;
+
+end;
+
+
+#
+#
+#
+
+
+makeJacobianForm := proc ( eql, fn )
+
+local vars,
+		A,
+		A1,
+		i, j,
+		n,
+		v1, v2, v3,
+		f,
+		eql1;
+
+
+vars := [op(fn)];
+
+A := jeqltomatrix ( eql, fn );
+
+A := jtridiag ( A );
+
+if not has ( [args], nobrackets ) then
+
+n := linalg[rowdim](A);
+
+i:= n;
+
+while i > 0 do
+
+	v1 := linalg[row] ( A, i );
+
+	f := false;
+
+	n := linalg[rowdim] ( A );
+
+	# print ( `i = `, i, `n = `, n );
+
+	for j from n to i + 1 by -1 do
+	
+		v2 := linalg[row] ( A, j );
+		
+		v3 := jliebracket ( v1, v2, vars );
+		
+		if not linalg[iszero] ( v3 ) then
+		
+			A := jextendrow ( A, v3 );
+			
+			A1 := jtridiag ( A, i );
+
+			if linalg[rowdim] ( A1 ) > linalg[rowdim] ( A ) - 1 then
+
+				A := A1;
+
+				f := true;
+
+				break;
+			
+			else
+			
+				A := A1;
+				
+			fi;
+
+		fi;
+		
+	od;
+	
+	i := eval(condev2 ( f = true, 'linalg[rowdim](A)', 'i - 1' ));
+		
+od;
+
+fi;
+
+eql1 := jmatrixtoeql ( A, fn );
+
+eql1;
+
+end;
+
+#
+# eine Erweiterung der vorherigen makeJacobianForm durch Einfuehrung der
+# jlindep Routine.
+#
+#
+
+makeJacobianForm := proc ( eql, fn )
+
+local vars,
+		A,
+		A1,
+		A0,
+		k,
+		i, j,
+		n,
+		v1, v2, v3,
+		f,
+		eql1, time0;
+
+
+if not assigned ( pffge ) then
+
+	with ( share );
+
+	readshare ( pffge, linalg );
+	
+fi;
+
+
+time0 := time ();
+
+
+vars := [op(fn)];
+
+A := jeqltomatrix ( eql, fn );
+
+A := jtridiag ( A );
+
+if not has ( [args], nobrackets ) then
+
+n := linalg[rowdim](A);
+
+i:= n;
+
+A0 := eval ( A );
+
+while i > 0 do
+
+	v1 := linalg[row] ( A, i );
+
+	f := false;
+
+	n := linalg[rowdim] ( A );
+
+	# print ( `i = `, i, `n = `, n );
+
+	k := 0;
+
+	for j from n to i + 1 by -1 do
+		
+		v2 := linalg[row] ( A, j );
+		
+		v3 := jliebracket ( v1, v2, vars );
+		
+		if not linalg[iszero] ( v3 ) then
+		
+			# print ( `jlindep called` );
+		
+			if jlindep ( A0, i, v3 ) then
+			
+				# print ( `jlindep finished` );
+			
+				next; 
+				 
+			fi;
+	
+			# print ( `jlindep found lindep vector` );			
+			
+						
+			A := jextendrow ( A, v3 );
+
+			k := k + 1;
+			
+		fi;
+		
+	od;
+
+	if k > 0 then
+
+		# print ( `tridiag called ` );
+
+		A1 := jtridiag ( A, i );
+
+		A0 := eval ( A1 );
+
+		if linalg[rowdim] ( A1 ) > linalg[rowdim] ( A ) - k then
+
+			A := A1;
+
+			f := true;
+
+		else
+
+			# print ( `call futile` );
+
+			A := A1;
+
+		fi;
+
+	fi;
+
+	i := eval(condev2 ( f = true, 'linalg[rowdim](A)', 'i - 1' ));
+
+	n := linalg[rowdim] ( A );
+		
+od;
+
+fi;
+
+eql1 := jmatrixtoeql ( A, fn );
+
+# print ( `used time for makeJacobianForm : `, time() - time0 );
+
+eql1;
+
+end;
+
+
+
+
+

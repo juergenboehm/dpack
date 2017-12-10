@@ -1,0 +1,169 @@
+
+remdep ( [xi, eta] );
+
+depend ( [xi,eta], [x,y] );
+
+
+####################################################################################
+#
+#   Group g 2, 26
+#
+#
+
+
+dcancoord_g2_26_ffff := proc ( jb, fs )
+
+local	fs1,
+		jb1,
+		uu,
+		eql,
+		I1,
+		cnstnts, cns,
+		phiv, phiv1,
+		erg,
+		tstlist,
+		sl1,
+		xx00v,
+		yy00v,
+		sxy,
+		rxy,
+		i,
+		res;
+
+
+fs1 := [xi, eta];
+
+jb1 := dchangefs ( jb, fs, fs1 );
+
+
+uu := UU (x,y);
+
+# berechne I1 = sx * ry - sy * rx
+
+
+eql := dgetresolve ( [2, 26, ffff], jb1, fs1, [ID_EQ1, ID_EQ2] );
+
+eql := map ( rhs, eql );
+
+eql := map ( (xx,yy)->normal(xx/yy), eql, uu );
+
+I1 := dgenQuadr ( op ( eql ), [x,y] );
+
+I1 := exp ( I1 );
+
+I1 := dsimplify ( I1, symbolic );
+
+
+# berechne u, mit der generischen Loesung (sx+a*rx)/(sy+a*ry)
+
+eql := dgetresolve ( [2, 26, ffff], jb1, fs1, [ID_EQ3, ID_EQ4] );
+
+erg := dRiccatiSys ( op ( eql ), uu );
+
+cnstnts := erg[3];
+
+cns := cnstnts[1];
+
+phiv := rhs ( erg[1] );
+
+
+tstlist := [seq ( i, i=1..100 ), seq ( -i, i=1..100 )];
+
+tstlist := sort ( tstlist, (xx,yy)->evalb ( abs(xx) < abs (yy) ) );
+
+
+eql := [];
+
+for i in tstlist do
+
+	if nops ( eql ) = 3 then break; fi;
+
+	phiv1 := traperror ( dnormal ( subs ( cns = i, phiv ) ) );
+
+	if not type ( phiv1, string ) then
+
+		eql := [op(eql), (sx+i*rx)/(sy+i*ry) = phiv1 ];
+
+	fi;
+
+od;
+
+if nops ( eql ) < 3 then
+
+	ERROR ( `could not find enough defined points` );
+	
+fi;
+
+
+eql := [op(eql), sx * ry - sy * rx = I1];
+
+
+sl1 := solve ( {op(eql)}, {sx,sy,rx,ry} );
+
+sxy := dnormal ( subs ( sl1, [sx, sy] ) );
+
+rxy := dnormal ( subs ( sl1, [rx, ry] ) );
+
+
+xx00v := dgenQuadr ( op ( sxy ), [x,y] );
+
+yy00v := dgenQuadr ( op ( rxy ), [x,y] );
+
+
+res := dnormal ( [xx00v, yy00v] );
+
+
+res := [ [], res, [] ];
+
+end;
+
+
+#
+#
+#
+#
+
+tempforgetdep ();
+
+
+cancoordsetup_g2_26 := proc ()
+
+local rivs1,
+		rivs2,
+		uu,
+		vf;
+
+
+# Fall ffff
+
+iginit ( [2, 26, ffff] );
+
+igdefgrp(G1,[p,q,xx*q,yy*p,xx*p-yy*q]);
+
+igdefgrp(G2,[p,q,xx*q,xx*p-yy*q]);
+
+
+rivs1 := igrelinvars ( G0, G1, 2 );
+
+uu := -yy[0,1]*xx[1,0]+yy[1,0]*xx[0,1];
+
+vf:=rivs1[1][1];
+
+igrelinvdiscuss1(uu,vf,ID_EQ1,ID_EQ2);
+
+
+rivs2:=igrelinvars(G1,G2,2);
+
+uu := xx[1,0]/xx[0,1];
+
+vf:=rivs2[1][1];
+
+igrelinvdiscuss1(uu,vf,ID_EQ3,ID_EQ4);
+
+end;
+
+restoredep();
+
+
+
+

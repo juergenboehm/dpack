@@ -1,0 +1,24 @@
+
+FUNCTION: lowerEquation - returns lower Equation of a transformation group of 
+                            the plane 
+   
+CALLING SEQUENCE:
+   lowerEquation ( veclist, vBLists, varLists )
+      
+PARAMETERS:
+   veclist      - a list of expressions
+   vBLists      - a list of two lists of indeterminates
+   varLists     - a list of two lists of variables 
+      
+SYNOPSIS:   
+- veclist gives a list of vectorfields in the notation described in connection with
+  'makeDeterminingSystem' and 'dprolong'. vBLists and varLists are the accompanying
+  systems of indeterminates and variables.
+  
+- The function computes the lower Equation of the lie-algebra of transformations given
+  by veclist.
+      
+EXAMPLES:   
+      
+SEE ALSO: invariantEquation
+

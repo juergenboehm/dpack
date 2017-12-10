@@ -1,0 +1,463 @@
+#
+#
+
+RESULTSBASEDIR := cat( MAPLEHOME, `/results` );
+
+INVARIANTSDIRNAME := `integrtinv`;
+
+MATCHDIRNAME := `matchtable`;
+
+INVARIANTSDIR := cat ( RESULTSBASEDIR, `/`, INVARIANTSDIRNAME );
+
+MATCHDIR := cat ( RESULTSBASEDIR, `/`, MATCHDIRNAME );
+
+#
+#
+
+setRESULTSBASEDIR := proc ( dd )
+
+local oldd;
+
+global RESULTSBASEDIR;
+
+oldd := RESULTSBASEDIR;
+
+RESULTSBASEDIR := dd;
+
+oldd;
+
+end;
+
+
+#
+#
+#
+#
+
+makeINVFILENAME := proc ( typinfo )
+
+local INVFILENAME;
+
+global INVARIANTSDIR;
+
+INVFILENAME := cat ( INVARIANTSDIR, `/`, `group_g` );
+INVFILENAME := cat ( INVFILENAME, maketypinfostring ( typinfo ) );
+
+end;
+
+#
+#
+
+makeMATCHFILENAME := proc ( typinfo )
+
+local MATCHFILENAME;
+
+global MATCHDIR;
+
+MATCHFILENAME := cat ( MATCHDIR, `/match_g`, maketypinfostring ( typinfo ) );
+
+end;
+
+#
+#
+
+makeJBSFILENAME := proc ( typinfo )
+
+local liedim,
+		lienr,
+		subtypnr,
+		speclabel,
+		tn,
+		ti2,
+		gls,
+		JBSFILE;
+		
+global RESULTSBASEDIR;
+
+liedim := getliedim ( typinfo );
+lienr := getlienr ( typinfo );
+
+tn := liedim, lienr;
+
+subtypnr := getsubtypnr ( typinfo );
+
+if subtypnr <> FAIL then
+
+	tn := tn, subtypnr;
+	
+fi;
+
+ti2 := gettypinfo2 ( typinfo );
+
+if ti2 <> FAIL then
+
+	tn := tn, op ( ti2 );
+	
+fi;
+
+
+gls := maketypinfostring ( [tn] );
+
+JBSFILE := cat ( RESULTSBASEDIR, `/jbslists/`, `g`, liedim, `_lists`,`/`,
+					   `g`, gls);
+
+JBSFILE;
+
+end;
+
+#
+#
+#
+
+makeSAVEFILENAME := proc ( fname )
+
+cat ( RESULTSBASEDIR, `/save/`, fname );
+
+end;
+
+
+#
+#
+#
+#
+
+fileExists := proc ( fname )
+
+RETURN ( op(1, ssystem( cat ( `test -r `, fname ))) = 0);
+
+end;
+
+#
+#
+#
+
+CACHEDIR := cat ( RESULTSBASEDIR, `/`, `cache` );
+
+#
+#
+
+getfromcache := proc ( prcname, argl )
+
+local CACHEFILE,
+		res;
+
+global _cacheOn, CACHEVALARR;
+
+if _cacheOn = false then
+
+	RETURN ( FAIL );
+	
+fi;
+
+CACHEFILE := cat ( CACHEDIR, `/`, prcname );
+
+if not fileExists ( CACHEFILE ) then
+
+	RETURN ( FAIL );
+
+fi;
+
+tempforgetdep ();
+
+read CACHEFILE;
+
+restoredep ();
+
+if CACHEVALARR[argl] = evaln ( CACHEVALARR[argl] ) then
+
+	res := FAIL ;
+	
+else
+
+	res := CACHEVALARR[argl] ;
+
+fi;
+
+unassign ( 'CACHEVALARR' );
+
+res;
+
+end;
+
+
+#
+#
+#
+
+savetocache := proc ( prcname, argl, val )
+
+local CACHEFILE;
+
+global _cacheOn, CACHEVALARR;
+
+if _cacheOn = false then
+
+	RETURN ();
+	
+fi;
+
+
+CACHEFILE := cat ( CACHEDIR, `/`, prcname );
+
+tempforgetdep ();
+
+if fileExists ( CACHEFILE ) then
+
+	read CACHEFILE;
+
+fi;
+
+CACHEVALARR[argl] := val;
+
+save CACHEVALARR, CACHEFILE;
+
+restoredep();
+
+unassign ( 'CACHEVALARR' );
+
+end;
+
+#
+#
+#
+
+clearcache := proc ( prcname, argl )
+
+local CACHEFILE;
+
+global CACHEVALARR;
+
+CACHEFILE := cat ( CACHEDIR, `/`, prcname );
+
+if not fileExists ( CACHEFILE ) then
+
+	RETURN ( FAIL );
+
+fi;
+
+tempforgetdep ();
+
+read CACHEFILE;
+
+CACHEVALARR[argl] := evaln ( CACHEVALARR[argl] );
+
+save CACHEVALARR, CACHEFILE;
+
+restoredep();
+
+unassign ( 'CACHEVALARR' );
+
+end;
+
+#
+#
+
+mergecache := proc ( infnl, outfn, prcname )
+
+local cachevalarr, CACHEFILE,
+		iseq,
+		infn,
+		idxl1, idxl2, idxl3,
+		idxmerge,
+		v1, v2,
+		idx,
+		res;
+
+global CACHEVALARR;
+
+
+iseq := _mergecachefun[prcname];
+
+tempforgetdep ();
+
+cachevalarr := table ( [] );
+
+
+for infn in infnl do
+
+	CACHEFILE := cat ( CACHEDIR, `/`, infn );
+	
+	if not fileExists ( CACHEFILE ) then
+	
+		next;
+		
+	fi;
+	
+	read CACHEFILE;
+	
+	idxl1 := {indices ( cachevalarr )};
+	
+	idxl2 := {indices ( CACHEVALARR )};
+	
+	idxl3 := idxl1 intersect idxl2;
+	
+	idxmerge := idxl2;
+
+	if nops ( idxl3 ) > 0 then
+
+		for idx in idxl3 do
+		
+			v1 := cachevalarr[op(idx)];
+			v2 := CACHEVALARR[op(idx)];
+			
+			if not iseq ( v1, v2 ) then
+		
+				print ( idx );
+			
+				print (v1);
+				
+				print ( v2 );
+				
+			
+				restoredep ();
+				
+				print ( FAIL );
+		
+				idxmerge := idxmerge minus {idx};		
+				
+
+			fi;
+			
+		od;
+			
+	fi;
+	
+	for idx in idxmerge do
+	
+		cachevalarr[op(idx)] := CACHEVALARR[op(idx)];
+		
+	od;
+	
+od;
+
+CACHEVALARR := eval(cachevalarr);
+
+CACHEFILE := cat ( CACHEDIR, `/`, outfn );
+
+save CACHEVALARR, CACHEFILE;
+
+restoredep ();
+
+res := CACHEVALARR;
+
+unassign ( 'CACHEVALARR' );
+
+res;
+
+end;
+
+#
+#
+
+_mergecachefun := table ( [] );
+
+_mergecachefun[igcoeffbase] := (aa,bb)->evalb(convert(zip((uu,vv)->evalb(normal(uu-vv)=0),
+eq2expr(aa), eq2expr(bb) ), `and`) );
+
+#
+#
+
+cacheindices := proc ( fname )
+
+local CACHEFILE,
+		res;
+
+CACHEFILE := cat ( CACHEDIR, `/`, fname );
+
+if not fileExists ( CACHEFILE ) then
+
+	RETURN ( FAIL );
+	
+fi;
+
+tempforgetdep ();
+
+read CACHEFILE;
+
+res := [indices(CACHEVALARR)];
+
+restoredep ();
+
+unassign ( 'CACHEVALARR' );
+
+res;
+
+end;
+
+#
+#
+#
+
+askvalue := proc ()
+
+local inp;
+
+while true do
+
+	print ( args[1] );
+
+	inp := parse ( readline ( terminal ) );
+	
+	if (nargs = 1) or (nargs > 1 and member ( inp, args[2] )) then
+	
+		break;
+		
+	fi;
+	
+od;
+
+inp;
+
+end;
+
+
+#
+#
+#
+#
+
+
+setMAPLENAME := proc ()
+
+local erg;
+
+global MAPLENAME;
+
+erg := ssystem ( `hostname` );
+
+erg := erg[2];
+
+erg := substring ( erg, 1..length(erg) - 1 );
+
+if assigned ( MAPLENAMETAB[erg] ) then
+
+	MAPLENAME := MAPLENAMETAB[erg];
+	
+else
+
+	MAPLENAME := `maple`
+	
+fi;
+
+end;
+
+#
+#
+#
+
+MAPLENAMETAB := table ([]);
+
+MAPLENAMETAB[`linux`] := `maple3`;
+
+MAPLENAMETAB[`casun`] := `maple`;
+
+#
+#
+
+setMAPLENAME ();
+
+#
+#
+#
+#
+#

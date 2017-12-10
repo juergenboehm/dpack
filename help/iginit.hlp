@@ -1,0 +1,54 @@
+
+FUNCTION: iginit, igdefgrp, igsetgrp, igiv, iprolong, iginvars, igapply, iggenfunc
+   
+CALLING SEQUENCE:
+   iginit ( typinfo )
+   igdefgrp ( name, vflist )
+   igsetgrp ( name )
+   
+   igiv ( list )
+   igiv ( range )
+   
+   igprolong ( order )
+   
+   iginvars ( order )
+   
+   igapply ( vflist, fnc )
+   
+   iggenfunc ( name, order )
+      
+PARAMETERS:
+   typinfo      - a group type designator
+   name         - a name
+   vflist       - a list of vectorfields
+   list         - a list of integers
+   range        - a range of integers
+   order        - an integer
+     
+SYNOPSIS:     
+  
+EXAMPLES:   
+      
+      iginit ( [3, 13, ffff] );
+      
+      igdefgrp ( G1, igiv ( [1,2,3] ) );
+      
+      igsetgrp ( G0 );
+      
+      igshowgrps ();
+        
+      
+      igiv ( [1,2,4] );
+      
+      igiv ( 2..4 );
+            
+      
+      igprolong ( 3 );
+      
+      iginvars ( 3 );
+      
+      iggenfunc ( gg, 3 );
+      
+      
+SEE ALSO: 
+

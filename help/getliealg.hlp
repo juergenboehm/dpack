@@ -1,0 +1,29 @@
+
+FUNCTION: getliealg - returns lie algebra of specified lie-number 
+   
+CALLING SEQUENCE:
+   getliealg ( lienr, ldim )
+      
+PARAMETERS:
+   lienr    - an integer
+   ldim     - ( optional ) an integer
+      
+SYNOPSIS:   
+- There exists a standard numbering of the 27 lie algebra types occuring as transformation
+  groups of the plane, which is given e.g. in 
+ 
+    Lie, Gesammelte Abhandlungen, V. Band, 1.Abt, S. 248 ff.
+    
+- This function returns for a given lie number ( parameter lienr ) the lie algebra belonging
+  to it. Some lie algebra numbers actually specify a series of infinitely many lie algebras.
+  In these cases it is compulsory to give the dimension of the lie algebra by using ldim. 
+  In some cases several lie algebras fall under a combination of lienr / ldim and will be 
+  returned altogether as elements of a list.
+  
+- The lie algebra itself is given in the standard form described by Lie and in the
+  notation for vectorfields explained in connection with the 'vliebrack' function. 
+      
+EXAMPLES:   
+      
+SEE ALSO: vliebrack, vliesubs
+

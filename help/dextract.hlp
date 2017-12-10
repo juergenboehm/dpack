@@ -1,0 +1,32 @@
+
+FUNCTION: dextract - Extracts those part of a linear partial differential
+                     equation (LPDE ) that contains a given list of 
+                     differential monomials 
+      
+          dselect  - Extracts those part of a given LPDE whose monomials
+                     fulfill a given condition
+      
+      
+CALLING SEQUENCE:
+   dextract(e, fs, ldm)
+   deselect(e, fs, fun)
+      
+PARAMETERS:
+   e     - an expression
+   fs    - a list of functions of the same independent variables
+   ldm   - a list of differential monomials
+   fun   - a function
+      
+SYNOPSIS:   
+- The function dextract considers e as an LPDE in the functions given in fs
+  and returns those part of e that contains only differential monomials from
+  ldm.   
+   
+- The function dextract considers e as an LPDE in the functions given in fs
+  and returns those part of e that contains only differential monomials on
+  which the function fun, when applied, returns true.
+      
+EXAMPLES:   
+      
+SEE ALSO:    
+

@@ -1,0 +1,138 @@
+
+=====================================================================
+
+0. Generalities
+
+   dpack v 0.1.0 (06/Aug/2003)
+
+   by Jürgen Böhm <jboehm@gmx.net>
+
+   dpack is copyright 1996-2003 by Jürgen Böhm
+   There is no warranty; not even an implied warranty
+   for merchantability or fitness for any particular purpose.
+
+   available from http://www.aviduratas.de/compalg.html
+
+=====================================================================
+
+1. Introduction
+   ============
+   
+   dpack is a collection of routines for maple (currently maple8)
+   which are intended for calculations in the context of symmetries
+   of differential equations.
+   Specifically the system contains code for solving a great variety
+   of ODEs up to order 3 by symmetry analysis.
+   
+
+
+=====================================================================
+
+2. Installation and Use
+   ====================
+
+   UNIX/Linux
+   ==========
+   
+   Let us assume that /home/yourname is your home directory ($HOME)
+   
+   Then do the following:
+   
+   1. create one after the other the following directories:
+   
+   /home/yourname/maple
+   /home/yourname/maple/packages
+   
+   if they don't exist yet.
+   
+   2. copy dpack.tar.gz into /home/yourname/maple/packages
+   3. cd /home/yourname/maple/packages
+   4. gunzip dpack.tar.gz
+   5. tar -xvf dpack.tar
+   
+   Now a subdirectory dpack exists in /home/yourname/maple/packages
+   cd into this directory.
+   
+   6. Open the file readdpack into an editor of your choice.
+   7. Replace /home/juergen/maple at the beginning of readdpack by
+   /home/yourname/maple
+   8. Now the distribution is ready to be used in maple.
+   
+   For using it, enter at any time in your maple session the command:
+   
+      
+	  read `/home/yourname/maple/packages/dpack/readdpack`;
+   
+   (or use any other accessible path ending in dpack/readdpack)
+   
+   Windows
+   =======
+   
+   It should be easy to adapt dpack to a Windows version of maple, but
+   at current there was no demand for it.
+   
+=====================================================================
+
+3. Documentation
+   =============
+   
+   At the moment there is not much documentation. The subdirectory
+   examples/ contains worksheets demonstrating certain capabilities of
+   the system:
+   
+   dpack-overview-1.mws
+   
+   contains computations of the determining system for the symmetries of
+   several ODEs and PDEs together with solutions for these determining
+   systems.
+   
+   dpack-overview-2.mws
+   
+   contains an example of LPDE system factorization by the eigenring
+   method invented by Singer and extended by van Hoeij. I extended it to
+   LPDEs at the end of 1997.
+   
+   dpack-overview-3.mws
+   
+   contains an example of LPDE system factorization by a different method,
+   which is similar to a method Dr. Schwarz described for ODEs in 1989 and was
+   developed by me at the end of 1999.
+   
+   Additionally there exist maple help pages for certain functions
+   of the dapck system, but they cover only a small portion of the systems
+   functions.
+   
+   You can try
+   
+   ?dpack
+   
+   to get an overview (warning: the help(dpack,...) calls mentioned there
+   are not implemented yet).
+   
+   and for some important examples
+   
+   ?makeJanetBase
+   ?makeDeterminingSystem
+   ?dprolong
+   ?vectfToDeq
+   
+   see the help/ subdirectory of dpack/ for a list of all implemented help
+   pages. All *functionname*.hlp files can be called up in maple by
+   ?*functionname*
+   
+   If you are interested in using the system and are in need of more
+   information, please write me (see e-mail above) and describe, what you
+   intend to do. I will then supply the necessary information. (This is easier
+   for me, than writing a bulky documentation in advance without knowing
+   if anyone will read it). 
+   
+   
+   
+   
+   
+   
+   
+
+   
+
+        

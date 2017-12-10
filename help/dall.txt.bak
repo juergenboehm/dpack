@@ -1,0 +1,930 @@
+
+FUNCTION: makeDeterminingSystem - Compute the differential equations that have
+								  as their solutions the infinitesimal
+								  symmetries of a propounded system of
+								  differential equations
+      
+CALLING SEQUENCE:
+   makeDeterminingSystem(deqs, varLists, fns)
+      
+PARAMETERS:
+   deqs 	- a list of differential equations
+   varLists	- a list of two lists of variables
+   fns		- a list of functions
+      
+SYNOPSIS:   
+- The function makeDeterminingSystem computes a system of linear partial
+  differential equations in the functions given in fns.
+  
+- The solutions to these DEs are the infinitesimal symmetries of the DEs given
+  in deqs.
+  
+- The parameter varLists contains the relevant variables for the propounded
+  problem in form of a list of two sublists.
+  The first sublist contains the independend variables of the problem, the 
+  second the dependend ones ( compare the explanation at the dprolong help page ).
+  
+- For ease of input it is allowed that the members of the list of dependend
+  variables in varLists are actually functions ( of the independend variables ).
+
+- The functions in fns correspond to the variables in varLists according to
+  the order in which they are written.
+  Each function stands for the infinitesimal movement, that the corresponding
+  variable is undergoing.
+ 
+  That is if varLists = [[x],[y]] and fns = [xi(x,y), eta(x,y)], then the
+  infinitesimal symmetries that the function tries to determine are sought under
+  the form of
+  
+     xi * d/dx + eta * d/dy   ( read d-partial for d )
+     
+    
+EXAMPLES:   
+      
+SEE ALSO:
+
+
+
+FUNCTION: makeJanetBase - computes the Janet-Base of a system of linear 
+						  homogeneous partial differential equations ( LPDEs )
+      
+CALLING SEQUENCE:
+   makeJanetBase(elist, fs)
+      
+PARAMETERS:
+   elist	- a list of expressions
+   fs   	- a list of functions of the same independent variables
+      
+SYNOPSIS:   
+- The function makeJanetBase considers elist as a list of LPDEs in the functions
+  given in fs and returns the Janet-Base of these LPDEs
+   
+- Several global variables affect the operation of makeJanetBase. These are
+
+	_spprocess		_spcoeff		_spfun
+	_verbose
+	_xvers
+	
+	_assertlist		_assumelist		_watchlist
+	
+	
+  They have the following meaning :
+  
+  If _spcoeff is assigned a function, this function is applied to coefficients
+  of the LPDEs during the computation. _spprocess should be assigned true in
+  this case, unassigned otherwise.
+  
+  If _spfun is assigned a function, this function will be applied to the
+  coefficients of LPDEs newly generated during the computation as so called
+  integrability conditions.
+  
+  If _verbose is assigned true a certain amount of information about the ongoing
+  computation is printed.
+  
+  If _xvers is assigned true a different method of autoreduction is employed 
+  that seems advantageous on systems with large equations.
+  		
+  The following mechanism is intended for classification problems : 
+
+  If _watchlist is assigned a list of expressions, preferably functions, a set
+  of expressions is returned in _assumelist that must be <> 0 for the result of
+  the Janet-Base computation to be correct.
+
+  These expressions are coefficients or factors of coefficients that contain
+  members of the list _watchlist, and are assumed <> 0 during the computation -
+  typically leading coefficients or contents of the LPDEs.
+  
+  _assertlist is a list of expressions that are asserted beforehand to be <> 0 
+  to avoid taking unnecessary elements into _assumelist.
+  
+  CAUTION 1 : _watchlist and _assertlist are lists, _assumelist is a set ( ! ).
+  
+  CAUTION 2 : _assumelist must be set to {} when activating this mechanism by
+  	  setting  _watchlist to some value.
+  	  
+- The computation may take some time with problems of larger size.
+      
+EXAMPLES:   
+      
+SEE ALSO: dterms
+
+FUNCTION: dxmakeJanetBase - computes a normal form of a system of linear or nonlinear
+							differential equations
+      
+CALLING SEQUENCE:
+   dxmakeJanetBase(eqlist, fs)
+      
+PARAMETERS:
+   eqlist	- a list of expressions
+   fs   	- a list of functions of the same independent variables
+      
+SYNOPSIS:   
+- The elements of elist are the differential equations represented in a special form
+  as lists of six elements.
+ 
+  This representation can be produced from a list of differential equations
+  by the function dxmakeeql.
+   
+- Several global variables affect the operation of makeJanetBase. These are
+
+	_verbose
+	
+	_minimalspace	_doeconsubs
+	
+	_dxfastmode
+
+	_assertlist		_assumelist		_watchlist
+	
+	
+	_eqsubsl	_dxaddlist
+	
+  They have the following meaning :
+    
+  If _verbose is assigned true a certain amount of information about the ongoing
+  computation is printed.
+  
+  If _minimalspace is assigned true, certain expressions are reduced by convert[horner]
+  during calculation.
+  
+  If _doeconsubs is assigned true, then certain substitutions are done in a way, that
+  saves memory space.
+  
+  _mimimalspace and to a greater extent _doeconsubs tend to slow down the computation 
+  when activated
+
+  _dxfastmode when set to true allows for several reductions to be done without
+  forcing resorting the list of equations by the head terms after each reduction. It tends
+  to speed up the calculation when activated.
+
+  The following mechanism is intended for classification problems : 
+
+  If _watchlist is assigned a list of expressions, preferably functions, a set
+  of expressions is returned in _assumelist that must be <> 0 for the result of
+  the Janet-Base computation to be correct.
+
+  These expressions are coefficients or factors of coefficients that contain
+  members of the list _watchlist, and are assumed <> 0 during the computation -
+  typically leading coefficients or contents of the LPDEs.
+  
+  _assertlist is a list of expressions that are asserted beforehand to be <> 0 
+  to avoid taking unnecessary elements into _assumelist.
+  
+  CAUTION 1 : _watchlist and _assertlist are lists, _assumelist is a set ( ! ).
+  
+  CAUTION 2 : _assumelist must be set to {} when activating this mechanism by
+  	  setting  _watchlist to some value.
+  	  
+  	  
+  _eqsubsl is a list of substitutions applied to coefficient expressions, that is
+  expressions not containing functions of fs, during calculation, to decide if
+  they are zero.
+  
+  _dxaddlist is a list of substitutions applicable to functions from fs and their
+  derivatives. They are applied during calculation and included as equations into
+  the equations of eqlist.
+
+- An order has to be fixed for the elements of fs by using the setcotes mechanism prior
+  to the computation.
+
+- The computation may take some time with problems of larger size.
+      
+EXAMPLES:   
+      
+SEE ALSO: dxmakeeql
+
+
+
+FUNCTION: parmElim - computes an implicit representation of a parameterized 
+					 family of functions by a system of differential equations
+      
+CALLING SEQUENCE:
+   parmElim(eqlist, vars, parms)
+      
+PARAMETERS:
+   eqlist	- a list of expressions
+   vars   	- a list of variables
+   parms	- a list of variables
+      
+SYNOPSIS:   
+- The function parmElim receives as its first argument a list of expressions of
+  a special kind:
+  
+  These expressions have to be of the form
+  
+  		f(x,y,z,...)-g(x,y,z,...,a,b,c,...)
+  		
+  where f(x,y,z,...) is a function standing for itself and 
+  g(x,y,z,...,a,b,c,...) stands for any expression involving the argument 
+  variables.
+  
+  x,y,z,... are called the variables and are given in the argument vars.
+  a,b,c,... are called the parameters and are given in the argument parms.
+  
+  What is given in this way is called a family of functions depending on the
+  parameters a,b,c,...
+  
+- parmElim returns a list of differential equations in the f(x,y,z,...) that 
+  have as their general solution exactly the family of functions given in eqlist.
+  
+- The algorithm is guaranteed to terminate when g(x,y,z,...,a,b,c,...) is
+  linear in a,b,c,... , in the other cases it may either not terminate, stop 
+  with error or give erroneous answers.
+
+     
+EXAMPLES:   
+      
+SEE ALSO: vectfToDeq
+
+
+
+FUNCTION: vectfToDeq 	   - computes a representation by differential equations
+							 for an explicitly given list of vectorfields
+
+		  vectfToJanetBase - does afterwards additionally compute the Janet-Base
+		  					 of these differential equations
+      
+CALLING SEQUENCE:
+   vectfToDeq(vfList, fs)
+   vectfToDeq(vfList, fs, vB )
+
+   vectfToJanetBase(vfList, fs)
+   vectfToJanetBase(vfList, fs, vB )
+      
+PARAMETERS:
+   vfList	- a list of expressions
+   fs   	- a list of functions
+   vB		- (optional) a list of variables
+         
+SYNOPSIS:   
+- The first argument vfList is a list of expressions of a special kind, 
+  representing vectorfields.
+  
+  These expressions are linear in the auxiliary indetrminates p, q (default) or 
+  in the indeterminates given by vB. Their coefficients are functions of the
+  variables, on which the functions in fs depend.
+  
+  The meaning of such an expression f(x,y) * p + g(x,y) * q ( to take an example )
+  is that of a vectorfield in the plane f(x,y) * d/dx + g(x,y) * d/dy, and
+  analogously that of a vectorfield in n dimensions, when vB contains n
+  auxiliary indeterminates and the functions in fs depend on n variables.
+  
+- The second argument is a list of functions depending on 2 ( default ) or as
+  much variables, as are contained in vB.
+  
+- See also the help to vliebrack for the notation.
+  
+- Let [f1,..,fn] be fs. Then vectfToDeq computes a list of linear partial
+  differential equations in the fi, so that the general solution to these DEs
+  spans exactly the vectorspace generated by the list of vectorfields given in
+  the argument vfList, that is
+  
+  f1 * p1 + ... + fn * pn
+  
+  takes all the values possible by linear combination ( with constant 
+  coefficients ) of the vectorfields in vfList, when solutions of the 
+  aforementioned DEs are inserted, and no other values.
+  
+- vectfToJanetBase simplifies the result from vectfToDeq by computing a 
+  Janet-Base of these equations.
+  
+  CAUTION: in that case cotes must be assigned to the functions in fs.
+  
+- The reader might note this to be a special case of the computation done by
+  parmElim
+  
+EXAMPLES:   
+      
+SEE ALSO: parmElim, vliebrack
+
+
+
+FUNCTION: vliebrack - computes the lie bracket of two vectorfields
+    
+CALLING SEQUENCE:
+   vliebrack(vf1, vf2)
+   vliebrack(vf1, vf2, vars)
+   vliebrack(vf1, vf2, vars, vB)
+
+      
+PARAMETERS:
+   vf1, vf2	- two expressions
+   vars   	- (optional) a list of variables
+   vB		- (optional) a list of variables
+         
+SYNOPSIS:   
+- The arguments vf1, vf2 are two vectorfields given as linear expressions in
+  a number of auxiliary indeterminates. These are by default p, q, but can
+  be set otherwise by giving the argument vB to the function.
+
+- Let p1,...,pn these indeterminates, f1,...,fn their coefficients.
+  
+  The expression
+  
+  	f1 * p1 + .... + fn * pn
+  	
+  is then meant to stand for the vectorfield in n dimensions
+  
+    f1 * d/dx1 + ... + fn * d/dxn  ( read delta for d )
+    
+  The fi are functions of n variables which are by default ( n = 2 ) assumed to
+  be x, y, but can be set otherwise by giving the argument vars to vliebrack.
+
+- The result is the lie-bracket of vf1 and vf2, given in the notation explained
+  above:
+  						
+  [fi * pi, gj * pj] =  sum (fi *d(gj)/dxi - gi * d(fj)/dxi ) * pi
+				        i=1..n, j= 1..n
+ 
+  
+EXAMPLES:   
+      
+SEE ALSO: vectfToDeq
+
+
+FUNCTION: vliesubs - computes the representation of vectorfields after a change
+					 of coordinates
+    
+CALLING SEQUENCE:
+   vliesubs(vfl, vB, varsubs)
+      
+PARAMETERS:
+   vfl 		- a list of expressions
+   vB		- a list of variables
+   varsubs	- a list of equations
+         
+SYNOPSIS:   
+- The first argument is a list of vectorfields in the notation explained in
+  the help to vectfToDeq and vliebrack.
+  
+- vB is the list of auxiliary indeterminates used in the abovementioned
+  representation - note that on the contrary to e.g. vectfToDeq there are no
+  default values for vB or the variables here.
+  
+- varsubs is a list of equations of the form
+
+	variable = f(x,y,z,... )
+	
+  The variables on the left sides of the equations must be the old coordinates,
+  in which the vectorfields in vfl are given, the right sides are the functions,
+  by which these old coordinates have to be replaced.
+  
+  CAUTION: The functions on the right must depend on the variables of the left
+  		   sides, that is, the names of the variables remain unchanged, which
+  		   might be a bit uncommon, thinking for example of
+  		   
+  		   		x = r * cos(phi),	y= r * sin(phi)
+  		   		
+  		   	which must be written as
+  		   	
+  		   		x = x * cos(y),		y= x * sin(y)
+  		   		
+  		   	( or change x,y )
+  		   	
+- The function vliesubs returns the vectorfields in the new coordinates.
+
+  
+EXAMPLES:   
+      
+SEE ALSO: vectfToDeq
+
+
+
+FUNCTION: structConst - computes the structure constants of an algebra of
+						vectorfields
+
+    
+CALLING SEQUENCE:
+   structConst(vfList, vars)
+   structConst(vfList, vars, vB)
+      
+PARAMETERS:
+   vfList 	- a list of expressions
+   vars		- a list of variables
+   vB		- (optional) a list of variables
+         
+SYNOPSIS:   
+- vfList is a list of vectorfields in the notation explained in vectfToDeq or
+  vliebrack.
+  
+- The vars which are the space-coordinates of the vectorfields are given in 
+  vars, the auxiliary indeterminates in the optional argument vB. Default is 
+  p, q, that is a vectorfield in the plane.
+  Obviously vB and vars must have the same number of elements.
+ 
+- The vectorfields in vfList must form a lie-algebra under the lie-bracket 
+  ( this is not checked ) otherwise errors result or the answer is meaningless.
+  
+- The result is a table of three indices, giving the structure constants, that 
+  is, if 
+  
+     vfList = [X1,...,Xn]
+     
+  then the result is C[i,j,k] with 1 <= i,j,k <= n and the relation
+  
+     ((Xi,Xj)) = sum C[i,j,k] * Xk
+  			   k=1..n
+  
+  ((Xi,Xj)) meaning the lie-bracket of Xi, Xj.
+
+- It is possible that the correct result will not be found, usually because the 
+  expressions giving the vectorfields are too complicated to solve automatically
+  for the C[i,j,k] in the defining equation above
+
+  
+EXAMPLES:   
+      
+SEE ALSO: vectfToDeq
+
+
+FUNCTION: makeCommBase - to a given Janet-Base representation of a lie-algebra of
+ 						 vectorfields this function computes a system of 
+ 						 differential equations determining the commutator-algebra
+ 						 of this lie-algebra  
+
+CALLING SEQUENCE:
+   makeCommBase(jb, fs)
+      
+PARAMETERS:
+   jb	- a list of expressions
+   fs   - a list of functions of the same independent variables
+      
+SYNOPSIS:   
+- The expressions in jb must be a Janet-Base consisting of monic linear 
+  homogeneous partial differential equations ( LPDEs ) in the functions in fs
+  with a finite dimensional solution space, which is additionally a lie-algebra
+  under the lie-bracket.
+  
+  Such systems of LPDEs arise for example as Determining Systems of the 
+  symmetries of a differential equation.
+  
+  CAUTION : note the requirement for finite-dimensionality of the algebra and
+  			monicity of the equations ( that is the coefficient of the leading
+  			differential monomial must be 1 ).
+  			
+- Let X1,...,Xn be the generators of such a finite-dimensional lie-algebra, the
+  commutator-algebra is the subalgebra generated by ((Xi,Xj)) ( ((-,-)) be the
+  lie-bracket ).
+  
+- The result is a system of LPDEs but not a Janet-Base, a Janet-Base computation
+  can be applied to the result to get it into canonical form and be able to read
+  off properties sought after, like dimension of the algebra or its structure
+  constants.
+      
+EXAMPLES:   
+      
+SEE ALSO: solvableRad, dstructConst
+
+
+FUNCTION: inverseGrpBase - computes a Janet-Base or a representation by vectorfields
+					for the inverse lie algebra ( inverse "group" ) of a lie algebra 
+					of vectorfields 
+
+CALLING SEQUENCE:
+	inverseGrpBase ( vfl, vars, vB, fs, solve=true )
+	
+PARAMETERS:
+
+	vfl		- a list of expressions
+	vars	- a list of names ( optional )
+	vB 		- a list of names ( same length as vars, optional )
+	fs		- a list of functions
+	solve=true	- parameter ( optional )
+
+SYNOPSIS:
+- vfl must be a list of vectorfields forming a lie algebra. They must be given in the
+  notation described e.g. in the help page to 'vliebrack'. vars and vB take the
+  same meaning as described there and have the same default values:
+  
+  	vars = [x,y]	vB=[p,q]
+  	
+- fs is a mandatory parameter consisting of functions of the variables in vars ( given
+  or default [x,y] ), the number of which has to be equal the number of elements of
+  vars. Each function corresponds the respective element of vars, and can be
+  thought as standing for the respective unknown coordinate function in the 
+  solution. That is if
+  
+  	vars = [x,y],	fs = [xi(x,y), eta(x,y)],	vB = [p,q]
+  	
+  then xi(x,y)*p+eta(x,y)*q is the assumed form of the vectorfields of the inverse
+  lie algebra.
+
+- The result is a Janet-Base in the functions from fs which has the inverse lie
+  algebra to the given lie algebra as its solution.
+  
+  The term 'inverse lie algebra' of a lie algebra of vectorfields V1,...,Vn is
+  meant to consist of all vectorfields Y with
+  
+  [Y, Vi] = ci1 * V1 + ... + cin * Vn
+  
+  for all i = 1,...,n   
+  
+- If solve=true is included ( alway as the last parameter ) then the equations 
+  of the Janet-Base are solved and a base for the inverse lie algebra is returned.
+  
+  
+EXAMPLES:
+
+SEE ALSO: vliebrack
+
+
+FUNCTION: solvableRad - to a given Janet-Base representation of a lie-algebra of 
+						vectorfields this function computes a system of 
+						differential equations determining the solvable Radical 
+						of this lie-algebra  
+
+CALLING SEQUENCE:
+   solvableRad(jb, fs)
+      
+PARAMETERS:
+   jb	- a list of expressions
+   fs   - a list of functions of the same independent variables
+      
+SYNOPSIS:   
+- The expressions in jb must be a Janet-Base consisting of monic linear 
+  homogeneous partial differential equations ( LPDEs ) in the functions in fs
+  with a finite dimensional solution space, which is additionally a lie-algebra
+  under the lie-bracket.
+  
+  Such systems of LPDEs arise for example as Determining Systems of the 
+  symmetries of a differential equation.
+  
+  CAUTION : note the requirement for finite-dimensionality of the algebra and
+  			monicity of the equations ( that is the coefficient of the leading
+  			differential monomial must be 1 ).
+  			
+- The solvable Radical of a lie-algebra is the union of all solvable 
+  subalgebras.
+  It is necessarily an ideal of the algebra, the quotient algebra is
+  semi-simple.
+
+- The result is a system of LPDEs but not a Janet-Base, a Janet-Base computation
+  can be applied to the result to get it into canonical form and be able to read
+  off properties sought after, like dimension of the algebra or its structure
+  constants.
+  
+      
+EXAMPLES:   
+      
+SEE ALSO: makeCommBase, dstructConst
+
+
+FUNCTION: dstructConst - to a given Janet-Base representation of a lie-algebra 
+						 of vectorfields this function computes the structure
+						 constants of the lie-algebra
+
+CALLING SEQUENCE:
+   dstructConst(jb, fs)
+      
+PARAMETERS:
+   jb	- a list of expressions
+   fs   - a list of functions of the same independent variables
+      
+SYNOPSIS:   
+- The expressions in jb must be a Janet-Base consisting of monic linear 
+  homogeneous partial differential equations ( LPDEs ) in the functions in fs 
+  with a finite dimensional solution space, which is additionally a lie-algebra
+  under the lie-bracket.
+  
+  Such systems of LPDEs arise for example as Determining Systems of the 
+  symmetries of a differential equation.
+  
+  CAUTION : note the requirement for finite-dimensionality of the algebra and
+  			monicity of the equations ( that is the coefficient of the leading
+  			differential monomial must be 1 ).
+  			
+- The structure constants which are obtained are not constants in general but
+  functions depending on the same variables on which the functions in fs depend,
+  that are sought as solutions of the DEs which are given in jb.
+  
+  They give a valid aggregate of structure constants on each place, where they
+  are all defined, and so can be thought of as a family of structure constants
+  depending on the place.
+  
+- Note that it is not necessary to be able to solve the DEs in the Janet-Base
+  for obtaining the structure constants.
+  
+- For details about this algorithm, see :
+
+		G.J. Reid, I.G. Lisle and A. Boulton
+		Algorithmic Determination of Commutation Relations for Lie Symmetry
+		Algebras of PDEs
+		
+
+EXAMPLES:   
+      
+SEE ALSO: makeCommBase, solvableRad
+
+FUNCTION: dcoeff - Extract a coefficient in a linear partial differential 
+                   equation ( LPDE )
+      
+CALLING SEQUENCE:
+   dcoeff(e, dm)
+      
+PARAMETERS:
+   e    - an expression
+   dm   - a differential monomial
+      
+SYNOPSIS:   
+- The function dcoeffs considers e as a LPDE and returns the coefficient of
+  the differential monomial dm.
+   
+- The expression e must be in collected form, see dcollect.
+   
+      
+EXAMPLES:   
+      
+SEE ALSO: dcoeffs, dterms
+
+
+FUNCTION: dcoeffs - Extracts the sequence of coefficients in a linear partial
+                    differential equation ( LPDE )
+      
+CALLING SEQUENCE:
+   dcoeffs(e, fs)
+   dcoeffs(e, fs, `t`)
+      
+PARAMETERS:
+   e    - an expression
+   fs   - a list of functions of the same independent variables
+   t    - an optional variable name
+      
+SYNOPSIS:   
+- The function dcoeffs considers e as a LPDE in the functions given in fs 
+  and returns a sequence of its coefficients.
+   
+- The expression e must be in collected form, see dcollect.
+   
+- A quoted name may be specified as an optional third argument. It will be
+  assigned a sequence of differential monomials, that corresponds to the
+  sequence of coefficients returned.
+      
+EXAMPLES:   
+      
+SEE ALSO: dterms
+
+
+FUNCTION: dcollect - Collect coefficients in a linear partial differential 
+                     equation ( LPDE )
+      
+CALLING SEQUENCE:
+   dcollect(e, fs)
+   dcollect(e, fs, func)
+      
+PARAMETERS:
+   e    - an expression
+   fs   - a list of functions of the same independent variables
+   func - (optional) procedure
+      
+SYNOPSIS:   
+- The function dcollect considers e as a LPDE in the functions given in fs 
+  and collects coefficients of the same differential monomial together.
+      
+- The result is not necessarily sorted, use dsort for that purpose.
+         
+- A function may be specified as an optional third argument.  It is applied to
+  the coefficients of the collected result.  Often normal or factor will be
+  used.      
+      
+EXAMPLES:   
+      
+SEE ALSO: dsort
+
+
+FUNCTION: dcontent  - Compute the gcd (content) of the coefficients in a linear
+                      partial differential equation ( LPDE )
+   
+          dprimpart - Compute the primitive part of a LPDE
+      
+CALLING SEQUENCE:
+   dcontent(e, fs)
+   dcontent(e, fs, `p`)
+      
+   dprimpart(e, fs)
+   dprimpart(e, fs, `co`)
+      
+PARAMETERS:
+   e     - an expression
+   fs    - a list of functions of the same independent variables
+   p, co - optional variable names
+      
+SYNOPSIS:   
+- The function dcontent considers e as a LPDE and returns the gcd (content) of 
+  its coefficients.
+   
+- The function dprimpart(e, fs) returns e/dcontent(e,fs).
+   
+- The optional third argument is assigned the primitive part or the content of
+  the LPDE.
+      
+EXAMPLES:   
+      
+SEE ALSO: dcollect
+
+
+FUNCTION: dextract - Extracts those part of a linear partial differential
+                     equation (LPDE ) that contains a given list of 
+                     differential monomials 
+      
+          dselect  - Extracts those part of a given LPDE whose monomials
+                     fulfill a given condition
+      
+      
+CALLING SEQUENCE:
+   dextract(e, fs, ldm)
+   deselect(e, fs, fun)
+      
+PARAMETERS:
+   e     - an expression
+   fs    - a list of functions of the same independent variables
+   ldm   - a list of differential monomials
+   fun   - a function
+      
+SYNOPSIS:   
+- The function dextract considers e as an LPDE in the functions given in fs
+  and returns those part of e that contains only differential monomials from
+  ldm.   
+   
+- The function dextract considers e as an LPDE in the functions given in fs
+  and returns those part of e that contains only differential monomials on
+  which the function fun, when applied, returns true.
+      
+EXAMPLES:   
+      
+SEE ALSO:    
+
+
+FUNCTION: dindets - returns a selection of the indeterminates of an expression 
+   
+      
+CALLING SEQUENCE:
+   dindets(e, fs)
+      
+PARAMETERS:
+   e     - an expression
+   fs    - a list of expressions, typically a list of functions
+      
+SYNOPSIS:   
+- The function dindets returns those indeterminates of an expression e ( that
+  were determined by indets(e) before ) in which an element of fs appears.
+   
+      
+EXAMPLES:   
+      
+SEE ALSO: dcollect
+
+
+FUNCTION: dsort     - sorts the terms of a linear partial differential equation
+                      (LPDE ) according to an order specified by a matrix of
+                      cotes
+   
+          dsortraw  - sorts the terms of a linear partial differential equation
+                      (LPDE ) according to total degree order
+      
+          dsortlist - sorts a list of LPDE according to a cote order
+      
+      
+CALLING SEQUENCE:
+   dsort(e, fs)
+   dsortraw(e, fs)
+   dsortlist(le, fs)
+      
+PARAMETERS:
+   e     - an expression
+   le    - a list of expressions
+   fs    - a list of functions of the same independent variables
+      
+SYNOPSIS:   
+- dsort and dsortraw consider e as an LPDE with respect to the functions given
+  in fs.   
+     
+- dsortlist first sorts every equation in the list le by applying dsort, and 
+  then sorts the list by the leading differential monomials of its equations.
+     
+- To use dsort or dsortlist it is necessary to have a cote order associated
+  with fs by using the function setcotes. The function dsortraw on the opposite
+  works on every LPDE.
+   
+EXAMPLES:   
+      
+SEE ALSO: setcotes
+
+
+
+FUNCTION: getliealg - returns lie algebra of specified lie-number 
+   
+CALLING SEQUENCE:
+   getliealg ( lienr, ldim )
+      
+PARAMETERS:
+   lienr	- an integer
+   ldim		- ( optional ) an integer
+      
+SYNOPSIS:   
+- There exists a standard numbering of the 27 lie algebra types occuring as transformation
+  groups of the plane, which is given e.g. in 
+ 
+ 	Lie, Gesammelte Abhandlungen, V. Band, 1.Abt, S. 248 ff.
+ 	
+- This function returns for a given lie number ( parameter lienr ) the lie algebra belonging
+  to it. Some lie algebra numbers actually specify a series of infinitely many lie algebras.
+  In these cases it is compulsory to give the dimension of the lie algebra by using ldim. 
+  In some cases several lie algebras fall under a combination of lienr / ldim and will be 
+  returned alltogether as elements of a list.
+  
+- The lie algebra itself is given in the standard form described by Lie and in the
+  notation for vectorfields explained in connection with the 'vliebrack' function. 
+      
+EXAMPLES:   
+      
+SEE ALSO: vliebrack, vliesubs
+
+
+FUNCTION: invariantEquation - returns the two lowest invariants of a transformation group
+								of the plane 
+   
+CALLING SEQUENCE:
+   invariantEquation ( veclist, vBLists, varLists )
+      
+PARAMETERS:
+   veclist		- a list of expressions
+   vBLists		- a list of two lists of indeterminates
+   varLists		- a list of two lists of variables 
+      
+SYNOPSIS:   
+- veclist is a list of vectorfields in the notation described in connnection with
+  'makeDeterminingSystem' and 'dprolong'. vBLists and varLists are the accompanying
+  systems of indeterminates and variables.
+  
+- The function computes the two lowest differential invariants phi1, phi2 of the lie-algebra
+  of transformations given by veclist.
+  
+- This function works only in connection with the package pdetools.
+      
+EXAMPLES:   
+      
+SEE ALSO: lowerEquation
+
+
+
+FUNCTION: lowerEquation - returns lower Equation of a transformation group of 
+							the plane 
+   
+CALLING SEQUENCE:
+   lowerEquation ( veclist, vBLists, varLists )
+      
+PARAMETERS:
+   veclist		- a list of expressions
+   vBLists		- a list of two lists of indeterminates
+   varLists		- a list of two lists of variables 
+      
+SYNOPSIS:   
+- veclist gives a list of vectorfields in the notation described in connnection with
+  'makeDeterminingSystem' and 'dprolong'. vBLists and varLists are the accompanying
+  systems of indeterminates and variables.
+  
+- The function computes the lower Equation of the lie-algebra of transformations given
+  by veclist.
+      
+EXAMPLES:   
+      
+SEE ALSO: invariantEquation
+
+
+FUNCTION: dprolong - compute the prolongation of a vectorfield
+   
+CALLING SEQUENCE:
+   dprolong ( vec, vBLists, varLists, order )
+      
+PARAMETERS:
+   vec			- a list of expressions
+   vBLists		- a list of two lists of indeterminates
+   varLists		- a list of two lists of variables 
+   order		- an integer
+     
+SYNOPSIS:   
+- The parameter vec contains a vectorfield of order zero in the notation decribed in
+  the help pages for vliebrack etc.
+  vBLists and varLists are the accompanying systems of indeterminates and variables,
+  written in a notation which reflects the distinction between variables that are
+  thought as independent and those that are thought as dependent, e.g. for a 
+  vectorfield in the plane
+  
+  vec = x*p+y*q
+  vBLists = [[p],[q]]
+  varLists = [[x],[y]]
+  
+  The second list contains the variables thought as dependent, the first those
+  that are thought as independent.
+  
+- The function computes the prolongation of the vectorfield up to the order given
+  in the parameter order.
+  
+- CAUTION : dprolong accepts only vectorfields of zeroth order ( unprolonged vector-
+	fields )
+  
+  
+EXAMPLES:   
+      
+SEE ALSO: 
+
+

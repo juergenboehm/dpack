@@ -1,0 +1,14 @@
+_solvabletable := table ( [] );
+
+_solvabletable[ [2, 4] ] := [[q, y*q],
+[[x, y[1]], [x, y[1]/y[0]]]];
+
+_solvabletable[ [2, 15] ] := [[q, q],
+[[x, y[1]], [x, y[1]]]];
+
+_solvabletable[ [2, 25] ] := [[q, x*p],
+[[x, y[1]], [y[0], y[1]*x]]];
+
+_solvabletable[ [2, 26] ] := [[p, p],
+[[y[0], y[1]], [y[0], y[1]]]];
+

@@ -1,0 +1,269 @@
+
+remdep ( [xi, eta, c[1]] );
+
+depend ( [xi,eta], [x,y] );
+
+
+####################################################################################
+#
+#   Group g 2, 4
+#
+#
+
+
+dcancoord_g2_4_ffff := proc ( jb, fs )
+
+local fs1, jb1,
+		c1v,
+		rbyx,
+		fy,
+		yy00v,
+		xx00v,
+		res;
+
+fs1 := [xi, eta];
+
+jb1 := dchangefs ( jb, fs, fs1 );
+
+
+
+c1v := dresolve ( [2,4,ffff], jb1, fs1, c[1](x,y) );
+
+if c1v = 0 then
+
+	RETURN ( dcancoord_g2_4_tfff ( jb, fs ) );
+	
+fi;
+
+
+rbyx := dgetresolve ( [2,4,ffff], jb1, fs1, ID_RBYX );
+
+yy00v := intbyx ( rbyx, [x,y] );
+
+
+
+fy := dgetresolve ( [2,4,ffff], jb1, fs1, ID_FY );
+
+xx00v := dincomplQuadr ( fy, [x,y] );
+
+
+
+res := dsimplify ( [xx00v, yy00v], symbolic );
+
+res := [[], res, []];
+
+
+end;
+
+#
+#
+#
+
+
+dcancoord_g2_4_tfff := proc ( jb, fs )
+
+local fs1, jb1,
+		rbyx,
+		xx00v,
+		yy00v,
+		res;
+
+
+fs1 := [xi, eta];
+
+jb1 := dchangefs ( jb, fs, fs1 );
+
+
+
+rbyx := dgetresolve ( [2,4,tfff], jb1, fs1, ID_RBYX );
+
+yy00v := intbyx ( rbyx, [x,y] );
+
+
+xx00v := dincomplQuadrX ( 0, [x,y] );
+
+
+res := dsimplify ( [xx00v, yy00v], symbolic );
+
+res := [[], res, []];
+
+end;
+
+#
+#
+#
+#
+
+dcancoord_g2_4_ftff := proc ( jb, fs )
+
+local jb1, fs1,
+		xx00v,
+		yy00v,
+		rbyx,
+		res;
+		
+fs1 := [xi,eta];
+
+jb1 := dchangefs ( jb, fs, fs1 );
+
+
+rbyx := dgetresolve ( [2,4,ftff], jb1, fs1, ID_RBYX );
+
+yy00v := intbyx ( rbyx, [x,y] );
+
+
+xx00v := dincomplQuadr ( 0, [x,y] );
+
+
+res := dsimplify ( [xx00v, yy00v], symbolic );
+
+res := [[], res,  []];
+
+end;
+
+
+#
+#
+#
+#
+
+dcancoord_g2_4_fftf := proc ( jb, fs )
+
+local jb1, fs1,
+		rbyy,
+		fy,
+		xx00v,
+		yy00v,
+		res;
+
+fs1 := [xi,eta];
+
+jb1 := dchangefs ( jb, fs, fs1 );
+
+
+
+rbyy := dgetresolve ( [2,4,fftf], jb1, fs1, ID_RBYY );
+
+yy00v := intbyy ( rbyy, [x,y] );
+
+
+fy := dgetresolve ( [2,4,fftf], jb1, fs1, ID_FY );
+
+xx00v := dincomplQuadr ( fy, [x,y] );
+
+
+res := dsimplify ( [xx00v, yy00v], symbolic );
+
+res := [[], res, []];
+
+end;
+
+#
+#
+#
+
+dcancoord_g2_4_fttf := proc ( jb, fs )
+
+local jb1, fs1,
+		rbyy,
+		xx00v,
+		yy00v,
+		res;
+
+fs1 := [xi,eta];
+
+jb1 := dchangefs ( jb, fs, fs1 );
+
+
+
+rbyy := dgetresolve ( [2,4,fttf], jb1, fs1, ID_RBYY );
+
+yy00v := intbyy ( rbyy, [x,y] );
+
+
+xx00v := dincomplQuadr ( 0, [x,y] );
+
+
+res := dsimplify ( [xx00v, yy00v], symbolic );
+
+res := [[], res, []];
+
+end;
+
+#
+#
+#
+#
+#
+
+tempforgetdep ();
+
+#
+#
+
+cancoordsetup_g2_4 := proc ()
+
+local rbyx, rbyy;
+
+
+# Fall ffff
+
+iginit ( [2,4,ffff] );
+
+rbyx := igreduce ( [2,4,ffff], [rxx/rx, rxy/rx, ry/rx] );
+
+igsaveexpr ( ID_RBYX, rbyx );
+
+
+igsaveexpr ( ID_FY, 1/c[1](x,y) );
+
+
+# Fall tfff
+
+iginit ( [2,4,tfff] );
+
+rbyx := igreduce ( [2,4,tfff], [rxx/rx, rxy/rx, ry/rx] );
+
+igsaveexpr ( ID_RBYX, rbyx );
+
+
+# Fall ftff
+
+iginit ( [2,4,ftff] );
+
+rbyx := igreduce ( [2,4,ftff], [rxx/rx, rxy/rx, ry/rx] );
+
+igsaveexpr ( ID_RBYX, rbyx );
+
+# Fall fftf
+
+iginit ( [2,4,fftf] );
+
+rbyy := igreduce ( [2,4,fftf], [ryx/ry, ryy/ry, rx/ry] );
+
+igsaveexpr ( ID_RBYY, rbyy );
+
+
+igsaveexpr ( ID_FY, 1/c[1](x,y) );
+
+
+# Fall fttf
+
+iginit ( [2,4,fttf] );
+
+rbyy := igreduce ( [2,4,fttf], [ryx/ry, ryy/ry, rx/ry] );
+
+igsaveexpr ( ID_RBYY, rbyy );
+
+
+
+
+
+
+end;
+
+restoredep();
+
+
+
+

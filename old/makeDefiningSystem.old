@@ -1,0 +1,155 @@
+
+
+
+makeDefiningSystemOld := proc ( deq, varLists, fn )
+
+local 	deq1,
+		ord,
+		cv,
+		idts,
+		solfnl,
+		indetfnl,
+		indetfnl1,
+		indetcnsl,
+		sl,
+		ceq,
+		ceq1,
+		F,
+		deqx,
+		eql,
+		eql1,
+		allinear,
+		fs,
+		jb;
+
+# deq is a DE, varLists is of type varLists ( e.g. [[x,t],[u,v]] ), 
+# fn is a name
+
+deq1 := deqtoextform(deq, varLists )[1];
+
+# convert into extform by varLists
+
+ord := deqorder ( deq, varLists );
+
+# get order of deq1
+
+cv := makeextvarlist ( varLists, ord );
+
+# cv becomes a list of extvars up to order ord
+
+
+idts := [op(indets ( deq ))];
+
+# get indets from deq
+
+
+
+solfnl := map ( (x,y) -> x(op(y)), varLists[2], varLists[1] );
+
+# works like [[x,t],[u,v]] -> [u(x,t), v(x,t)]
+
+
+indetfnl := select ( (x,y) -> type ( x, function(name)) and {op(x)} union y = y,
+					idts, {op(cv)} );
+
+# takes all f(names) that depend on a subset of cv
+
+
+indetcnsl := select ( (x,y) -> type (x, name) and not member(x,y), idts, cv );
+
+# takes all constants out of deq
+
+
+# now we have isolated the constants of deq
+
+indetfnl := remove ( member, indetfnl, solfnl );
+
+# subtract from indetfnl all the solfnl.
+
+indetfnl1 := removedouble ( (x,y) -> op(0,x)=op(0,y), indetfnl );
+
+# if there were doubles, return immediately giving FAIL
+
+if nops ( indetfnl1 ) < nops ( indetfnl ) then
+
+	print ( `undetermined function with two different argument lists` );
+
+	RETURN ( FAIL );
+
+fi;
+
+sl := [op(map ((x,y)-> x = op(0,x)(op(y)), indetfnl1, cv )),
+			op(map((x,y)->x = x(op(y)), indetcnsl, cv ) )];
+
+# create a subs rule to make constants and functions all depend on cv
+
+
+ceq := map ( (x,y) -> op(map ( (u,v)->diff(v,u), {op(y)} minus {op(x)}, op(0,x)(op(y)) )),
+			indetfnl1, cv );
+
+ceq1 := outer ( [ subs(sl,indetcnsl), cv ], (x,y) -> diff(x,y) ); 
+
+# prepare the additional diffeqs that are fulfilled by indetfnl and indetcnsl
+
+
+F := fn(op(cv));
+
+# create a function that depends on the extvars in cv
+
+deqx := F - deq1;
+
+# let F(cv) equal the concretely given DE deq
+
+deqx := subs ( sl, deqx );
+
+# make the prepared substitution to 'full argument' constants and functions
+
+eql := [deqx, op(ceq), op(ceq1)];
+
+# this is our complete set of equations from which we want to get
+# a system of LPDE for F that is fulfilled exactly by deq
+
+
+fs := [F, op(map(rhs,sl))];
+
+# prepare input for setcotes and lexorder. F will have lowest order.
+
+allinear := type ( eql, list ( dlinear ( fs ) ) );
+
+# are all equations linear ?
+
+if allinear then
+
+	# now follows an elimination by JanetBase computation.
+
+	setcotes ( fs, lexOrder(fs) );
+
+	jb := makeJanetBase ( eql, fs );
+
+	jb := csimpJanetBase ( jb, fs );
+
+	jb := dselfun ( jb, fs, [F] );
+
+	# retain from jb only expression pure in [F]
+
+	RETURN ( jb );
+
+else
+
+
+	# for nonlinear diffeqs we try our nonlinear code dxmakeJanetBase
+
+	dxinit ();
+
+	setcotes ( fs, lexOrder(fs) );
+
+	eql1 := dxmakeeql ( eql, fs );
+	
+	jb := dxmakeJanetBase ( eql1, fs );
+
+	RETURN ( jb );
+
+fi;
+
+end;
+

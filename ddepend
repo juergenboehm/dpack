@@ -1,0 +1,249 @@
+#
+#
+#
+#
+
+tempforgetdep := proc ()
+
+local ii;
+
+global _deplistbak, _deplist;
+
+if not assigned ( _deplist ) then
+
+	RETURN ( );
+	
+fi;
+
+_deplistbak := copy(_deplist);
+
+for ii in indices ( _deplist ) do
+
+	remdep ( op(ii) );
+	
+od;
+
+end;
+
+#
+#
+#
+#
+
+
+restoredep := proc ()
+
+local ii, dli;
+
+global _deplistbak, _deplist;
+
+if not assigned ( _deplistbak ) then
+
+	RETURN ();
+	
+fi;
+
+for ii in indices(_deplistbak) do
+
+	dli := _deplistbak[op(ii)];
+	
+	depend ( dli[1], dli[2] );
+	
+od;
+
+unassign ( '_deplistbak' );
+
+end;
+
+#
+#
+#
+
+
+depend := proc ( f, v )
+
+local f1, v1, i;
+global _deplist;
+
+f1 := f;
+v1 := v;
+
+if not type ( [f,v], dependargs ) then
+    ERROR ( `invalid arguments` );
+fi;
+
+if not type ( f1, list ) then
+    f1 := [f1];
+fi;
+
+if type ( v1, list ) then
+    v1 := op (v1);
+fi;
+
+for i from 1 to nops ( f1 ) do
+
+    if assigned ( _deplist[f1[i]] ) then
+        lprint ( f1[i], `not free of dependencies\n` );
+        next;
+    fi;
+
+    _deplist[f1[i](v1)]:=[f1[i], [v1]];
+    alias ( f1[i] = f1[i](v1) );
+od;
+end;
+
+
+`type/dependargs` := [{list(name),name},{list(name),name}]:
+
+
+#
+#
+#
+
+remdepcoeflist := proc ()
+
+if assigned ( _depcoeflist ) then
+
+	if type ( _depcoeflist, {set,list} ) then
+	
+		remdep ( [op(_depcoeflist)] );
+		
+	fi;
+	
+fi;
+
+end;
+
+#
+#
+#
+
+remdep := proc ( fl1 )
+          
+local i,fl,e,fl2,fli,idxlist,remlist;
+
+global _deplist;
+
+fl := fl1;
+
+if not type ( fl, list ) then
+
+    fl := [fl];
+fi;
+
+fl2 := [];
+
+for fli in fl do
+
+	if type ( fli, name ) then
+	
+		idxlist := map ( x->op(x), [indices(_deplist)] );
+		remlist := select ( (x,y)->op(0,x)=y, idxlist, fli );
+		fl2 := [op(fl2),op(remlist)];
+	else
+	
+		fl2 := [op(fl2),fli];
+		
+	fi;
+	
+od;
+
+fl := fl2;
+
+
+for i from 1 to nops(fl) do
+
+		
+    e := _deplist [ fl[i] ][1];
+    _deplist [ fl[i] ] := evaln ( _deplist[ fl[i] ] ); 
+    alias ( e = e );
+od;
+
+end;
+
+#
+#
+#
+
+freeofdep := proc ( fl )
+
+local fl1, erg;
+
+fl1 := fl;
+
+if not type ( fl1, list ) then
+
+	fl1 := [fl1];
+	
+fi;
+
+fl1 := map ( x->evalb(_deplist[x] = evaln ( _deplist[x] ) ), fl1 );
+
+erg := convert ( fl1, `and` );
+
+RETURN ( erg );
+
+end;
+
+
+#
+#
+#
+
+
+initdep := proc ()
+
+global _deplist;
+
+_deplist := table ();
+
+end;
+
+#
+
+if not assigned ( _deplist ) then 
+	initdep ();
+fi;
+
+#
+#
+#
+
+showdep := proc ()
+
+global _deplist;
+
+eval ( _deplist );
+
+end;
+
+#
+#
+#
+
+cmakedeps := proc (fl, vl)
+
+map ( proc ( x, y ) option operator;
+		if freeofdep ( x ) then
+			depend ( x, y )
+		fi;
+		end,
+		fl, vl );
+
+end:
+
+#
+#
+
+cremdeps1 := proc ( fl, vl )
+
+map ( proc ( x, y ) local x1; option operator;
+		if type (x, function ) then
+			x1 := op(0,x);
+		else
+			x1 := x;
+		fi;
+		if not freeofdep ( x1(op(y)) ) then remdep ( x1(op(y)) ) fi;
+	  end, fl, vl  );
+
+end:

@@ -1,0 +1,456 @@
+#
+
+`type/typinfolong` := list ( list (anything) );
+
+
+#
+#
+#
+#
+#
+
+cleartypinfo := proc ( typinfo )
+
+select ( type, typinfo, constant );
+
+end;
+
+#
+#
+#
+
+gettypinfo1 := proc ( typinfo )
+
+if type ( typinfo, typinfolong ) then
+
+	typinfo[1];
+	
+else
+
+	typinfo;
+	
+fi;
+
+end;
+
+#
+#
+
+gettypinfo2 := proc ( typinfo )
+
+if type ( typinfo, typinfolong ) then
+
+	typinfo[2];
+	
+else
+
+	FAIL;
+	
+fi;
+
+end;
+
+#
+#
+#
+#
+
+getcase := proc ( typinfo )
+
+local tt;
+
+tt := gettypinfo1 ( typinfo );
+
+tt := select ( type, tt, name );
+
+if nops ( tt ) > 0 then
+
+	RETURN ( tt[1] );
+	
+else
+
+	RETURN ( FAIL );
+
+fi;
+
+end;
+
+#
+#
+#
+
+getspeclabel := proc ( typinfo )
+
+local tt;
+
+tt := gettypinfo1 ( typinfo );
+
+tt := pruneleft ( type, tt, constant );
+
+if nops ( tt ) > 1 then
+
+	tt[2];
+	
+else
+
+	FAIL;
+	
+fi;
+
+end;
+
+#
+#
+#
+
+getsubtypnr := proc ( typinfo )
+
+local tt;
+
+tt := gettypinfo1( typinfo );
+
+if nops ( tt ) > 2 and type ( tt[3], constant ) then
+
+	tt[3];
+	
+else
+
+	FAIL;
+	
+fi;
+
+end;
+
+
+#
+#
+#
+
+
+getliedim := proc ( typinfo )
+
+gettypinfo1 ( typinfo )[1];
+
+end;
+
+
+#
+#
+#
+
+getlienr := proc ( typinfo )
+
+gettypinfo1 ( typinfo )[2];
+
+end;
+
+#
+#
+
+getliesubsl := proc ( typinfo )
+
+local tt, sl;
+
+tt := gettypinfo2 ( typinfo );
+
+if tt = FAIL then
+
+	RETURN ( FAIL );
+	
+fi;
+
+sl := select ( type, tt, equation );
+
+if nops ( sl ) > 0 then
+
+	RETURN ( sl );
+	
+fi;
+
+sl := select ( type, tt, name );
+
+if nops ( sl ) > 0 then
+
+	sl := sl[1];
+
+	if assigned ( GENSUBSLIST[sl] ) then
+
+		RETURN  ( GENSUBSLIST[sl] );
+
+	else
+
+		RETURN ( FAIL );
+
+	fi;
+
+else
+
+	RETURN ( FAIL );
+	
+fi;
+
+end;
+
+#
+#
+
+
+getgroupinfo := proc ( typinfo )
+
+local res,
+		erg;
+
+res := [getliedim ( typinfo ), getlienr ( typinfo )];
+
+erg := getsubtypnr ( typinfo );
+
+if erg <> FAIL then
+
+	res := [op(res), erg];
+	
+fi;
+
+erg := gettypinfo2 ( typinfo );
+
+if erg <> FAIL then
+
+	res := [res, erg];
+	
+fi; 
+
+res;
+
+end;
+
+#
+#
+#
+
+changecase := proc ( typinfo, oldcase, newcase )
+
+subs ( oldcase = newcase, typinfo );
+
+end;
+
+
+#
+#
+
+flattentypinfo := proc ( typinfo )
+
+local typinfo1;
+
+if type ( typinfo, typinfolong ) then
+
+	typinfo1 := [op(typinfo[1]), op(typinfo[2])];
+	
+else
+
+	typinfo1 := typinfo;
+	
+fi;
+
+typinfo1;
+
+end;
+
+#
+#
+#
+
+subsinstring := proc ( sl, s )
+
+local i,
+		t, c, sl1;
+
+t := ``;
+
+for i from 1 to length(s) do
+
+	c := substring ( s, i );
+	
+	sl1 := select ( (x,y)->lhs(x)=y, sl, c );
+	
+	
+	if nops ( sl1 ) > 0 then
+	
+		c := rhs(sl1[1]);
+		
+	fi;
+	
+	t := cat ( t, c );
+	
+od;
+
+t;
+
+end;
+
+
+
+#
+#
+#
+
+maketypinfostring := proc ( typinfo )
+
+local res, nn, typinfo1;
+
+res := ``;
+
+typinfo1 := flattentypinfo ( typinfo );
+
+for nn in typinfo1 do
+
+	if type ( nn, equation ) then
+
+		nn := lhs ( nn ) = sort ( rhs ( nn ), [a,b,c] );
+
+	fi;
+	
+
+	res := cat ( ``, res, `_`, convert ( nn, name ) );
+	
+od;
+
+res := subsinstring ( [` `=`_`, `<`=l, `>`=g, `=`=e, `/` = d], res );
+
+res := substring ( res, 2..-1 );
+
+end;
+
+#
+#
+#
+
+mergetypinfo := proc ( typinfo1, addtypinfo )
+
+local tt1, tt2, res;
+
+if type ( typinfo1, typinfolong ) then
+
+	tt1 := typinfo1[1];
+	tt2 := typinfo1[2];
+	
+else
+
+	tt1 := typinfo1;
+	
+fi;
+
+tt1 := [op(tt1), op(addtypinfo)];
+
+if assigned ( tt2 ) then
+
+	res := [tt1,tt2];
+	
+else
+
+	res := tt1;
+	
+fi;
+
+
+end;
+
+#
+#
+#
+
+cexpandIndl := proc ( indl )
+
+local liedim, indll, indll1,
+		i, tt, ldim, lnum,
+		ll, ll1,
+		j;
+
+liedim := indl[1];
+
+indll := indl[2];
+
+indll := map ( proc (x,y) option operator;
+					if type ( x, typinfolong ) then
+					
+						[ [y, op(x[1])] ,x[2] ];
+						
+					else
+					
+						[ y, op ( x ) ];
+						
+					fi; end, indll, liedim );
+
+indll1 := [];
+
+for i from 1 to nops ( indll ) do
+
+	tt := indll[i];
+	
+	if type ( tt, typinfolong ) then
+	
+		indll1 :=  [op(indll1), tt];
+		
+		next;
+		
+	fi;
+	
+	
+	if nops ( cleartypinfo ( tt ) ) > 2 then
+	
+		indll1 := [op(indll1), tt];
+		
+		next;
+		
+	fi;
+	
+	ldim := tt[1];
+	lnum := tt[2];
+	
+	ll := getliealgX ( [ldim, lnum] );
+	
+	if type ( ll, list(list(algebraic)) ) then
+	
+		ll1 := [seq ( [ldim, lnum, j, op(tt[3..-1])], j=1..nops(ll) )];
+		
+		indll1 := [op(indll1), op(ll1)];
+		
+		next;
+		
+	else
+	
+		indll1 := [op(indll1), tt];
+		
+	fi;
+	
+od;
+
+indll1;
+
+end;
+
+#
+#
+#
+
+cexpandIndlTotal := proc ( indl )
+
+local res,
+	ix, ixl, ixll;
+
+res := [];
+
+for ix in indl do
+
+	ixl := getJanetBaseIndices ( ix );
+
+	ixl := ixl[1];
+	
+	ixll := map ( (x,y)->mergetypinfo ( y,x ), ixl, ix );
+	
+	res := [op(res), op(ixll)];
+	
+od;
+
+res;
+
+end;
+

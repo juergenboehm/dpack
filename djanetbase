@@ -1,0 +1,572 @@
+#:mode=maple:
+
+#
+# Some algorithms for Janet-Bases
+#
+
+makeCommBase := proc ( jb, fs )
+
+local vars,n,fs1,i,fs2,fs3,vB,vf1,vf2,vf3,vf3l,eqlx,eql,jb1,rel,sl1,sl2,sl3,rels,
+	lterms,lterml,VL,CL,CFL,aktterml,maxterm,nn,vlakt,clakt,j,cflakt,sm,smx,
+	eqlakt,eqlxakt, smleq,CL1,loes,DCREL,ICL,k,eqa,ELIST,sl,DCREL1;
+
+
+vars := dgetvars(fs);
+n := nops ( fs );
+
+fs1 := [ seq ( xi1XXX||i(op(vars)), i = 1..n ) ];
+fs2 := [ seq ( xi2XXX||i(op(vars)), i = 1..n ) ];
+fs3 := [ seq ( xi3XXX||i(op(vars)), i = 1..n ) ];
+
+vB := [ seq ( ppp||i, i = 1..n ) ];
+
+vf1 := convert ( zip ( (x,y) -> x*y, fs1, vB ), `+` );
+vf2 := convert ( zip ( (x,y) -> x*y, fs2, vB ), `+` );
+
+vf3 := vliebrack ( vf1, vf2, vars, vB );
+
+vf3l := [seq (coeff ( vf3, vB[i] ), i=1..n)];
+
+#eqlx := zip ( (x,y) -> x-y, fs3, vf3l );
+eqlx := fs3;
+eql := vf3l;
+
+jb1 := dsortlist ( jb, fs );
+jb1 := map ( dmakemonic, jb1, fs );
+rel := map ( (x,f)->dlterm ( x, f ) = normal( - x + dlterm ( x, f )), jb1, fs );
+
+sl1 := zip ( (x,y) -> x=y, fs, fs1 );
+sl2 := zip ( (x,y) -> x=y, fs, fs2 );
+sl3 := zip ( (x,y) -> x=y, fs, fs3 );
+
+rels := [op(subs(op(sl1), rel)), op(subs(op(sl2), rel))];
+#rels1 := [op(subs(op(sl1), rel))];
+#rels2 := [op(subs(op(sl2), rel))];
+#relsX := [op(subs(op(sl3), rel))];
+ 
+lterms := map ( x->lhs(x), rel );
+# fuehrende Terme
+lterml := map ( (x,y)-> select ( (t,u)->has(t,u), y, x ), fs, lterms ); 
+# Sublisten nach Funktion
+lterml := map ( x-> map ( difflist, x ), lterml );
+# setzen in difflist Form
+
+# lterml enthaelt die fuehrenden Terme der Janet-Basis in einer Liste von
+# Listen [[ ...,xi_xx, xi_y, xi_x, xi],[ ...,eta_x, eta], ... ]
+# in jeder Subliste fuehrt der Term, der in der Termordnung vorne steht
+#
+
+
+VL := [];
+CL := [];
+CFL := [];
+
+for i from 1 to nops ( lterml ) do
+ 
+ 	# die Schleife geht ueber soviele Elemente wie fs hat also ueber xi, eta, ....
+ 	 
+	# die Funktionsnamen werden abgestreift
+	aktterml := map ( x->[op(x[2..nops(x)])], lterml[i]);
+
+ # update to V4
+	
+	maxterm := aktterml[1];
+
+	# hier ist noch ein Fehler !
+	# nicht in jeder Termordnung ist aktterml[1] der Term mit den meisten Ableitungen
+	# der die Ordnung angibt
+	
+	# nn := nops ( maxterm );
+	
+	# richtig:
+	
+	nn := max ( op ( map ( nops, aktterml ) ) );
+	
+	
+	# hier wird die Ordnung festgestellt
+	#
+	
+	
+	vlakt := mkvlist ( vars, nn );
+	
+	# eine Liste von Ableitungen mit vorgegebener Ableitungsordnung nn wird erzeugt
+	#
+	
+	
+	vlakt := select ( proc ( va, tl ) option operator;
+	
+				convert(
+						map (
+							x->evalb((x=FAIL) or (x = [])),
+								map ( (t,u)->listminus( u, t), tl, va )),
+							`and` );
+					end, vlakt, aktterml );
+	
+	#
+	# vlakt enthaelt die vorkommenden Ableitungen in den Leitmonomen der Janet-
+	# basis fuer den in der Schleife gerade aktuellen Term ( also xi, eta, ... )
+	# einschliesslich der kleineren, also fuer xi_x +.., xi_y + ... : [[],[x],[y]]
+	#
+	
+	clakt := [seq ( ccc||i||xx||j, j = 1..nops (vlakt) ) ];
+
+	#
+	# clakt sind diesen Termen zugeordnete unbestimmte Konstanten
+	#
+		
+	CL := [op(CL), clakt ];
+	VL := [op(VL), vlakt ];
+	
+	
+	# cflakt enthaelt die Ableitungen von xi1, eta1,.. xi2, eta2,...
+	# nach [],[x],[y],[x,x],... usw. welche fuer den jeweiligen Term
+	# in Frage kommen
+	
+	
+	cflakt := map ( (x,y)->mkdiff(y,x),vlakt,fs1[i] );
+	cflakt := [op(cflakt), op(map ( (x,y)->mkdiff(y,x),vlakt,fs2[i] ))];
+	
+	# CFL enthaelt eine Liste aller dieser Terme, um nachher nach ihnen zusammen-
+	# fassen zu koennen
+	
+	CFL := [op(CFL), op(cflakt)];
+
+od;
+
+sm := 0;
+smx := 0;
+
+for i from 1 to n do
+
+	eqlakt := map ( (v,e) -> mkdiff ( e, v ), VL[i], eql[i] );
+	eqlxakt := map ( (v,e) -> mkdiff ( e, v ), VL[i], eqlx[i] );
+	
+	
+
+	eqlakt := map ( (x,y)->tdsubs(y,x), eqlakt, rels );
+	#eqlakt := map ( (x,y)->tdsubs(y,x), eqlakt, rels1 );
+	#eqlakt := map ( (x,y)->tdsubs(y,x), eqlakt, rels2 );
+	#eqlxakt := map ( (x,y)->tdsubs(y,x), eqlxakt, rels );
+	
+	sm := sm + evalm ( linalg[multiply] (
+	
+				linalg[transpose](eqlakt), CL[i] ));
+
+	smx := smx + evalm ( linalg[multiply] (
+	
+				linalg[transpose](eqlxakt), CL[i] ));
+				
+od;
+
+sm := collect ( sm , CFL, distributed );
+smleq := [coeffs ( sm, CFL )];
+
+CL1 := flatten1 ( CL );
+
+loes := solve ({op(smleq)}, {op(CL1)} );
+
+DCREL := [];
+ICL := [];
+
+if nops ( [loes] ) = 0 then
+
+	ERROR ( `no solution to intermediate equations obtained` );
+	
+fi;
+
+if _verifysolve=true then
+
+	print ( `Control solve: ( should be all zero ) ` );
+
+	print (
+### WARNING: note that `I` is no longer of type `radical`
+	dsimplify ( eval(value(subs( loes, [op(smleq)] ))), symbolic, radical,
+		power ) );
+	
+fi;
+
+
+
+for k from 1 to nops ( loes ) do
+
+	eqa := loes[k];
+	
+	if lhs(eqa) = rhs ( eqa ) then
+	
+		ICL := [op(ICL), lhs(eqa)];
+		
+	else
+	
+		DCREL := [op(DCREL), eqa];
+		
+	fi;
+	
+od;
+
+ELIST := [];
+
+
+for k from 1 to nops ( ICL ) do
+
+	sl := [ICL[1]=1, op(map(x->x=0,[op(ICL[2..nops(ICL)])]))];
+ # update to V4
+
+	eqa := normal(eval(subs ( op ( sl ), smx )));
+
+	DCREL1 := normal(eval(subs(op(sl), DCREL)));
+	
+	eqa := normal(eval(subs(op(DCREL1), eqa)));
+		
+	eqa := normal(eval(subs(op(sl), eqa)));
+
+	eqa := dcollect ( eqa, fs3, normal);
+		
+	ELIST := [op(ELIST), eqa ];
+	
+	ICL := [op(ICL[2..nops(ICL)]),ICL[1]];
+ # update to V4
+	
+od;
+
+sl := zip ( (x,y)->x=y, fs3, fs );
+
+ELIST := subs ( op ( sl ), ELIST );
+
+ELIST := dsortlist ( ELIST, fs );
+
+if has ( [args], fullsimp ) then
+
+	ELIST := makeJanetBase ( ELIST, fs );
+	ELIST := csimpJanetBase ( ELIST, fs );
+	
+fi;
+
+
+RETURN ( ELIST );
+	
+end:
+
+
+#
+# janetBaseAdd1 berechnet die Janetbasis der Summe der Loesungen der
+#  Janetbasen jb1a, jb2a.
+# 
+# als zusaetzlicher Parameter ist minimalspace erlaubt, er bewirkt den
+# Verzicht auf einen standardmaessig eingestellten schnellen Reduktionsalgorithmus.
+#
+#
+
+janetBaseAdd1 := proc ( jb1a, jb2a, fs )
+
+local n,
+		jb1, jb2,
+		vars,
+		fs1, fs2, fs3, fl3,
+		k1, k2,
+		ord,
+		vl,
+		rels1, rels2,
+		sl1, sl2,
+		tx1, tx2,
+		ii,
+		CL,
+		i,
+		vv,
+		newc,
+		didts,
+		coeffeqs,
+		loes,
+		loesbase,
+		res;
+
+jb1 := csimpJanetBase ( jb1a, fs );
+jb2 := csimpJanetBase ( jb2a, fs );
+
+n:= nops ( fs );
+
+vars := [op(fs[1])];
+
+fs1 := [seq ( XI||i||XXX1(op(vars)), i=1..n )];
+fs2 := [seq ( XI||i||XXX2(op(vars)), i=1..n )];
+fs3 := [seq ( XI||i||XXX3(op(vars)), i=1..n )];
+
+fl3 := fs1 + fs2;
+
+k1 := determineSize ( jb1, fs );
+k2 := determineSize ( jb2, fs );
+
+ord := k1 + k2 + 1;
+
+vl := mkvlist ( vars, ord );
+
+rels1 := janbasToeqsys ( jb1, fs );
+rels2 := janbasToeqsys ( jb2, fs );
+
+sl1 := zip( (x,y)->x=y, fs, fs1 );
+sl2 := zip( (x,y)->x=y, fs, fs2 );
+
+rels1 := subs ( sl1, rels1 );
+rels2 := subs ( sl2, rels2 );
+
+tx1 := 0;
+tx2 := 0;
+
+ii := 1;
+
+CL := [];
+
+for i from 1 to n do
+
+	for vv in vl do
+	
+		newc := CCQQ||ii;
+		
+		CL := [op(CL), newc];
+		
+		tx1 := tx1 + newc * diffX ( fs3[i], op(vv) );
+		
+		tx2 := tx2 + newc * diffX ( fl3[i], op(vv) );
+		
+		ii := ii + 1;
+		
+	od;
+	
+od;
+
+if member ( minimalspace, [args] ) then
+
+	tx2 := tdsubs ( [op(rels1),op(rels2)], tx2 );
+
+	tx2 := numer ( tx2 );
+
+else
+
+	tx2 := dtsubs ( rels1, fs1, tx2 );
+
+	print ( `first dtsubs done` );
+
+	tx2 := dtsubs ( rels2, fs2, tx2 );
+
+	print ( `second dtsubs done`, time() - time0 );
+
+	tx2 := numer ( tx2 );
+
+fi;
+
+didts := rawsort( dindets ( tx2, [op(fs1), op(fs2)] ) );
+
+tx2 := collect ( tx2, didts );
+
+coeffeqs := coeffs ( tx2, didts );
+
+loes := solve ( {coeffeqs}, {op(CL)} );
+
+loesbase := solbase ( loes );
+
+res := map ( (x,y)->normal (subs ( x, y ) ), loesbase, tx1 );
+
+res := subs ( zip ( (x,y)->x=y, fs3, fs ), res );
+
+end;
+
+#
+#
+#
+
+janetBaseAdd2 := proc ( jb1a, jb2a, fs )
+
+local jb1, jb2,
+		n,
+		vars, vars1,
+		fs1,
+		t,
+		sl,
+		jb3,
+		i;
+
+jb1 := csimpJanetBase ( jb1a, fs );
+jb2 := csimpJanetBase ( jb2a, fs );
+
+n := nops ( fs );
+
+vars := [op(fs[1])];
+
+t := ttQ;
+
+vars1 := [op(vars), t];
+
+fs1 := [seq ( XI||i||XXX ( op (vars1 ) ), i = 1..n )];
+
+setcotes ( fs1, elimOrder ( fs1 ));
+
+sl := zip ( (xx,yy)-> xx = yy, fs, fs1 );
+
+jb1 := subs ( sl, jb1 );
+
+jb2 := subs ( sl, jb2 );
+
+jb1 := map ( (xx,tt)->diff(xx,tt), jb1, t );
+
+jb2 := map ( (xx, tt, ffs)->dcollect ( xx - diff(xx, tt), ffs, normal ),
+				jb2, t, fs1 );
+				
+jb3 := makeJanetBase ( [op(jb1), op(jb2)], fs1 );
+
+jb3 := select ( proc ( e, tt, ffs )
+				local tl;
+				dcoeffs ( e, ffs, 'tl' );
+				tl := map ( xx->fdifflist ( xx )[2..-1], [tl] );
+				if has ( tl, tt ) then
+					false;
+				else
+					true;
+				fi;
+				end, jb3, t, fs1 );
+				
+sl := swapeqs ( sl );
+
+jb3 := subs ( sl, jb3 );
+				
+remcotes ( fs1 );
+
+jb3;
+
+end;
+
+#
+# solbase computes a system of linear independent solutions from
+# the general solution to a system of linear equations, which is
+# returned from solve
+#
+#
+
+solbase := proc ( loesa )
+
+local	loes,
+		FREEV, DEPV,
+		nf,
+		i,
+		ev,
+		res,
+		sl;
+
+loes := [op(loesa)];
+
+FREEV := select ( x->lhs(x) = rhs(x), loes );
+DEPV := remove ( x->lhs(x) = rhs(x), loes );
+
+nf := nops ( FREEV );
+
+ev := [0 $ (nf - 1), 1];
+
+res := [];
+
+for i from 1 to nf do
+
+	sl := zip ( (x,y) -> lhs(x)=y, FREEV, ev );
+	
+	res := [op(res), [op(sl), op ( subs ( sl, DEPV ) )]];
+	
+	ev := [op(ev[2..-1]), ev[1]];
+	
+od;
+
+res;
+
+end;
+
+#
+#
+#
+#
+
+
+dtsubs := proc ( rels, fs, e )
+
+local	dits,
+		sl,
+		e1;
+		
+global _FSdtsubs, _RELSdtsubs;
+
+_FSdtsubs := fs;
+_RELSdtsubs := rels;
+
+dits := rawsort ( dindets ( e, fs ) );
+
+dits := reverse ( dits );
+
+forget ( dtsubs1 );
+
+sl := map ( xx->xx=dtsubs1 ( xx ), dits);
+
+sl := reverse ( sl );
+
+forget ( dtsubs1 );
+
+e1 := subs ( sl, e );
+
+e1 := normal ( eval ( e1 ) );
+
+end;
+
+#
+#
+
+dtsubs2 := proc ( e )
+
+local dits,
+		sl,
+		e1;
+
+global _FSdtsubs;
+
+dits := rawsort ( dindets ( e, _FSdtsubs ) );
+
+dits := reverse ( dits );
+
+sl := map ( xx->xx=dtsubs1 ( xx ), dits );
+
+sl := reverse ( sl );
+
+e1 := subs ( sl, e );
+
+e1 := dcollect ( e1, _FSdtsubs, normal );
+
+end;
+
+#
+#
+
+dtsubs1 := proc ( dm )
+
+local i,
+		vv,
+		res;
+
+option remember;
+
+global _RELSdtsubs;
+
+for i from 1 to nops ( _RELSdtsubs ) do
+
+	vv := diffcompare ( dm, lhs ( _RELSdtsubs[i] ) );
+	
+	if vv <> FAIL then
+	
+		res := dtsubs2 ( normal ( diffX ( rhs(_RELSdtsubs[i]), vv ) ) );			
+			
+		RETURN ( res );
+	
+	fi;
+				
+od;
+
+RETURN ( dm );
+
+end;
+
+#
+#
+
+

@@ -1,0 +1,85 @@
+
+FUNCTION: dxmakeJanetBase - computes a normal form of a system of linear or nonlinear
+                            differential equations
+      
+CALLING SEQUENCE:
+   dxmakeJanetBase(eqlist, fs)
+      
+PARAMETERS:
+   eqlist   - a list of expressions
+   fs       - a list of functions of the same independent variables
+      
+SYNOPSIS:   
+- The elements of elist are the differential equations represented in a special form
+  as lists of six elements.
+ 
+  This representation can be produced from a list of differential equations
+  by the function dxmakeeql.
+   
+- Several global variables affect the operation of makeJanetBase. These are
+
+    _verbose
+    
+    _minimalspace   _doeconsubs
+    
+    _dxfastmode
+
+    _assertlist     _assumelist     _watchlist
+    
+    
+    _eqsubsl    _dxaddlist
+    
+  They have the following meaning :
+    
+  If _verbose is assigned true a certain amount of information about the ongoing
+  computation is printed.
+  
+  If _minimalspace is assigned true, certain expressions are reduced by convert[horner]
+  during calculation.
+  
+  If _doeconsubs is assigned true, then certain substitutions are done in a way, that
+  saves memory space.
+  
+  _mimimalspace and to a greater extent _doeconsubs tend to slow down the computation 
+  when activated
+
+  _dxfastmode when set to true allows for several reductions to be done without
+  forcing resorting the list of equations by the head terms after each reduction. It tends
+  to speed up the calculation when activated.
+
+  The following mechanism is intended for classification problems : 
+
+  If _watchlist is assigned a list of expressions, preferably functions, a set
+  of expressions is returned in _assumelist that must be <> 0 for the result of
+  the Janet-Base computation to be correct.
+
+  These expressions are coefficients or factors of coefficients that contain
+  members of the list _watchlist, and are assumed <> 0 during the computation -
+  typically leading coefficients or contents of the LPDEs.
+  
+  _assertlist is a list of expressions that are asserted beforehand to be <> 0 
+  to avoid taking unnecessary elements into _assumelist.
+  
+  CAUTION 1 : _watchlist and _assertlist are lists, _assumelist is a set ( ! ).
+  
+  CAUTION 2 : _assumelist must be set to {} when activating this mechanism by
+      setting  _watchlist to some value.
+      
+      
+  _eqsubsl is a list of substitutions applied to coefficient expressions, that is
+  expressions not containing functions of fs, during calculation, to decide if
+  they are zero.
+  
+  _dxaddlist is a list of substitutions applicable to functions from fs and their
+  derivatives. They are applied during calculation and included as equations into
+  the equations of eqlist.
+
+- An order has to be fixed for the elements of fs by using the setcotes mechanism prior
+  to the computation.
+
+- The computation may take some time with problems of larger size.
+      
+EXAMPLES:   
+      
+SEE ALSO: dxmakeeql
+

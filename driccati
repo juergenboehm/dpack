@@ -1,0 +1,372 @@
+#
+#
+
+if not assigned ( discont ) then
+	readlib ( discont );
+fi;
+
+#
+#
+
+selectDefined := proc ( elist, vars, intervs, defvals )
+
+local 
+	i,
+	var, iv, defval,
+	undeflist, undeflist1,
+	tryvals, trv,
+	elist1, elistx, elistx1,
+	vars1, intervs1, defvals1,
+	res;
+
+if nops ( vars ) = 0 then
+
+	RETURN ( [] );
+	
+fi;
+
+var := vars[1];
+iv := intervs[1];
+defval := defvals[1];
+
+# undeflist := `union` ( op( map ( discont, elist, var )) );
+# undeflist1 := select ( x-> not type ( x, constant ), undeflist );
+
+tryvals := sort ( [seq ( i, `i` = iv )], (x,y)->evalb ( abs(x) < abs(y) ) );
+
+tryvals := select ( (x,y)->x <> y, tryvals, defval );
+tryvals := [defval, op ( tryvals ) ];
+
+vars1 := vars[2..-1];
+intervs1 := intervs[2..-1];
+defvals1 := defvals[2..-1];
+
+for trv in tryvals do
+
+	# if not member ( trv, undeflist ) then
+
+	if not type ( traperror ( normal ( subs ( var = trv, elist ) ) ), string ) then
+
+		elistx := map ( denom, elist );
+		elistx := dnormal ( eval ( subs ( var = trv, elistx ) ) );
+		elistx1 := select ( x->x=0, elistx );
+		
+		if nops ( elistx1 ) > 0 then
+		
+			next;
+			
+		fi;
+		
+		elistx := remove ( x->x=0, elistx );
+		
+		elistx := map ( x->1/x, elistx );
+				
+		
+							
+		elist1 := dnormal ( eval( value ( subs ( var=trv, elist ))));
+		elist1 := select ( x-> x<>0, elist1 );
+		
+		
+		# elist1 := [op(elist1), op(map ( x->1/x, undeflist1 )) ]; 
+		
+		elist1 := [op({op(elistx)} union {op(elist1)})]; 
+		
+		res := selectDefined ( elist1, vars1, intervs1, defvals1, undeflist1 );
+		
+		if res <> FAIL then
+		
+			RETURN ( [var = trv, op ( res )] );
+			
+		fi;
+		
+	fi;
+	
+od;
+
+RETURN ( FAIL );
+
+end;
+	
+#
+#
+
+dRiccatiSys := proc ( eq1, eq2, fn )
+
+local 
+	X, Y, x1, y1, x0, y0,
+	vars, n,
+	rsl, rsl1,
+	iv,
+	erg, fn1, sl,
+	Eq1, res, res1, UUU, FF,
+	c1val, test;
+	
+global _D1;
+
+# print ( `Riccati Eqn = `, eq1, eq2, fn );
+
+
+vars := [op ( fn )];
+n := nops ( vars);
+
+X := vars[1];
+Y := vars[2];
+
+rsl := map ( rhs, [eq1, eq2] );
+
+iv := -4..4;
+
+erg := selectDefined ( subs(fn=UUU, rsl), vars, [iv $ n], [ 0 $ n] );
+
+if erg = FAIL then
+
+	ERROR ( `couldn't find point of determinacy` );
+	
+fi;
+
+erg := subs ( erg, vars );
+x0 := erg[1];
+y0 := erg[2];
+
+
+fn1 := FF(x1);
+
+sl := [x=x0+x1, y=y0+x1*y1];
+
+rsl1 := subs ( fn=fn1, rsl );
+
+Eq1 := diff ( fn1, x1 ) - subs (sl, rsl1[1] ) - y1 * subs ( sl, rsl1[2] );
+
+# print ( `single Riccati Equation is: ` );
+
+# print ( Eq1 );
+
+res := dsolve ( Eq1, fn1 );
+
+if nops ([res]) = 0 then
+
+	ERROR ( `couldn't solve single Riccati equation` );
+	
+fi;
+
+
+res := solve ( res, fn1 );
+
+#print ( `verify solution = `, 
+#	dsimplify( eval (value ( subs ( fn1 = res, Eq1 ) ) ), symbolic ) );
+
+
+#print ( `result of single Riccati equation:` );
+
+#print ( res );
+
+
+if nops ([res]) = 0 then
+
+	ERROR ( `couldn't solve Riccati solution for unknown function` );
+
+fi;
+
+# normalize integration constant to be independent of y1
+# this is the key step in Mayers transformation
+
+
+c1val := solve ( _D1 = normal ( subs ( x1 = 0, res ) ), _C1 );
+
+if nops ( [c1val] ) = 0 then
+
+	ERROR ( `couldn't solve for integration constant` );
+
+fi;
+
+	
+res := normal ( subs ( _C1 = c1val, res ) );
+
+# _D1 is new integration constant
+
+
+sl := [x1=x-x0, y1=(y-y0)/(x-x0)];
+
+res := subs ( sl, res );
+
+res := dnormal ( eval ( value ( res ) ) );
+
+test := subs ( fn = res, map(x->rhs(x)-lhs(x),[eq1, eq2]) );
+
+test := normal ( eval ( value ( test) ) );
+
+print ( `Riccati result = `, res );
+print ( `Riccati test = `, test );
+
+res := fn = res;
+res1 := _D1 = solve ( res, _D1 );
+
+# erg[1] explizite Loesung, erg[2] Loesung aufgeloest nach der Konstanten
+# erg[3] Konstante
+
+[ res, res1, {_D1} ];
+
+end;
+
+
+#
+#
+#
+#
+
+
+dgenQuadr := proc ( fx, fy, vars )
+
+local 
+		x, y, F, h, res,
+		y0;
+
+x := vars[1];
+y := vars[2];
+
+print ( `dgenQuadr igb = `, simplify ( diff(fx,y)-diff(fy,x), symbolic ) );
+
+F := int ( fx, x );
+
+h := int ( simplify( fy - diff( F, y ), symbolic ), y );
+
+res := simplify ( F + h, symbolic );
+
+print ( `dgenQuadr verify = `, simplify ( fx - diff ( res, x ), symbolic ),
+							   simplify ( fy - diff ( res, y ), symbolic ) );
+
+
+res;
+
+end;
+
+
+#
+# loese diff(f,x)=arbitr(x,y), diff(f,y)=fy*diff(f,x)
+#
+
+
+dincomplQuadr := proc ( fy, vars )
+
+local HH,
+		h,
+		x, y,
+		pdeeq,
+		loes,
+		hval;
+
+h := HH ( op(vars) );
+
+x := vars[1];
+y := vars[2];
+
+pdeeq := diff ( h, y ) - fy * diff ( h, x );
+
+loes := pdesolve ( pdeeq, h );
+
+if nops ( [loes] ) > 1 then
+
+	loes := loes[1];
+
+fi;
+
+loes := subs ( eval ( subs( _F1 = proc(xx) xx; end, loes) ), h );
+
+dnormal ( loes );
+
+end;
+
+#
+# loese diff(f,y)=arbitr(x,y), diff(f,x)=fx*diff(f,y)
+#
+
+dincomplQuadrX := proc ( fx, vars )
+
+local HH,
+		h,
+		x, y,
+		pdeeq,
+		loes,
+		hval;
+
+h := HH ( op(vars) );
+
+x := vars[1];
+
+y := vars[2];
+
+pdeeq := diff ( h, x ) - fx * diff ( h, y );
+
+loes := pdesolve ( pdeeq, h );
+
+if nops ( [loes] ) > 1 then
+
+	loes := loes[1];
+
+fi;
+
+loes := subs ( eval ( subs ( _F1 = proc ( xx ) xx end, loes ) ), h );
+
+dnormal ( loes );
+
+end;
+
+#
+#
+#
+
+intbyx := proc ( byxl, vars )
+
+local	fxxx,
+		fxyx,
+		fyfx,
+		fx,
+		fy,
+		f;
+
+fxxx := byxl[1];
+fxyx := byxl[2];
+fyfx := byxl[3];
+
+fx := dgenQuadr ( fxxx, fxyx, vars );
+
+fx := exp ( fx );
+
+fy := dnormal ( fyfx * fx );
+
+f := dgenQuadr ( fx, fy, vars );
+
+end;
+
+#
+#
+#
+
+intbyy := proc ( byyl, vars )
+
+local	fyxy,
+		fyyy,
+		fxfy,
+		fx,
+		fy,
+		f;
+
+fyxy := byyl[1];
+fyyy := byyl[2];
+fxfy := byyl[3];
+
+fy := dgenQuadr ( fyxy, fyyy, vars );
+
+fy := exp ( fy );
+
+fx := dnormal ( fxfy * fy );
+
+f := dgenQuadr ( fx, fy, vars );
+
+end;
+
+
+#
+#
+#
+

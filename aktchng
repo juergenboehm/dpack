@@ -1,0 +1,15 @@
+#!/usr/bin/perl -w
+
+
+while ( <> ) {
+
+	
+	if ( /var\w*\s*:=\s*\[\s*op\s*\(.*\)\s*\]/ ) {
+
+		print STDOUT $ARGV, ": ", $_;
+		
+	};
+
+	
+};
+

@@ -1,0 +1,30 @@
+       lambda^5+((RCGIa[1](x,y)+RCGIc[2](x,y)+3*RCGIe[2](x,y))*lambda^4+
+
+        ((-3*RCGIc[5](x,y)+RCGIa[3](x,y)+3*RCGIe[2](x,y)*RCGIc[2](x,y)
+
+      +RCGIe[2](x,y)^2+diff(RCGIe[2](x,y),x)+(RCGIe[2](x,y)+RCGIc[2](x,y)
+
+  )*RCGIa[1](x,y)-RCGIc[1](x,y)*RCGIa[2](x,y))*lambda^3+((-diff(RCGIc[5](x,y)
+
+    ,x)-RCGIc[5](x,y)*RCGIe[2](x,y)+(diff(RCGIe[2](x,y),x)-2*RCGIc[5](x,y)
+
+         +RCGIe[2](x,y)^2+RCGIa[3](x,y))*RCGIc[2](x,y)+(-RCGIc[3](x,y)
+
+   -RCGId[2](x,y))*RCGIa[2](x,y)+(RCGIe[2](x,y)*RCGIc[2](x,y)-RCGIc[5](x,y)
+
+    )*RCGIa[1](x,y)+RCGIa[4](x,y)-RCGIa[2](x,y)*RCGIc[1](x,y)*RCGIe[2](x,y)
+
+         +RCGIc[1](x,y)*RCGIa[5](x,y))*lambda^2+((-diff(RCGIc[5](x,y)
+
+         ,x)-RCGIc[5](x,y)*RCGIe[2](x,y)+RCGIc[2](x,y)*RCGIc[5](x,y))
+
+   *RCGIc[2](x,y)+(RCGIb[5](x,y)-RCGIc[4](x,y))*RCGIa[2](x,y)-RCGIa[1](x,y)
+
+    *RCGIc[2](x,y)*RCGIc[5](x,y)+RCGIa[4](x,y)*RCGIc[2](x,y)+RCGIa[2](x,y)
+
+    *RCGIc[1](x,y)*RCGIc[5](x,y)+RCGIc[1](x,y)*RCGIa[5](x,y)*RCGIc[2](x,y)
+
+                        )*lambda*t[1])*t[1])*t[1])*t[1]
+
+                                      []
+

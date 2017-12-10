@@ -1,0 +1,345 @@
+
+remdep ( [xi, eta, sigma, rho] );
+
+depend ( [xi, eta, sigma, rho], [x, y] );
+
+#
+#
+
+divbyzero := proc ( s )
+
+local res;
+
+if type ( s, {list, set} ) then
+
+	res := map ( divbyzero, s );
+	
+	res := convert ( res, `or` );
+	
+	res := evalb ( res );
+	
+	RETURN ( res );
+	
+fi;
+
+evalb ( type ( s, {string, name} ) and s = `division by zero` );
+
+end;
+
+#
+#
+
+resolvecnstnts := proc ( e )
+
+if assigned ( _rcgcnstnts ) then
+
+	subs ( _rcgcnstnts, e );
+
+else
+
+	e;
+
+fi;
+
+end;
+
+#
+#
+
+dgetsavedexpr := proc ( typinfo, exprid )
+
+local expr;
+
+global exprcache;
+
+if type ( exprid, list ) then
+
+	expr := map ( (xx,yy)-> dgetsavedexpr ( yy, xx ), exprid, typinfo );
+	
+else
+
+	expr := getfromcache ( exprcache, [typinfo, exprid] );
+
+fi;
+
+expr;
+
+end; 
+
+#
+#
+
+dgetresolve := proc ( typinfo, jb, fs, exprid )
+
+local ee;
+
+ee := dgetsavedexpr ( typinfo, exprid );
+
+dresolve ( typinfo, jb, fs, ee );
+
+end;
+
+#
+#
+
+dresolve := proc ( typinfo, jb, fs, e )
+
+traperror ( dresolve1 ( typinfo, jb, fs, e ) );
+
+end;
+
+#
+#
+#
+
+dresolve1 := proc ( typinfo, jba, fs, e )
+
+local lst,
+		ee,
+		ee1,
+		jb0, jb,
+		mtcheql,
+		i,
+		ml,
+		tstls,
+		cfsidts,
+		sl,
+		e1,
+		res, res1, res1a,
+		ceq;
+
+if type ( e, list ) then
+
+	res := [];
+
+	for ee in e do
+	
+		ee1 := dresolve ( typinfo, jba, fs, ee );
+		
+		res := [op(res), ee1];
+		
+	od;
+	
+	RETURN ( res );
+	
+fi;
+
+jb := sortdiffs ( jba, fs );
+
+lst := getGenJanetBaseLead ( typinfo );
+
+lst := cAnalyzeEqList ( lst, [xi, eta], nolead, UNIQ );
+
+jb0 := map ( xx -> xx[1], lst );
+
+jb0 := dchangefs ( jb0, [xi, eta], fs );
+
+mtcheql := [];
+
+for i from 1 to nops ( jb0 ) do
+
+	ml := dmatch ( jb0[i], jb[i], fs );		
+		# match canonic base against actual line by line
+	
+	ASSERT ( ml[1]=(1=1), `headterm in match <> 1 = 1` );
+	
+	tstls := map ( lhs, ml );
+	
+	ASSERT ( not member ( 0, tstls ), `not totally matched` );
+	
+	mtcheql := [op(mtcheql), op(ml[2..-1])];
+	
+od;
+
+# entferne die Argumente von den Koeffizienten der Janet-Basis
+# (die aus dem exprcache stammen)
+
+cfsidts := [op(indets(e))];
+
+cfsidts := select ( type, cfsidts, functionx (name) );
+
+cfsidts := select ( xx->type(op(0,xx), indexed ), cfsidts );
+
+cfsidts := select ( (xx,yy)->member ( op([0,0],xx), yy), cfsidts, 
+
+	map ( zz->cat (zz, UNIQ ), explode ( abcdefg )) );
+
+sl := map ( xx->xx=op(0,xx), cfsidts );
+
+e1 := subs ( sl, e );
+
+#
+
+res := subs ( mtcheql, e1 );
+
+res := simplify ( eval ( value ( res ) ), symbolic );
+
+if assigned ( _rcgcnstnts ) then
+
+	res1 := res;
+
+	for ceq in _rcgcnstnts do
+	
+		res1a := traperror ( normal ( eval ( subs ( ceq, res1 ) ) ) );
+
+		if type ( res1a, {string, name} ) then
+		
+			res1a := traperror ( limit ( res1, ceq ) );
+
+			if type ( res1, {string, name} ) then
+			
+				ERROR ( res1 );
+				
+			fi;
+			
+		fi;
+		
+		res1 := res1a;
+		
+	od;
+	
+	res := res1;
+	
+fi;
+			
+res;		
+
+end;
+
+#
+#
+#
+
+
+#
+#
+#
+#
+
+CANCOORDHOME := cat ( MAPLEHOME, `/`, packages, `/`, dpack, `/`, cancoorddir );
+
+#
+#
+#
+
+makeCANCOORDFILE := proc ( typinfo )
+
+local gi;
+
+gi := getgroupinfo ( typinfo );
+
+gi := maketypinfostring ( gi );
+
+gi := subsinstring ( [`_` = `-`], gi );
+
+cat ( CANCOORDHOME, `/` , `dcancoord-g`, gi );
+
+end;
+
+#
+#
+#
+
+makeCANCOORDPROC := proc ( typinfo )
+
+local st;
+
+st := maketypinfostring ( typinfo );
+
+st := cat ( `dcancoord_g`, st );
+
+end;
+
+#
+#
+#
+
+makeCANCOORDSETUPPROC := proc ( typinfo )
+
+local st, gi;
+
+gi := getgroupinfo ( typinfo );
+
+st := maketypinfostring ( gi );
+
+st := cat ( `cancoordsetup_g`, st );
+
+end;
+#
+#
+#
+
+_forceload:= false;
+
+#
+#
+#
+
+dcancoord := proc ( typinfo, jb, fs )
+
+local infn,
+		ff;
+
+ff := makeCANCOORDPROC ( typinfo );
+
+if (not type ( eval ( ff ), procedure )) or ( _forceload = true ) or
+		has ( [args], forceload ) then
+
+	infn := makeCANCOORDFILE ( typinfo );
+
+	tempforgetdep ();
+
+	read infn;
+
+	restoredep ();
+
+fi;
+
+if type ( eval ( ff ), procedure ) then
+
+	ff ( jb, fs );
+	
+else
+
+	FAIL;
+	
+fi;
+
+end;
+
+#
+#
+#
+
+cancoordsetup := proc ( typinfo )
+
+local	ff,
+		infn;
+
+
+ff := makeCANCOORDSETUPPROC ( typinfo );
+
+if (not type ( eval ( ff ), procedure )) or ( _forceload = true ) or has ( [args], forceload )
+		then
+
+	infn := makeCANCOORDFILE ( typinfo );
+
+	tempforgetdep ();
+
+	read infn;
+
+	restoredep ();
+
+fi;
+
+if type ( eval ( ff ), procedure ) then
+
+	ff ( );
+	
+else
+
+	FAIL;
+	
+fi;
+
+end;

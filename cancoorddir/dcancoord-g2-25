@@ -1,0 +1,181 @@
+
+remdep ( [xi, eta, b[1], a[2]] );
+
+depend ( [xi,eta], [x,y] );
+
+
+####################################################################################
+#
+#   Group g 2, 25
+#
+#
+
+KNOWNSOLS_2_25 := [1, SIGMA];
+
+
+
+
+dcancoord_g2_25_ffff := proc ( jb, fs )
+
+local	fs1,
+		jb1,
+		b1a2v,
+		sbyxy,
+		xx00v,
+		yy00v,
+		ff,
+		loes,
+		rsys,
+		res;
+
+
+fs1 := [xi, eta];
+
+jb1 := dchangefs ( jb, fs, fs1 );
+
+b1a2v := dresolve ( [2,25,ffff], jb1, fs1, b[1](x,y) - a[2](x,y) );
+
+if b1a2v = 0 then
+
+	RETURN ( dcancoord_g2_25_tfff ( jb, fs ) );
+	
+fi;
+
+
+sbyxy := dgetresolve ( [2,25,ffff], jb1, fs1, ID_SBYXY );
+
+xx00v := dgenQuadr ( op ( sbyxy ), [x,y] );
+
+xx00v := simplify ( exp ( xx00v ), symbolic );
+
+
+ff := RRX (x,y );
+
+rsys := dgetresolve ( [2,25,ffff], jb1, fs1, ID_RSYS );
+
+loes := xpdesolve ( rsys, [ff], basis );
+
+loes := xpdegensol ( loes, subs ( SIGMA = xx00v, KNOWNSOLS_2_25 ) );
+
+yy00v := rhs ( loes[1] );
+
+yy00v := normal ( yy00v );
+
+
+res := [xx00v, yy00v];
+
+res := [[],res,[]];
+
+end;
+
+#
+#
+#
+
+dcancoord_g2_25_tfff := proc ( jb, fs )
+
+local	fs1,
+		jb1,
+		b1a2v,
+		sbyxy,
+		xx00v,
+		yy00v,
+		ff,
+		loes,
+		rsys,
+		res;
+
+fs1 := [xi, eta];
+
+jb1 := dchangefs ( jb, fs, fs1 );
+
+
+
+sbyxy := dgetresolve ( [2,25,tfff], jb1, fs1, ID_SBYXY );
+
+xx00v := dgenQuadr ( op ( sbyxy ), [x,y] );
+
+xx00v := simplify ( exp ( xx00v ), symbolic );
+
+
+ff := RRX (x,y );
+
+rsys := dgetresolve ( [2,25,tfff], jb1, fs1, ID_RSYS );
+
+loes := xpdesolve ( rsys, [ff], basis );
+
+loes := xpdegensol ( loes, subs ( SIGMA = xx00v, KNOWNSOLS_2_25 ) );
+
+yy00v := rhs ( loes[1] );
+
+yy00v := normal ( yy00v );
+
+
+res := [xx00v, yy00v];
+
+res := [[],res,[]];
+
+end;
+
+
+#
+#
+#
+#
+
+tempforgetdep ();
+
+
+cancoordsetup_g2_25 := proc ()
+
+local sbyxy,
+		res;
+
+
+# Fall ffff
+
+iginits ( [2, 25, ffff] );
+
+sbyxy := igreduce ( [2,25,ffff], [sx/s, sy/s] );
+
+igsaveexpr ( ID_SBYXY, sbyxy );
+
+
+res := igcoeffbase ( [2,25,ffff] );
+
+res := res[3..-1];
+
+res := eq2expr ( res );
+
+res := subs ( rho(x,y) = RRX(x,y), res );
+
+igsaveexpr ( ID_RSYS, res );
+
+
+# Fall tfff
+
+iginits ( [2, 25, tfff] );
+
+sbyxy := igreduce ( [2,25,tfff], [sx/s, sy/s] );
+
+igsaveexpr ( ID_SBYXY, sbyxy );
+
+
+res := igcoeffbase ( [2,25,tfff] );
+
+res := res[3..-1];
+
+res := eq2expr ( res );
+
+res := subs ( rho(x,y) = RRX(x,y), res );
+
+igsaveexpr ( ID_RSYS, res );
+
+
+end;
+
+restoredep();
+
+
+
+

@@ -1,0 +1,83 @@
+
+HELP FOR: Introduction to the dpack package 
+
+
+SYNOPSIS:
+
+- The dpack package provides a set of functions for working with differential 
+  equations, their symmetry algebras and differential equations that determine 
+  these symmetry algebras. 
+
+  
+ - The functions of the package group themselves into several classes: 
+  
+ - Functions for manipulating DEs, collecting terms, extracting coefficients, 
+   making substitutions: 
+  
+   csimpJanetBase 
+   dcoeff       dcoeffs     dcollect    dcontent    dextract 
+   dindets      dindexform  dlcoeff     dlterm      dmakemonic 
+   dmakemonicX  dout        dprecoll    dprimpart   dsel 
+   dselect      dsort       dsortlist   dsortraw    dsortterms 
+  
+   dxcollect    dxcollectX  dxindets    dxlterm 
+  
+   makeDeterminingSystem 
+  
+   xdcollect    xdcollectRec 
+  
+   dsubs        tdsubs      vsubs       dvsubs 
+  
+   pdesolvesys 
+  
+   depend       freeofdep   initdep     remdep      showdep 
+    
+ - for more informations see help(dpack,manipulate) 
+    
+    
+ - Functions for computing Janet bases, setting term orders: 
+  
+   dxmakeJanetBase 
+    
+   makeJanetBase 
+   remcotes     setcotes    totDegOrder 
+  
+ - for more informations see help(dpack,janet) 
+  
+  
+ - Functions for operations on vectorfields, computing prolongations, 
+   computing a description of given vectorfields by differential equations 
+   determining invariant differential equations: 
+  
+   computeEtaVal    dprolong 
+  
+   lowerEquation    invariantEquation   lieinvars 
+  
+   vectfToDeq   vectfToJanetBase 
+  
+   vliebrack    vliecharpoly    vliesubs 
+  
+   makegenericfun 
+   vecapply     veccoeffs       veccollect  veccollectX 
+   vecindets    vecindetssort 
+   vecterms     vidtsorder      vidtssort 
+  
+   parmElim 
+  
+ - for more informations see help(dpack,vectf) 
+  
+  
+ - Functions for analyzing Lie group properties of Janet bases, computing 
+   derived algebras, solvable Radicals, commutator tables: 
+  
+   makeCommBase solvableRad 
+   structConst  dstructConst    killform    liecommtable    getliealg 
+  
+ - for more informations see help(dpack,lie) 
+  
+  
+ - a lot of auxiliary functions about which more detailed informations 
+   can be obtained by help(dpack,auxiliary) 
+
+SEE ALSO:
+

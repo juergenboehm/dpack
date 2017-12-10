@@ -1,0 +1,859 @@
+
+#
+#
+#
+#
+#
+
+
+deqjanetbase := proc ( deq, varLists, fs )
+
+local ds, jb;
+
+
+# deq ist in deq-Form
+
+
+ds := makeDeterminingSystem ( deq, varLists, fs, odetype );
+
+jb := makeJanetBase ( ds, fs );
+
+jb := csimpJanetBase ( jb, fs );
+
+end;
+
+#
+#
+#
+
+compcancoord := proc ( jb, fs, varLists )
+
+local n, X, Y,
+		cco, typinfo;
+
+X := varLists[1][1];
+
+Y := varLists[2][1];
+
+
+n := determineSize ( jb, fs );
+
+if n < 2 or n > 5 then
+
+	RETURN ( FAIL );
+	
+fi;
+
+unassign ( '_rcgcnstnts' );
+
+typinfo := cat ( `recog`, n ) ( jb, fs );
+
+if type ( typinfo, name ) or has ( typinfo, cat ( `recog`, n )) then
+
+	RETURN ( FAIL );
+	
+fi;
+
+cco := dcancoord ( typinfo, jb, fs );
+
+cco := cco[2];
+
+cco := subs ( [x=X, y=Y], cco ); 
+
+[cco, typinfo];
+
+end;
+
+#
+#
+#
+
+deqnormalform := proc ( deq, varLists, cco, typinfo )
+
+
+local X, Y,
+		ivs,
+		res;
+
+X := varLists[1][1];
+
+Y := varLists[2][1];
+
+
+if isphi1phi2type ( typinfo ) then
+
+	ivs := getphi1phi2 ( typinfo, varLists );
+
+	res := cancoorddeq ( deq, varLists, varLists, ivs[1][1], ivs[2][1], cco );
+	
+else
+
+	ivs := getlowereq ( typinfo, varLists );
+	
+	res := cancoorddeq ( deq, varLists, varLists, ivs[1][1], FAIL, cco );
+	
+fi;
+
+
+res;
+
+
+end;
+
+#
+#
+#
+#
+#
+
+
+dintegrate := proc ( deq, varLists )
+
+local X, Y,
+		XI, ETA,
+		fs,
+		jb,
+		res, loes,
+		cco,
+		typinfo;
+
+# deq ist in deq-Form
+
+X := varLists[1][1];
+
+Y := varLists[2][1];
+
+fs := [XI(X,Y), ETA(X,Y)];
+
+setcotes ( fs, totDegOrder ( fs ) );
+
+
+jb := deqjanetbase ( deq, varLists, fs );
+
+res := compcancoord ( jb, fs, varLists );
+
+if res = FAIL then
+
+	RETURN ( FAIL );
+	
+fi;
+
+cco := res[1];
+
+typinfo := res[2];
+
+print ( typinfo, cco );
+
+res := deqnormalform ( deq, varLists, cco, typinfo );
+
+if res = FAIL then
+
+	RETURN ( FAIL );
+	
+fi;
+
+loes := deqsolve ( res, varLists, cco, typinfo );
+
+
+end;
+
+#
+#
+#
+#
+#
+
+deqsolve := proc ( invdeq, varLists, cco, typinfo )
+
+local deqcan, deqcan1, X, Y, vBLists, dd, vfinvl, loes;
+
+X := varLists[1][1];
+
+Y := varLists[2][1];
+
+
+vBLists := [[pp],[qq]];
+
+
+deqcan := subs ( invdeq[2], invdeq[1] );
+
+deqcan1 := extformtodeq ( deqcan, varLists );
+
+deqcan1 := dsimplify ( deqcan1, symbolic );
+
+deqcan1 := numer ( deqcan1 );
+
+
+dd := getliedim ( typinfo );
+
+
+if dd = 2 or dd = 3 then
+
+	if issolvabletype ( typinfo ) then
+
+		vfinvl := getknsymmdata ( typinfo, vBLists, varLists );
+
+		loes := knsymmint ( deqcan1, vBLists, varLists, vfinvl[1], vfinvl[2], 1 );
+
+		loes := ccoloes ( loes, varLists, cco );
+
+		RETURN ( loes );
+
+	else
+
+		RETURN ( FAIL );
+
+	fi;
+
+elif dd = 4 then
+
+	loes := odsolve ( deqcan1, Y(X) );
+	
+	loes := listify ( loes );
+	
+	loes := eq2expr ( loes );
+
+	loes := ccoloes ( loes, varLists, cco );
+
+	RETURN ( loes );
+
+elif dd = 5 then
+
+	RETURN ( FAIL );
+
+elif dd = 6 then
+
+	RETURN ( FAIL );
+
+elif dd = 7 then
+
+	RETURN ( FAIL );
+
+elif dd = 8 then
+
+	RETURN ( FAIL );
+
+
+fi;
+
+end;
+
+
+#
+#
+#
+#
+
+
+ccoloes := proc ( loes, varLists, cco )
+
+local X, Y, res, loesa, loesaa;
+
+X := varLists[1][1];
+
+Y := varLists[2][1];
+
+
+res := [];
+
+
+for loesa in loes do
+
+	loesaa := dtrans ( [X=cco[1],Y=cco[2]], loesa, full );
+
+	loesaa := simplify ( loesaa, symbolic );
+
+	res := [op(res), loesaa];
+
+od;
+
+res;
+
+end;
+
+#
+#
+#
+#
+#
+
+getphi1phi2 := proc ( typinfo, varLists )
+
+local idx, invs;
+
+global _rcgcnstnts, _phi1phi2table;
+
+
+idx := phi1phi2index ( typinfo );
+
+if idx = FAIL then
+
+	RETURN ( FAIL );
+	
+fi;
+
+invs := _phi1phi2table[idx];
+
+if assigned ( _rcgcnstnts ) then
+
+	invs := subs ( _rcgcnstnts, invs );
+	
+fi;
+
+invs := map ( extchangevar, invs, [[x],[y]], varLists );
+
+end;
+
+#
+#
+#
+#
+
+gnindex := proc ( typinfo, gntable )
+
+local ginfo, ginfoA,
+		ginfo1, eqs,
+		idx;
+
+global _rcgcnstnts;
+
+
+ginfo := getgroupinfo ( typinfo );
+
+ginfoA := ginfo;
+
+ginfo := gettypinfo1 ( ginfo );
+
+if assigned ( _rcgcnstnts ) then
+
+	ginfo1 := [ginfo, _rcgcnstnts];
+	
+	if member ( ginfo1, gntable ) then
+	
+		idx := ginfo1;
+		
+	elif member ( ginfo, gntable ) then
+	
+		idx := ginfo;
+		
+	else
+	
+		idx := FAIL;
+		
+	fi;
+	
+else
+
+	eqs := gettypinfo2 ( ginfoA );
+
+	if eqs <> FAIL then
+
+		idx := [ginfo, eqs];
+
+		if not member ( idx, gntable ) then
+
+			idx := FAIL;
+
+		fi;
+
+	else
+
+		idx := ginfo;
+
+		if not member ( idx, gntable ) then
+
+			idx := FAIL;
+			
+		fi;
+		
+	fi;
+
+fi;
+
+idx;
+
+end;
+
+#
+#
+#
+#
+
+
+phi1phi2index := proc ( typinfo )
+
+local idx;
+
+global _phi1phi2grouplist;
+
+idx := gnindex ( typinfo, _phi1phi2grouplist );
+
+idx;
+
+end;
+
+#
+#
+#
+#
+
+isphi1phi2type := proc ( typinfo )
+
+evalb ( phi1phi2index ( typinfo ) <> FAIL );
+
+end;
+
+
+
+#
+#
+#
+
+buildphi1phi2table := proc ()
+
+local fd, idx, invs;
+
+global _phi1phi2grouplist;
+
+fd := fopen ( cat ( DPACKPATH, `phi1phi2table` ), WRITE ); 
+
+fprintf ( fd, `_phi1phi2table := table ( [] );\n` );
+
+
+for idx in _phi1phi2grouplist do
+
+	invs := lieinvarsX ( idx );
+	
+	fprintf ( fd, `_phi1phi2table[%a] := %a ;\n`, idx, invs[1] );
+
+od;
+
+fclose ( fd );
+
+end;
+
+#
+#
+#
+#################################################################################
+#
+#
+#
+#
+#
+
+issolvable := proc ( vfl )
+
+local C, n, i, j, k;
+
+n := nops ( vfl );
+
+C := structConst ( vfl, [x,y] );
+
+for j from 1 to n do
+
+	for i from 1 to j-1 do
+	
+		for k from j to n do
+		
+			if C[i,j,k] <> 0 then
+			
+				RETURN ( false );
+				
+			fi;
+			
+		od;
+		
+	od;
+	
+od;
+
+RETURN ( true );
+
+end;
+
+#
+#
+#
+#
+
+solvableindex := proc ( typinfo )
+
+local idx;
+
+global _solvablegrouplist;
+
+idx := gnindex ( typinfo, _solvablegrouplist );
+
+idx;
+
+end;
+
+#
+#
+#
+#
+
+issolvabletype := proc ( typinfo )
+
+evalb ( solvableindex ( typinfo ) <> FAIL );
+
+end;
+
+
+#
+#
+#
+#
+
+
+buildsolvablelist := proc ()
+
+local fd, ii, anf, vf, indlist;
+
+global _phi1phi2grouplist, _lowereqgrouplist;
+
+fd := fopen ( cat ( DPACKPATH, `solvablegrouplist` ), WRITE );
+
+fprintf ( fd, `_solvablegrouplist := [\n` );
+
+indlist := [op(_phi1phi2grouplist), op ( _lowereqgrouplist ) ];
+
+anf := 1;
+
+for ii in indlist do
+
+	print ( ii );
+
+	vf := getliealgX ( ii );
+
+	if issolvable ( vf ) then
+
+		print ( `solvable` );
+
+		if anf = 0 then
+
+			fprintf ( fd, `,` );
+			
+		else
+		
+			anf := 0;
+			
+		fi;
+
+		fprintf ( fd, ` %a \n`, ii );
+		
+	else
+	
+		print ( `not solvable` );
+		
+	fi;
+	
+od;
+
+fprintf ( fd, `];\n` );
+
+fclose ( fd );
+
+end;
+
+#
+#
+#
+#
+#
+#
+#
+#
+
+
+buildsolvabletable := proc ( liedim )
+
+local varLists, vBLists, outfname,
+		fd, ii, n, dummydeq, vfl, res, vflkn, invskn, tstkn;
+
+global _solvablegrouplist;
+
+
+varLists := [[x],[y]];
+
+vBLists := [[p],[q]];
+
+
+if nargs > 1 then
+
+	outfname := args[2];
+
+else
+
+	outfname := `solvabletable`;
+	
+fi;
+
+
+fd := fopen ( cat ( DPACKPATH, outfname, liedim ), WRITE );
+
+fprintf ( fd, `_solvabletable := table ( [] );\n\n` );
+
+for ii in _solvablegrouplist do
+
+	print ( ii );
+
+	n := getliedim ( ii );
+	
+	if n <> liedim then
+	
+		next;
+		
+	fi;
+
+
+	dummydeq := getgendeq1 ( ii, GGG, varLists, n ); 
+
+	vfl := getliealgX ( ii );
+
+	res := symmreductchain ( dummydeq, vBLists, varLists, vfl );
+
+	vflkn := map ( xx->xx[1][1], res );
+
+	invskn := map ( xx->[xx[2][1][2],xx[2][2][2]], res );
+
+
+	tstkn := map ( xx->xx[4][1], res );
+	
+	print ( `tstkn = `||tstkn );
+
+	if not iszerol ( tstkn ) then
+	
+		print ( `error in tstkn` );
+		
+		next;
+		
+	fi;
+
+
+	print ( vflkn, invskn );
+
+	fprintf ( fd, `_solvabletable[ %a ] := [%a,\n%a];\n\n`, ii, vflkn, invskn );
+
+od;
+
+fclose ( fd );
+
+### WARNING: `tstkn` is implicitly declared local
+end;
+
+
+#
+#
+#
+#
+
+
+getknsymmdata := proc ( typinfo, vBLists, varLists )
+
+local idx, vfinvl;
+
+global _rcgcnstnts, _solvabletable;
+
+
+idx := solvableindex ( typinfo );
+
+if idx = FAIL then
+
+	RETURN ( FAIL );
+	
+fi;
+
+vfinvl := _solvabletable[idx];
+
+if assigned ( _rcgcnstnts ) then
+
+	vfinvl := subs ( _rcgcnstnts, vfinvl );
+	
+fi;
+
+vfinvl := map ( extchangevar, vfinvl, [[x],[y]], varLists );
+
+vfinvl := map ( extchangevar, vfinvl, [[p],[q]], vBLists );
+
+end;
+
+
+
+#
+##############################################################################
+#
+
+_phi1phi2grouplist := [
+
+[2,4],
+[2,15],
+[2,25],
+[2,26],
+
+[3,5],
+[3,7],
+[[3,7],[c=-1]],
+[[3,7],[c=2]],
+[3,8],
+[3,10],
+[3,13],
+[3,16],
+
+[3,17,1],
+[3,17,2],
+[3,17,3],
+[3,17,4],
+
+[3,20],
+[3,24],
+
+[4,6],
+[4,9],
+[4,14],
+
+[4,17,1],
+[4,17,2],
+[4,17,3],
+[4,17,4],
+[4,17,5],
+[4,17,6],
+[4,17,7],
+
+[4,18,1],
+[4,18,2],
+
+[4,19],
+[[4,19],[c=2]],
+[[4,19],[c=3]],
+[4,20],
+
+[[5,19],[c=3]]
+
+];
+
+#
+#
+#
+#
+#
+
+_phi1phi2table := table ( [] );
+_phi1phi2table[[2, 4]] := [[x], [y[2]/y[1]]] ;
+_phi1phi2table[[2, 15]] := [[x], [y[2]]] ;
+_phi1phi2table[[2, 25]] := [[y[1]], [y[2]*x]] ;
+_phi1phi2table[[2, 26]] := [[y[1]], [y[2]]] ;
+_phi1phi2table[[3, 5]] := [[y[2]/y[1]], [y[3]/y[2]]] ;
+_phi1phi2table[[3, 7]] := [[y[2]*y[1]^(-(c-2)/(c-1))], [y[3]*y[2]^(-(c-3)/(c-2))]] ;
+_phi1phi2table[[[3, 7], [c = -1]]] := [[y[2]/y[1]^(3/2)], [y[3]/y[2]^(4/3)]] ;
+_phi1phi2table[[[3, 7], [c = 2]]] := [[y[2]], [y[3]*y[1]]] ;
+_phi1phi2table[[3, 8]] := [[x], [1/2*(2*y[3]*y[1]-3*y[2]^2)/y[1]^2]] ;
+_phi1phi2table[[3, 10]] := [[-(y[2]*x-y[2]*y[0]+2*y[1]+2*y[1]^2)/y[1]^(3/2)], [(y[3]*x^2+6*y[2]*x*y[1]+6*y[2]*x-2*x*y[3]*y[0]-6*y[2]*y[0]*y[1]-6*y[2]*y[0]+6*y[1]+6*y[1]^3+24*y[1]^2+y[3]*y[0]^2)/y[1]^2]] ;
+_phi1phi2table[[3, 13]] := [[y[2]*y[0]-1/2*y[1]^2], [4*y[3]*y[0]^2]] ;
+_phi1phi2table[[3, 16]] := [[x], [y[3]/y[2]]] ;
+_phi1phi2table[[3, 17, 1]] := [[y[2]-y[1]*a-y[1]+a*y[0]], [y[3]-y[2]*a-y[2]+y[1]*a]] ;
+_phi1phi2table[[3, 17, 2]] := [[y[2]-2*y[1]+y[0]], [y[3]-2*y[2]+y[1]]] ;
+_phi1phi2table[[3, 17, 3]] := [[y[2]-y[1]], [y[3]-y[2]]] ;
+_phi1phi2table[[3, 17, 4]] := [[y[2]], [y[3]]] ;
+_phi1phi2table[[3, 20]] := [[y[2]*exp(y[1])], [y[3]/y[2]^2]] ;
+_phi1phi2table[[3, 24]] := [[y[1]], [y[3]/y[2]^2]] ;
+_phi1phi2table[[4, 6]] := [[y[3]/y[2]^2*y[1]], [y[4]/y[3]^2*y[2]]] ;
+_phi1phi2table[[4, 9]] := [[1/2*(2*y[3]*y[1]-3*y[2]^2)/y[1]^2], [(y[4]*y[1]^2-4*y[2]*y[3]*y[1]+3*y[2]^3)/y[1]^3]] ;
+_phi1phi2table[[4, 14]] := [[(y[0]*y[3]+3*y[2]*y[1])/y[2]^(3/2)/y[0]^(1/2)], [-1/3*(4*y[3]^2-3*y[4]*y[2])/y[2]^3*y[0]]] ;
+_phi1phi2table[[4, 17, 1]] := [[y[3]-y[2]*a-y[2]*b-y[2]+y[1]*a+y[1]*a*b+y[1]*b-a*b*y[0]], [y[4]-y[3]*a-y[3]*b-y[3]+y[2]*a+y[2]*a*b+y[2]*b-y[1]*a*b]] ;
+_phi1phi2table[[4, 17, 2]] := [[y[3]-2*y[2]*a-y[2]+y[1]*a^2+2*y[1]*a-a^2*y[0]], [y[4]-2*y[3]*a-y[3]+y[2]*a^2+2*y[2]*a-y[1]*a^2]] ;
+_phi1phi2table[[4, 17, 3]] := [[y[3]-3*y[2]+3*y[1]-y[0]], [y[4]-3*y[3]+3*y[2]-y[1]]] ;
+_phi1phi2table[[4, 17, 4]] := [[y[3]-y[2]*a-y[2]+y[1]*a], [y[4]-y[3]*a-y[3]+y[2]*a]] ;
+_phi1phi2table[[4, 17, 5]] := [[y[3]-2*y[2]+y[1]], [y[4]-2*y[3]+y[2]]] ;
+_phi1phi2table[[4, 17, 6]] := [[y[3]-y[2]], [y[4]-y[3]]] ;
+_phi1phi2table[[4, 17, 7]] := [[y[3]], [y[4]]] ;
+_phi1phi2table[[4, 18, 1]] := [[-(y[1]-y[3])/(-y[2]+y[1])], [-(y[2]-y[4])/(y[3]-y[2])]] ;
+_phi1phi2table[[4, 18, 2]] := [[y[3]/y[2]], [y[4]/y[3]]] ;
+_phi1phi2table[[4, 19]] := [[y[3]*y[2]^(-(c-3)/(c-2))], [y[4]*y[3]^(-(c-4)/(c-3))]] ;
+_phi1phi2table[[[4, 19], [c = 2]]] := [[y[2]], [y[4]/y[3]^2]] ;
+_phi1phi2table[[[4, 19], [c = 3]]] := [[y[3]], [y[4]*y[2]]] ;
+_phi1phi2table[[4, 20]] := [[y[3]*exp(1/2*y[2])], [y[4]/y[3]^2]] ;
+_phi1phi2table[[[5, 19], [c = 3]]] := [[y[3]], [y[5]/y[4]^2]] ;
+
+#
+#
+#
+#
+
+_lowereqgrouplist := [
+
+[5,18,1],
+[5,18,2],
+
+[6,12],
+
+[7,23],
+
+[8,3]
+
+];
+
+
+_lowereqtable := table ( [] );
+
+_lowereqtable[[5,18,1]] := y[3]-y[2]-y[2]*a+a*y[1];
+
+_lowereqtable[[5,18,2]] :=  y[3]-y[2];
+
+_lowereqtable[[6,12]] := -2*y[3]*y[1]+3*y[2]^2;
+
+_lowereqtable[[7,23]] := y[3];
+
+_lowereqtable[[8,3]] := y[2]; 
+
+#
+#
+#
+#
+
+
+_solvablegrouplist := [
+
+ [2, 4] 
+, [2, 15] 
+, [2, 25] 
+, [2, 26] 
+, [3, 5] 
+, [3, 7] 
+, [[3, 7], [c = -1]] 
+, [[3, 7], [c = 2]] 
+, [3, 16] 
+, [3, 17, 1] 
+, [3, 17, 2] 
+, [3, 17, 3] 
+, [3, 17, 4] 
+, [3, 20] 
+, [3, 24] 
+, [4, 6] 
+, [4, 17, 1] 
+, [4, 17, 2] 
+, [4, 17, 3] 
+, [4, 17, 4] 
+, [4, 17, 5] 
+, [4, 17, 6] 
+, [4, 17, 7] 
+, [4, 18, 1] 
+, [4, 18, 2] 
+, [4, 19] 
+, [[4, 19], [c = 2]] 
+, [[4, 19], [c = 3]] 
+, [4, 20] 
+, [[5, 19], [c = 3]] 
+, [5, 18, 1] 
+, [5, 18, 2] 
+];
+
+#
+#
+#
+
+read cat ( DPACKPATH, `solvabletable2` );
+
+read cat ( DPACKPATH, `solvabletable3` );
+

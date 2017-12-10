@@ -1,0 +1,43 @@
+
+FUNCTION: vliebrack - computes the lie bracket of two vector-fields
+    
+CALLING SEQUENCE:
+   vliebrack(vf1, vf2)
+   vliebrack(vf1, vf2, vars)
+   vliebrack(vf1, vf2, vars, vB)
+
+      
+PARAMETERS:
+   vf1, vf2 - two expressions
+   vars     - (optional) a list of variables
+   vB       - (optional) a list of variables
+         
+SYNOPSIS:   
+- The arguments vf1, vf2 are two vector-fields given as linear expressions in
+  a number of auxiliary indeterminates. These are by default p, q, but can
+  be set otherwise by giving the argument vB to the function.
+
+- Let p1,...,pn these indeterminates, f1,...,fn their coefficients.
+  
+  The expression
+  
+    f1 * p1 + .... + fn * pn
+    
+  is then meant to stand for the vector-field in n dimensions
+  
+    f1 * d/dx1 + ... + fn * d/dxn  ( read delta for d )
+    
+  The fi are functions of n variables which are by default ( n = 2 ) assumed to
+  be x, y, but can be set otherwise by giving the argument vars to vliebrack.
+
+- The result is the lie-bracket of vf1 and vf2, given in the notation explained
+  above:
+                        
+  [fi * pi, gj * pj] =  sum (fi *d(gj)/dxi - gi * d(fj)/dxi ) * pi
+                        i=1..n, j= 1..n
+ 
+  
+EXAMPLES:   
+      
+SEE ALSO: vectfToDeq
+

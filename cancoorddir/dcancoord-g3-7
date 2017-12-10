@@ -1,0 +1,286 @@
+
+remdep ( [sigma, rho, xi, eta, c[1], b[1]] );
+
+depend ( [sigma, rho, xi, eta], [x, y] );
+
+remdepcoeflist ();
+
+###########################################################################
+#
+# 	Gruppe g 3, 7
+#
+#
+
+dcancoord_g3_7_ffff := proc ( jb, fs )
+
+local fs1,
+		jb1,
+		vars,
+		c1v, b1cv,
+		xx00v,
+		yy00v,
+		res;
+
+global _JJBB1, _FFSS1, _VVARS;
+
+fs1 := [xi,eta];
+
+vars := dgetvars ( fs1 );
+
+jb1 := dchangefs ( jb, fs, fs1 );
+
+
+_VVARS := vars;
+
+_JJBB1 := jb1;
+
+_FFSS1 := fs1;
+
+
+
+
+
+c1v := dresolve ( [3,7,ffff], jb1, fs1, c[1](x,y) );       # sx * rx
+
+b1cv := dresolve ( [3,7,ffff], jb1, fs1, c+b[1](x,y) );    # sy * rx
+
+if b1cv = 0 then
+
+	# sy = 0 oder rx = 0
+
+	if c1v = 0 then
+	
+		# sy bel. rx = 0 sx <> 0 ry <> 0
+		
+		xx00v := getbyx37 ( fftf, SBYX );
+		
+		yy00v := getbyy37 ( fftf, RBYY );	
+						
+	else
+	
+		# sx <> 0 rx <> 0 sy = 0 ry <> 0
+		
+		xx00v := getbyx37 ( ffff, SBYX );
+		
+		yy00v := getbyx37 ( ffff, RBYX );
+		
+		
+	fi;
+	
+else
+
+	# sy <> 0 und rx <> 0
+	
+	if c1v = 0 then
+	
+		# sx = 0 sy <> 0 rx <> 0  ry bel.
+		
+		xx00v := getbyy37 ( tfff, SBYY );
+		
+		yy00v := getbyx37 ( tfff, RBYX );
+		
+	else
+	
+		# sx <> 0 sy <> 0 rx <> 0 ry bel.
+		
+		xx00v := getbyx37 ( ffff, SBYX );
+		
+		yy00v := getbyx37 ( ffff, RBYX );
+				
+	fi;
+	
+fi;
+
+[ [], [xx00v,yy00v], []];
+
+end;
+
+#
+#
+#
+
+dcancoord_g3_7_ffff_1 := proc ( jb, fs )
+
+local fs1,
+		jb1,
+		vars,
+		sbyx, rbyx,
+		xx00v,
+		yy00v,
+		res;
+
+fs1 := [xi,eta];
+
+vars := dgetvars ( fs1 );
+
+jb1 := dchangefs ( jb, fs, fs1 );
+
+
+sbyx := dgetresolve ( [3,7,ffff,1], jb1, fs1, ID_SBYX );
+
+xx00v := intbyx ( sbyx, vars );
+
+rbyx := dgetresolve ( [3,7,ffff,1], jb1, fs1, ID_RBYX );
+
+yy00v := intbyx ( rbyx, vars );
+
+
+[[],[xx00v,yy00v],[]];
+
+
+end;
+
+
+#
+#
+#
+
+getbyx37 := proc ( cs, eid )
+
+local res;
+
+res := dgetresolve ( [3,7,cs], _JJBB1, _FFSS1, cat ( `ID_`, eid ) );
+
+res := intbyx ( res, _VVARS );
+
+res;
+
+end;
+
+#
+#
+
+getbyy37 := proc ( cs, eid )
+
+local res;
+
+res := dgetresolve ( [3,7,cs], _JJBB1, _FFSS1, cat ( `ID_`, eid ) );
+
+res := intbyy ( res, _VVARS );
+
+res;
+
+end;
+
+#
+#
+#
+#
+#
+#
+#
+
+cancoordsetup_g3_7 := proc ()
+
+local	sbyx, sbyy,
+		rbyx, rbyy;
+
+
+iginits ( [3,7,ffff] );
+
+sbyx := [diff(sigma,x,x)/diff(sigma,x),
+			diff(sigma,x,y)/diff(sigma,x),
+					diff(sigma,y)/diff(sigma,x)];
+
+
+sbyx := igreduce ( [3,7,ffff], sbyx );
+
+igsaveexpr ( ID_SBYX, sbyx );
+
+
+
+iginits ( [3,7,fftf] );
+
+sbyx := [diff(sigma,x,x)/diff(sigma,x),
+			diff(sigma,x,y)/diff(sigma,x),
+					diff(sigma,y)/diff(sigma,x)];
+
+
+sbyx := igreduce ( [3,7,fftf], sbyx );
+
+igsaveexpr ( ID_SBYX, sbyx );
+
+
+
+
+
+iginits ( [3,7,tfff] );
+
+sbyy := [diff(sigma,y,x)/diff(sigma,y),
+			diff(sigma,y,y)/diff(sigma,y),
+				diff(sigma,x)/diff(sigma,y)];
+
+sbyy := igreduce ( [3,7,tfff], sbyy );
+
+igsaveexpr ( ID_SBYY, sbyy );
+
+
+
+
+iginits ( [3,7,ffff] );
+
+rbyx := [diff(rho,x,x)/diff(rho,x),
+			diff(rho,x,y)/diff(rho,x),
+					diff(rho,y)/diff(rho,x)];
+
+
+rbyx := igreduce ( [3,7,ffff], rbyx );
+
+igsaveexpr ( ID_RBYX, rbyx );
+
+
+
+
+
+iginits ( [3,7,tfff] );
+
+rbyx := [diff(rho,x,x)/diff(rho,x),
+			diff(rho,x,y)/diff(rho,x),
+					diff(rho,y)/diff(rho,x)];
+
+
+rbyx := igreduce ( [3,7,tfff], rbyx );
+
+igsaveexpr ( ID_RBYX, rbyx );
+
+
+ 
+ 
+
+iginits ( [3,7,fftf] );
+
+rbyy := [diff(rho,y,x)/diff(rho,y),
+			diff(rho,y,y)/diff(rho,y),
+				diff(rho,x)/diff(rho,y)];
+
+
+
+rbyy := igreduce ( [3,7,fftf], rbyy );
+
+igsaveexpr ( ID_RBYY, rbyy );
+
+
+
+
+
+
+
+iginits ( [3,7,ffff,1] );
+
+sbyx := [sxx/sx, sxy/sx, sy/sx ];
+
+rbyx := [rxx/rx, rxy/rx, ry/rx ];
+
+sbyx := igreduce ( [3,7,ffff,1], sbyx );
+
+rbyx := igreduce ( [3,7,ffff,1], rbyx );
+
+igsaveexpr ( ID_SBYX, sbyx );
+
+igsaveexpr ( ID_RBYX, rbyx );
+
+end;
+
+
+
+

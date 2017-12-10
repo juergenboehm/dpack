@@ -1,0 +1,4017 @@
+#
+#	Initialisierungen die vor dem Einlesen des Paketes 'class' getroffen
+#	werden muessen
+#
+#
+
+cremdeps := proc ();
+
+cremdeps1 ( [alpha, beta], [u,v] );
+cremdeps1 ( [xi, eta, sigma, rho ], [x,y] );
+
+end:
+
+#
+#
+
+cremdeps();
+
+#
+#
+
+classInit := proc ()
+
+local totdegm;
+global _classInitDone;
+
+if freeofdep ( [xi,eta,alpha,beta] )  then
+
+	totdegm := totDegOrder ( [xi(x,y), eta(x,y)] );
+
+	setcotes ( [xi(x,y),eta(x,y)], totdegm );
+
+	totdegm := totDegOrder ( [alpha(u,v), beta(u,v)] );
+
+	setcotes ( [alpha(u,v), beta(u,v)], totdegm );
+
+	cmakedeps ( [xi,eta,sigma,rho],[x,y]);
+	cmakedeps ( [alpha,beta],[u,v] );
+
+	_classInitDone := true;
+
+fi;
+
+end:
+
+#
+#
+
+#trace( classInit );
+
+classInit();
+
+#
+#	Ende der Initialisierungen
+#
+#
+#
+
+
+
+#
+#
+#
+
+
+cJanetBasetype := proc ( el, fs )
+
+local el1, res;
+
+el1 := dsortlist ( el, fs );
+
+res := map ( dlterm, el1, fs );
+
+RETURN ( res );
+
+end:
+
+#
+#
+#
+
+				
+cAnalyzeEq := proc ( e, fs, var )
+
+
+local e1, tlcl, i, c, t, s, eqlist, j, noleadflag;
+
+if nargs >= 4 and has ( [args[4..nargs]], 'nolead' ) then
+
+	noleadflag := true;
+	
+fi;
+
+if type ( e, `+` ) then
+
+	e1 := convert ( e, list );
+	
+else
+
+	e1 := [e];
+	
+fi;
+
+tlcl := [];
+
+for i from 1 to nops ( e1 ) do
+
+	c := dlcoeff(e1[i], fs, 't' );
+	
+	tlcl := [op(tlcl), [t,c] ];
+	
+od;
+ 
+eqlist := [];
+s := 0;
+
+j := 1;
+
+for i from 1 to nops ( tlcl ) do
+
+	remdep ( [var[j]] );
+
+	if (i = 1 ) and (tlcl[i][2] = 1) and (noleadflag = true) then
+	
+		s := s + tlcl[i][1];
+		
+	else
+	
+		eqlist := [op(eqlist), var[j] = tlcl[i][2]];
+		s := s + var[j] * tlcl[i][1];
+		j := j + 1;
+		
+	fi;
+	
+od;
+
+s := sort ( s, map(x->x[1], tlcl) );
+
+RETURN ( [s, eqlist] );
+
+end:
+
+#
+#
+#
+
+cAnalyzeEqList := proc ( el, fs )
+
+local vstring, i, vstr, res, vv;
+
+vstr := `abcdefghijklmnopqrstuvwxyz`;
+
+res := [];
+
+for i from 1 to nops ( el ) do
+
+	vv := substring ( vstr, i..i );
+	
+	if has ([args[3..nargs]], UNIQ) then
+	
+		vv := cat ( vv, UNIQ );
+		
+	fi;
+
+	res := 
+		[op(res), cAnalyzeEq ( el[i], fs, vv, args[3..nargs])];
+		
+od;
+
+RETURN ( res );
+
+end:
+
+#
+#
+#
+
+cAnalyzeEqListX := proc ( el, fs )
+
+local res,vars,coefs,coefs0,addarg;
+
+global _depcoeflist;
+
+res := cAnalyzeEqList ( el, fs, args[3..nargs] );
+
+vars := dgetvars ( fs );
+
+coefs :=  map ( y -> map ( x->lhs(x), y ),
+			map ( x->x[2], res ));
+			
+coefs := flatten2 ( coefs );
+
+coefs0 := coefs;
+
+coefs := select ( (x,y)->freeofdep (x,y), coefs, vars );
+
+depend ( coefs, vars );
+
+if not assigned ( _depcoeflist ) then
+
+	_depcoeflist :={};
+	
+fi;
+
+_depcoeflist := { op(_depcoeflist), op(map((x,y)->x(op(y)),coefs, vars)) };
+
+addarg := map ( (x,y)->x=x(op(y)), coefs0, vars );
+
+res := subs ( op ( addarg ), res );
+
+RETURN ( res );
+
+end:
+
+
+#
+#
+#
+
+cRemoveCoeffDeps := proc ()
+
+global _depcoeflist;
+
+remdep ( _depcoeflist );
+
+_depcoeflist := {};
+
+end:
+
+
+#
+#
+#
+#
+
+cStructConst := proc ( n, case )
+
+local jbs,eqs,jbs1,rels,C;
+
+
+if assigned ( _jbaselist ) then
+
+	if nargs >= 3 then	
+
+		jbs := _jbaselist[n, case, args[3]];
+	
+	else
+	
+		jbs := _jbaselist[n, case];
+		
+	fi;
+	
+else
+
+	ERROR ( `_jbaselist undefined ` );
+	
+fi;
+
+
+jbs := subs ( sig(x,y)=sigma, rh(x,y)=rho, jbs );
+
+jbs := csimpJanetBase ( jbs, [xi,eta] );
+
+eqs := cAnalyzeEqListX ( jbs, [xi,eta], nolead );
+
+jbs1 := map ( x->x[1], eqs );
+
+rels := map ( x->x[2], eqs );
+
+rels := flatten2 ( rels );
+
+C := dstructConst ( jbs1, [xi,eta] );
+
+RETURN ( [jbs1, rels, eval(C)] );
+
+end:
+
+#
+#
+#
+#
+
+
+Ila := proc ( C, n, k )
+
+local i, kk, j;
+
+[seq(
+coeff(
+collect(
+linalg[charpoly](
+
+[seq([seq(C[i,j,kk],j = 1 .. n)],kk = 1 .. n)],lambda),
+
+lambda),
+
+lambda,k),
+
+i = 1 .. n)]
+
+end:
+
+#
+#
+#
+
+
+#########################################################################################
+#
+#	START			cProcessGroups
+#
+#########################################################################################
+
+cProcessGroups := proc ( indl )
+
+local ind,
+	nooutflag,
+	jblfilearg, 
+	vf , 
+	gl, gl1,
+	resbase,
+	indll,
+	OR;
+
+global _outfile, _aktind, _jbaselist, _extraass, MAPLEHOME;
+
+_outfile := cat ( MAPLEHOME, `/texout/cProcessGroupsOut.tex` );
+
+resbase := FAIL;
+
+if nargs > 1 then
+
+	if has ( [args[2..nargs]], 'noout' ) then
+	
+		nooutflag := true;
+		_outfile := terminal;
+		writeto ( _outfile );
+				
+	fi;
+
+	unassign ( 'outfile' );
+	jblfilearg := subs ( select ( type, [args[2..-1]], name = {string, name} ),
+															 outfile ); 
+		
+	if jblfilearg <> outfile then
+
+		_outfile := jblfilearg;
+	
+	fi;
+	
+			
+	unassign ( 'resbasedir' );
+	resbase := subs ( select ( type, [args[2..-1]], name = {string, name} ), 
+																resbasedir );
+	
+	if resbase = resbasedir then
+	
+		resbase := FAIL;
+		
+	fi;
+	
+fi;
+
+
+writeto ( _outfile );
+
+interface ( screenwidth = 94 );
+
+lprintx ( `\\documentstyle[german, twocolumn, a4, fullpage]{article}` );
+lprintx ();
+lprintx ();
+
+lprintx ( `\\begin{document}` );
+lprintx ();
+
+
+indll := cexpandIndl ( indl );
+
+
+writeto ( terminal );
+
+for ind in indll do
+		
+	writeto ( terminal );
+
+	gl := cat (`g_`, maketypinfostring ( ind ));		
+
+	print ( `discussing group `||gl );
+
+	_aktind := getlienr ( ind );
+
+	if resbase <> FAIL then
+
+		_jbaselist := table ( [] );
+
+	fi;
+
+
+	vf := getliealgX ( ind );
+
+	_extraass := gettypinfo2 ( ind );
+	
+	if _extraass <> FAIL then
+	
+		_extraass := select ( type, _extraass, relation );
+		_extraass := remove ( type, _extraass, `=` );
+		
+	fi;
+		
+
+	appendto ( _outfile );
+	
+	gl1 := subsinstring ( [ `_` = `-` ], gl );
+
+	if nooutflag = true then
+
+		cClassifyGroup ( vf, gl1, noout )
+
+	else
+
+		cClassifyGroup ( vf, gl1 );
+
+	fi;
+
+	writeto ( terminal );
+
+	if resbase <> FAIL then
+
+		OR := setRESULTSBASEDIR ( resbase );
+
+		save _jbaselist, makeJBSFILENAME ( ind );
+		_jbaselist := evaln ( _jbaselist );
+
+		setRESULTSBASEDIR ( OR );
+
+	fi;
+
+	appendto ( _outfile );
+
+	lprintx ( `\\clearpage` );
+	
+		
+od;
+
+
+lprintx ( `\\end{document}` );
+
+writeto ( terminal );
+
+end:
+
+#########################################################################################
+#
+#		cClassifyGroup
+#
+########################################################################################
+
+cClassifyGroup := proc ( vectf, infostr )
+
+local janbas,janbasp,jbalpha,nooutflag;
+
+global _verbose, _xvers, _outfile, _jbxigen, _jblist;
+
+#
+# Achtung : die Variable _jblist ist vorgesehen zur Aufnahme der Ergebnisse genau
+# des einen Falles, den cClassifyGroup als Argument erhalten hat.
+# Dieser Fall wird als Liste von Vektorfeldern in der Variablen vectf uebergeben
+#
+#
+
+if nargs > 2 then
+
+	if has ( [args[3..nargs]], 'noout' ) then
+	
+		nooutflag := true;
+		_outfile := `dummy.tex`;
+		writeto ( _outfile );
+				
+	fi;
+	
+fi;
+
+appendto ( _outfile );
+
+lprintx ( `\\subsubsection{Klassifizierung der Janet--Basen f"ur die Gruppe `||infostr||`}` );
+lprintx ();
+
+
+lprintx ( `Die Erzeugenden der Gruppe sind` );
+
+lxformulas ( vectf );
+
+writeto ( terminal );
+
+_verbose := false;
+_xvers := true;
+
+
+janbas := vectfToJanetBase ( vectf, [xi,eta] );
+
+print ( `Janet-Base` );
+print ( janbas );
+
+janbas := map ( dmakemonic, janbas, [xi,eta] );
+janbas := dsortlist ( janbas, [xi,eta] );
+
+janbasp := map ( dindexform, janbas, noargs );
+
+appendto ( _outfile );
+
+lprintx ( `Die Janet--Basis ist ` );
+
+lprintx ();
+lxformulas ( janbasp );
+lprintx ();
+lprintx ();
+
+writeto ( terminal );
+
+#jbalpha := vsubs ( [u,v], [x=u,y=v],[xi=alpha, eta=beta],
+#					janbas );
+					
+_jblist := table([]);
+
+
+classifyJanetBase ( sig(x,y), rh(x,y), janbas );
+classifyJanetBase ( sig(x), rh(x,y), janbas);
+classifyJanetBase ( sig(y), rh(x,y), janbas );
+classifyJanetBase ( sig(x,y), rh(x), janbas );
+classifyJanetBase ( sig(x,y), rh(y), janbas );
+classifyJanetBase ( sig(x), rh(y), janbas );
+classifyJanetBase ( sig(y), rh(x), janbas );
+
+
+if nooutflag = true then
+
+	writeto ( terminal );
+
+fi;
+
+
+RETURN ( res );
+
+end:
+
+##########################################################################################
+#
+#	START	transformJanetBase
+#
+##########################################################################################
+
+transformJanetBase := proc ( jb, xsubs, ysubs, xtdsubs, assertlist )
+
+local jb1,Uval,denomflist,jbtrans,denomglist,denomfg,ee;
+
+global _assertlist, _assumelist, _watchlist, _verbose, _xvers,
+		_spprocess, _spcoeff, _spfun,
+		_aktind, _xversext, _verboseext, _minimalspace;
+
+writeto ( terminal );
+
+jb1 := dvsubs ( jb, [xi,eta], [x=xsubs,y=ysubs], extsubs );
+
+_verbose:=false;
+
+_spprocess := true;
+
+
+if _minimalspace = true then
+
+	_spcoeff := ee->convert(normal(ee), horner);
+	_spfun := subs ( SPC=_spcoeff, FS = [xi,eta], eee->dcollect (eee,FS,SPC));
+
+	_xvers := true;
+
+else
+
+	if has ( jb1, phi ) then
+
+		Uval := [xsubs, ysubs];
+		_xvers := true;
+
+		_spcoeff := subs ( U=Uval,Phi=phi,
+			 e->xdcollectRec(normal(e), U, x->collect(x,Phi,recursive) ) );
+
+	else
+
+		Uval := [xsubs,ysubs];
+		#_spcoeff := subs ( U=Uval, eee->xdcollectRec(normal(eee),U) );
+		_spcoeff := subs ( U=Uval, eee->collect(normal(eee),U,recursive) );
+
+		_spfun := subs ( SPC=_spcoeff, FS = [xi,eta], eee->dcollect (eee,FS,SPC));
+
+		_xvers := true;
+
+	fi;
+
+fi;
+
+jb1 := normal ( jb1 );
+jb1 := map ( dcollect, jb1, [xi,eta], x->factor(x) );
+
+if assigned ( _xversext ) then
+
+	_xvers := _xversext;
+	
+fi;
+
+denomflist := map ( denomlist, jb1 );
+denomflist := {op(flatten2 ( denomflist ))};
+
+if assigned ( _verboseext ) then 
+
+	_verbose := _verboseext;
+
+fi;
+
+
+jbtrans := makeJanetBase ( jb1, [xi,eta] );
+
+jbtrans := map ( dmakemonic, jbtrans, [xi,eta] );
+
+#jbtrans := map ( x->map(yy->normal(expand(numer(yy))/factor(denom(yy))) ,x), jbtrans );
+
+
+jbtrans := map ( proc(x) if type (x, `+`) then
+	map(yy->normal(expand(numer(yy))/factor(denom(yy))) ,x)
+	else
+	normal(numer(x)/factor(denom(x))) fi; end, jbtrans );
+
+
+jbtrans := dsortlist ( jbtrans , [xi,eta] );
+
+denomglist := {op(flatten2(map ( denomlist, jbtrans )))};
+
+denomfg := denomflist union denomglist;
+
+# denomfg := denomglist;
+
+_assertlist := assertlist;
+_assumelist := {};
+
+#
+# jetzt werden nachtraeglich die Nenner untersucht
+#
+# vorbereiten mit Setzen der _watchlist
+#
+
+_watchlist := [xsubs, ysubs, a, c];
+
+for ee in denomfg do
+
+	assertNotZero ( ee );
+	
+od;
+
+#
+# das Ergebnis der Untersuchung steht jetzt in der _assumelist
+# die Variablen _watchlist und die Variablen fuer die Spezialbehandlung der Koeffizienten
+# ( _spprocess, _spcoeff ) koennen zurueckgesetzt werden
+#
+
+unassign ( '_watchlist' );
+
+unassign ( '_spprocess' );
+unassign ( '_spfun' );
+unassign ( '_spcoeff');
+
+RETURN ( [jbtrans, _assumelist] );
+
+end:
+
+##########################################################################################
+#
+#	END		transformJanetBase
+#
+##########################################################################################
+
+#
+# asslistmake bereitet eine Liste mit den "ueblichen" Assumptions vor
+#
+
+asslistmake := proc ( sigm, rh )
+
+local assl0, assl1, assl2, assl;
+
+assl0 := [ sigm - rh, sigm, rh ];
+
+assl1 := [ diff(sigm,x), diff (sigm,y), diff(rh,x), diff(rh,y) ];
+
+assl1 := select ( x->x <> 0, assl1 );
+
+
+assl2 := [diff(sigm,x)*diff(rh,y)-diff(sigm,y)*diff(rh,x)];
+
+assl := [op(assl0), op(assl1), op(assl2)];
+
+RETURN ( assl );
+
+end:
+
+#
+#
+
+#
+#
+#	classifyJanetBase
+#
+#	jbalpha ist die Janet-Basis in Standard-Koordinaten
+#
+#	sigm, rh sind bereits in den Variablen spezialisiert, d.h liegen als sig(x), rh(x,y)
+#   usw. vor
+#
+#
+
+
+classifyJanetBase := proc ( sigm, rh, jbalpha)
+
+local sxfl,syfl,rxfl,ryfl,ccode,jbxiakt,iseq,indl,ind,indeq,denoms,cand,sigmind,
+    rhind,res,cnstnts,eqs,haszero,jbcomp,assl1,assl2,assl3,assl,assumes,
+    assumes1,jbx,sclres,i,
+    speclabel;
+
+
+global _jblist, _verbose, _xvers, _outfile, _jbaselist, _extraass;
+
+
+writeto(terminal);
+
+#
+# vorsichtshalber Zuruecksetzen der Spezialvariablen des Janetbasis Moduls
+#
+
+unassign ( '_spcoeff' );
+unassign ( '_spprocess' );
+unassign ( '_spfun' );
+
+#
+# berechnen des Casecodes
+#
+
+sxfl := evalb ( normal ( diff(sigm,x) ) = 0 );
+syfl := evalb ( normal ( diff(sigm,y) ) = 0 );
+rxfl := evalb ( normal ( diff(rh,x) ) = 0 );
+ryfl := evalb ( normal ( diff(rh,y) ) = 0 );
+
+ccode := [sxfl, syfl, rxfl, ryfl ];
+
+
+#
+#	erzeuge die transformierte Form
+#
+#
+
+print ( ccode );
+
+assl1 := [sigm, rh];
+
+#assl1 := [];#
+#
+#assl2 := select ( x-> x <> 0, outer ( [[sigm, rh], [x,y]], ( a,b ) -> diff(a,b) ) ); 
+#
+#assl2 := [];
+#
+#assl3 := [diff(sigm,x)*diff(rh,y)-diff(sigm,y)*diff(rh,x)];
+#
+#assl3 := [];
+
+assl := asslistmake ( sigm, rh );
+
+if _extraass <> FAIL then
+
+	assl := [op(assl), op(_extraass)];
+	
+fi;
+
+#debug print("jbalpha = ", jbalpha, [sigm, rh], [assl]);
+
+res := transformJanetBase ( jbalpha, sigm, rh, [], assl );
+
+jbxiakt := res[1];
+assumes := res[2];
+
+
+#
+# einsetzen von sigma und rho fuer schoeneren Ausdruck
+#
+
+assumes1 := subs ( sigm = sigma, rh = rho, assumes );
+
+#debug print ( map ( dindexform, assumes1 ) );
+
+#
+# Spezialfall : assumes nicht leer
+#
+
+if nops ( assumes ) > 0 then
+
+	jbx := dvsubs ( jbalpha, [xi,eta], [x=sigm,y=rh], extsubs );
+
+	# da die transformierte Form vorher in transformJanetBase berechnet wurde und
+	# nicht zur Verfuegung steht mussten wir sie hier neu berechnen
+	#
+
+	sclres := subclassifyJanetBase ( sigm, rh, jbx, assumes, jbxiakt, [] ); 
+
+	# arbeite nun die Liste der Sonderfaelle ab
+
+	speclabel := 0;
+
+	for i from 1 to nops ( sclres ) do
+	
+		#
+		# Achtung : der Eintrag der Spezialfaelle erfolgt nur in die globale
+		# Ergebnisvariable _jbaselist, nicht in _jblist
+		# 
+		
+		speclabel := speclabel + 1;
+	
+		if eval ( _jbaselist ) <> evaln ( _jbaselist ) then
+
+			_jbaselist[_aktind, ccode, speclabel, [sclres[i][1], _assumelist] ] := sclres[i][2];
+		
+		fi;
+
+		appendto ( _outfile );
+
+		lprintx ();
+
+		lprintx ( `\\[\\underline{` );
+
+		lxcaseheading ( ccode );
+
+		lprintx ( `}\\]` );
+
+		lprintx ();
+
+		lprintx ( `Spezialfall `, speclabel, ` : ` );
+
+		lxdisplay ( dindexform ( subs (sigm=sigma, rh=rho, sclres[i][1]), noargs ) );
+
+		lprintx ();
+
+		res := cAnalyzeEqList ( sclres[i][2], [xi,eta], nolead );
+
+		res := subs ( sigm=sigma, rh=rho, res );
+
+		lprintx ( `Die zugeh"orige Janet--Basis ist` );
+
+		eqs := map ( x->x[1], res );
+
+		lprintx ();
+		lxformulas ( map ( dindexform, eqs, noargs) );
+		lprintx ();
+
+		lprintx ( `mit` );
+
+		cnstnts := map ( x->x[2], res );
+		cnstnts := flatten1 ( cnstnts );
+
+
+		lprintx ();
+		map (lxwrapX , map ( dindexform, cnstnts, noargs )  );
+		lprintx ();
+
+		lprintx ();
+
+		writeto ( terminal );
+
+	od;
+			
+fi;
+
+#
+# vergleiche das Ergebnis mit den schon erhaltenen 
+# Janet-Basen, ob eine Spezialisierung vorliegt
+#
+#
+
+iseq := false;
+
+indl := [indices ( _jblist )];
+
+for ind in indl do
+
+	ind := op ( ind );
+	
+	#
+	# mit den folgenden zwei Zeilen wird geprueft ob ccode eine Spezialisierung von
+	# ind ist ( ind hat keine trues, wo ccode keine hat, also kommen nur trues dazu )
+	#
+	
+	cand := zip ( (x,y)->x or y, ccode, ind );
+		
+	if cand = ccode then
+	
+		denoms := _jblist[ind][2];
+		
+		sigmind := _jblist[ind][3][1];
+		rhind := _jblist[ind][3][2];
+		
+		denoms := normal ( eval ( subs ( sigmind = sigm, rhind=rh, denoms ) ) );
+		haszero := convert ( map ( x->evalb(x=0), denoms ), `or` );
+		
+		if haszero = false then
+		
+			jbcomp := eval ( subs ( sigmind=sigm, rhind = rh, _jblist[ind][1] ) );
+			jbcomp := dsortlist ( jbcomp, [xi,eta] );
+		
+			iseq := convert ( zip ( (x,y)->evalb(normal(x-y)=0), jbcomp, jbxiakt ), 
+						`and` );
+
+			if iseq = true then
+			
+				indeq := ind;
+				break;
+				
+			fi;
+
+		fi;
+	fi;
+od;
+
+#debug print("iseq = ", iseq);
+#debug print("jbxiakt = ", jbxiakt);
+
+#
+# iseq ist true, wenn eine Spezialisierung vorliegt
+#
+
+appendto(_outfile);
+
+res := cAnalyzeEqList ( jbxiakt, [xi,eta], nolead );
+
+
+#
+# drucke Gleichungen-Konstanten-Form
+#
+
+lprintx ();
+
+lprintx ( `\\[\\underline{` );
+
+lxcaseheading ( ccode );
+
+lprintx ( `}\\]` );
+
+lprintx ();
+
+
+res := subs ( sigm=sigma, rh=rho, res );
+
+lprintx ( `Die zugeh"orige Janet--Basis ist` );
+
+if iseq = true then
+
+	lprintx ();
+	lprintx ( `identisch mit der des Falles ` );
+	lprintx ( `\\\\` );
+	lprintx ( `\\( `);
+	lxcaseheading ( indeq );
+	lprintx ( `\\)` );
+
+	if eval(_jbaselist) <> evaln ( _jbaselist ) then
+	
+		_jbaselist[ _aktind, ccode ] := POINTER(indeq);  
+
+	fi;
+
+else
+
+	eqs := map ( x->x[1], res );
+
+	lprintx ();
+	lxformulas ( map ( dindexform, eqs, noargs) );
+	lprintx ();
+
+	lprintx ( `mit` );
+
+	cnstnts := map ( x->x[2], res );
+	cnstnts := flatten1 ( cnstnts );
+
+
+	lprintx ();
+	map (lxwrapX , map ( dindexform, cnstnts, noargs )  );
+	lprintx ();
+
+	if eval(_jbaselist) <> evaln ( _jbaselist ) then
+	
+# 		print ( _aktind, ccode );
+		_jbaselist[ _aktind, ccode ] := jbxiakt;  
+
+	fi;
+	
+
+fi;
+
+writeto ( terminal );
+
+denoms := flatten1 ( map ( denomlist, jbxiakt ) );
+_jblist[ccode] := [jbxiakt, denoms, [sigm, rh]];
+
+RETURN ( _jblist[ccode] );
+
+end: 
+
+#######################################################################################
+#
+#  		END  classifyJanetBase
+#  
+#######################################################################################
+#
+
+#######################################################################################
+#
+#	START von Routinen zum Auswerten und Umsetzen von assumes-Bedingungen bei der
+#	Janet-Basis Berechnung.
+#
+#######################################################################################
+
+xcoeff := proc ( e, p, v )
+
+local e1,s,trm,cc;
+
+if p = 0 then
+
+	RETURN ( FAIL );
+	
+fi;
+
+if type ( e, `+` ) then
+
+	e1 := convert ( e, list );
+	
+else
+
+	e1 := [e];
+	
+fi;
+
+s := 0;
+
+for trm in e1 do
+
+	cc := normal ( trm/p );
+
+	if not has ( cc, v ) then
+	
+		s := s + cc;
+		
+	fi;
+	
+od;
+
+RETURN ( s );
+
+end:
+
+#
+#
+#	assmprep faktorisiert Produktgleichungen in den assumes vor
+#
+#
+
+
+assmprep := proc ( assl, xsubs, ysubs )
+
+local res,_constlist,A,B,eq,eq1,a,b,c,fl,smex,eqs;
+
+
+res := [];
+
+_constlist :=[];
+
+A := diff(xsubs,x)*diff(ysubs,y);
+B := diff(xsubs,y)*diff(ysubs,x);
+
+for eq in assl do
+
+	eq1 := eq;
+
+	a := xcoeff ( eq1, A^2, [xsubs, ysubs] );
+	b := xcoeff ( eq1, B^2, [xsubs, ysubs] );		
+	c := xcoeff( eq1, A*B, [ xsubs, ysubs ] );
+	
+	if has ([a,b,c], FAIL ) then
+	
+		res := [op(res), eq1 ];
+		next;
+		
+	fi;
+			
+	if normal(eq1-a*A^2-c*A*B-b*B^2) = 0 then
+
+		
+		fl := factors ( a*X^2+c*X+b );
+		smex := convert ( map ( x->x[2], [op(fl[2][2..nops(fl[2])])] ), `+` );
+
+		if smex > 1 then
+
+			eqs := map ( x->solve ( x[2], X ) , [op(fl[2][2..nops(fl[2])])] );
+			eqs := map ( (x,y) -> subs ( TTT=x,y), eqs, A-TTT*B );	
+
+		else
+
+			eqs := [ A - RootOf(a*X^2+c*X+b, X) * B ];
+
+		fi;
+
+		res := [op(res), op(eqs)];
+
+	else
+	
+		res := [op(res), eq1];
+
+	fi;
+	
+
+od;
+
+RETURN ( res );
+	
+end:
+
+#
+#
+
+hassums := proc ( e, vl )
+
+local e1;
+
+e1 := factor ( normal ( e ));
+
+if type ( e1, `*` ) then
+
+	e1 := convert ( e1, list );
+	
+else
+
+	e1 := [e1];
+	
+fi;
+
+e1 := map ( proc ( x ) option operator;
+
+### WARNING: note that `I` is no longer of type `^`
+		if type ( x, `^` ) then
+		
+			RETURN ( op ( 1, x ) );
+			
+		else
+		
+			RETURN ( x );
+		fi; end, e1 );
+		
+e1 := map ( proc ( x, y ) local e2; option operator;
+
+				if type ( x, `+` ) then
+
+					e2 := map ( proc ( z, w ) option operator;
+					
+									if has ( z, w ) then 1; else 0; fi; end,
+									
+								x, y );
+								
+					e2 := convert ( e2, `+` );
+					
+				else
+				
+					e2 := 0;
+					
+				fi; RETURN ( e2 ); end, e1, vl );
+				
+RETURN ( convert ( map ( x->evalb ( x > 1), e1 ), `or` ) );
+
+
+end:
+
+
+#
+#	solvdform versucht die assumes in aufgeloeste Form zu setzen
+#
+
+`type/freeof` := proc ( e, v )
+
+RETURN ( not has ( e, v ) );
+
+end:
+
+
+solvdform := proc ( assl, xsubs1, ysubs1 )
+
+local res,
+	m,
+	xsubs, ysubs,
+	xysubsxy,
+	eq,
+	rs,rs1,
+	idts,
+	var;
+
+
+xsubs := xsubs1;
+ysubs := ysubs1;
+
+if nops ( xsubs ) < nops ( ysubs ) then
+
+	m := xsubs;
+	xsubs:= ysubs;
+	ysubs := m;
+	
+fi;
+
+res := [];
+
+	
+xysubsxy := select ( z->z <> 0, 
+				[diff(xsubs,x), diff(xsubs,y), diff(ysubs,x),diff(ysubs,y)] );
+
+for eq in assl do
+	
+	if not 
+		type ( eq, 
+			polynom( freeof ( [xsubs, ysubs] ),
+				[op(xysubsxy),xsubs,ysubs] ) )
+		then
+		
+		next;
+		
+	fi;
+		
+	
+	for rs in xysubsxy do
+
+		rs1 := FAIL;
+		
+		if degree ( eq, rs ) = 1 then
+		
+			rs1 := solve ( eq, rs );
+			
+			if hassums ( denom ( normal ( rs1)), [xsubs, ysubs] ) then
+			
+				next;
+				
+			fi;
+			
+			break;
+			
+		fi;
+				
+	od;
+	
+	if rs1 <> FAIL then
+	
+		res := [op(res), rs=normal(rs1) ];
+	
+	else
+	
+		idts := [op(indets ( eq ))];
+		
+		if type ( idts, list(name) ) then
+		
+			var := idts[1];
+			
+			res := [op ( res ), var=solve ( eq, var )];
+			
+		else
+		
+			print ( `couldn``t solve`, eq );
+		
+		fi;
+		
+	fi;
+	
+od;
+
+RETURN ( res );
+
+end:
+
+
+solvdformNEW := proc ( assl, xsubs1, ysubs1 )
+
+local fs, fs1,
+		oldcotes,
+		sl1, sl2,
+		res,
+		eq,
+		eq1,
+		dxidts,
+		dm1,
+		loes;
+
+fs := [xsubs1, ysubs1];
+
+sl1 := subs ( [xsubs1 = sigma, ysubs1 = rho ] );
+
+fs1 := subs ( sl1, fs );
+
+sl2 := swapeqs ( sl1 );
+
+oldcotes := setcotes ( fs1, totDegOrder ( fs1 ) );
+
+res := [];
+
+for eq in assl do
+
+	eq1 := subs ( sl1, eq );
+
+	dxidts := dxindets ( eq1, fs1 );
+	
+	if nops ( dxidts ) = 0 then
+	
+		next;
+		
+	fi;
+	
+	dm1 := dxidts[1];
+	
+	loes := solve ( eq1, dm1 );
+	
+	if nops ( [loes] ) > 0 then
+	
+		res := [op(res), subs ( sl2, dm1 = loes ) ];
+		
+	else
+	
+		print ( `couldn't solve equation `, eq1 );
+		
+	fi;
+	
+od;
+
+setcotes ( fs1, oldcotes );
+
+RETURN ( res );
+
+end:
+
+#
+#
+
+cdsubs := proc ( l, e )
+
+local lsl;
+
+lsl := map ( lhs, l );
+
+if type ( lsl, list(name) ) then
+
+	subs ( l, e );
+	
+else
+
+	tdsubs ( l, e );
+	
+fi;
+
+end;
+
+
+##########################################################################################
+#
+#	ENDE der assumes-Hifsroutinen
+#
+#
+##########################################################################################
+
+########################################################################################
+#
+#	START subclassifyJanetBase
+#
+########################################################################################
+
+subclassifyJanetBase := proc ( xsubs, ysubs, jb, assumelist, jbcompare,
+							oldeqs )
+
+local assl,erglist,denoms,eq,oldeqs1,neweqs,testdiscr,jb1,jbtrans,jbtrans1,
+    denomgs,denomfs,spfun,spcoeff,eqflag,jbtrans0,jbcomp1,denomfg,ee;
+
+global _spfun, _spcoeff, _spprocess, _verbose, _xvers, _assertlist, _assumelist,
+	 _watchlist, _xfun, _testparm;
+
+_testparm := [ xsubs, ysubs, jb, assumelist, jbcompare ];
+
+_xfun := [xsubs, ysubs];
+
+#assl := assmprep ( assumelist, xsubs, ysubs );
+
+assl := assumelist;
+
+assl := solvdform ( assl, xsubs, ysubs );
+
+erglist := [];
+
+print ( assl );
+
+
+
+denoms := flatten1 ( map ( denomlist , jbcompare ));
+
+for eq in assl do
+
+
+	print ( `eq = ` || eq );
+
+	if has ( eq, RootOf ) then
+
+		_spcoeff := subs (U=[xsubs, ysubs],  
+			(e -> xdcollect(collect(evala(Normal(e )), c ), U ) ) );
+
+	else
+	
+		_spcoeff := subs (U=[xsubs, ysubs],  
+			(e -> xdcollect(collect(normal(e ), c ), U ) ) );
+
+	fi;
+	
+	print ( _spcoeff );
+	
+	_verbose:=false;
+	_xvers:= true;
+
+	oldeqs1 := map ( (x,r)->lhs(x)=cdsubs(r,rhs(x)), oldeqs, [eq] );
+	
+	neweqs := [op(oldeqs1),eq];
+
+	_spfun := subs(T=neweqs, (eee)->cdsubs( T ,eee ));
+
+	print ( _spfun );
+	
+
+	testdiscr := diff(xsubs,x)*diff(ysubs,y)-diff(xsubs,y)*diff(ysubs,x);
+	
+	if normal ( _spfun ( testdiscr ) ) = 0 then
+	
+		print ( `invalid case ` );
+		next;
+		
+	fi;
+
+
+	jb1 := jb;	# Beginn der Bearbeitung von jb
+	jb1 := map ( _spfun, jb1 );
+
+	
+	_assertlist := asslistmake ( xsubs, ysubs );
+	
+	_assertlist := map ( x->numer(normal(_spfun(x))), _assertlist);
+	
+	_assumelist := {};
+
+	_watchlist := [xsubs, ysubs];
+
+
+	jb1 := simplify ( jb1 );
+	jb1 := map ( (x,y,z)->dcollect(x,y,z) , jb1, [xi,eta], _spcoeff );
+	jb1 := map ( x->map ( factor, x), jb1 );
+
+	_xfun := jb1;
+
+	print ( `start Janet-Base computation` );
+
+	_spprocess := true;
+
+	jbtrans := makeJanetBase ( jb1, [xi,eta] );
+	jbtrans1 := csimpJanetBase ( jbtrans, [xi,eta] );
+
+	unassign ( '_watchlist' );
+
+	denomgs := { op ( flatten2 ( map ( denomlist, jbtrans1 ) ) ) };
+	denomfs := { };
+	
+	_assumelist := map ( (x,y)->normal(y(x)), _assumelist, _spcoeff );
+			
+	spfun := _spfun;
+	spcoeff := _spcoeff;
+		
+	
+	print ( `end Janet-Base computation` );
+
+	
+	eqflag := not convert ( map ( (x,y,z)->evalb(normal(y(z(x)) = 0 )),
+								denoms, spcoeff, spfun ), `or` );
+								
+	jbtrans0 := jbtrans;
+	jbtrans := jbtrans1;
+	
+	# csimpJanetBase ( jbtrans, [xi,eta] );
+
+
+
+	if eqflag = true then
+
+
+		jbcomp1 := map ( spfun,  jbcompare );
+		
+		jbcomp1 := map ( (x,y,z) -> dcollect ( x, y, z ), jbcomp1, [xi,eta],
+								e->evala(Normal(e)) );
+
+		denomfs := { op ( flatten2 ( map ( denomlist, jbcomp1 ) ) ) };
+#		denomfs := { };
+
+		jbcomp1 := csimpJanetBase ( jbcomp1, [xi,eta] );
+		
+
+
+		if nops ( jbtrans ) = nops ( jbcomp1 ) then
+
+			if has ( eq, RootOf ) then
+
+				eqflag := convert ( zip ( (x,y)-> evalb(evala(Normal(x-y))=0),
+									jbtrans, jbcomp1 ), `and` );
+			
+			
+			else
+
+				eqflag := convert ( zip ( (x,y)-> evalb(normal(x-y)=0), jbtrans, 
+										jbcomp1 ), `and` );
+
+			fi;
+			
+		else
+
+			eqflag := false;
+
+		fi;
+
+	fi;
+
+	_watchlist := [xsubs, ysubs, a, c];
+
+	_assumelist := {};
+
+	_assertlist := asslistmake ( xsubs, ysubs );
+	
+	_assertlist := map ( x->numer(normal(_spfun(x))), _assertlist);
+	
+	denomfg := denomgs union denomfs;
+	
+	for ee in denomfg do
+
+		assertNotZero ( ee );
+
+	od;
+
+	print ( `verbleibende Nenner:` );
+	print ( _assumelist );
+
+#	if nops ( _assumelist ) > 0 then
+#	
+#		res :=subclassifyJanetBase ( xsubs, ysubs, jb1, _assumelist, jbtrans0, neweqs );
+#		erglist := [ op(erglist), op(res) ];
+#		
+#	fi;  
+	
+	unassign( '_watchlist' );
+
+	unassign ( '_spfun' );
+	unassign ( '_spprocess' );
+	
+	if eqflag = false then
+	
+		print ( `new case found` );
+		jbtrans := 
+			map ( x-> map( yy-> normal(expand(factor(normal(yy)))), x), 
+				jbtrans );
+		erglist := [op(erglist), [neweqs, jbtrans]];
+		
+	fi;
+	 
+
+#	jbtrans := map ( dmakemonic, jbtrans, [xi,eta] );
+
+#	jbtrans := map ( x->map(yy->normal(expand(numer(yy))/factor(denom(yy))) ,x), jbtrans );
+#	jbtrans := dsortlist ( jbtrans , [xi,eta] );
+
+
+od;
+
+unassign ( '_spcoeff' );
+unassign ( '_spfun' );
+unassign ( '_spprocess' );
+
+print ( `len erglist = ` , nops(erglist) );
+
+RETURN ( erglist );
+
+end:
+
+#########################################################################################
+#
+#	END subclassifyJanetBase
+#
+#
+#########################################################################################
+
+denomlist := proc ( e )
+
+if type ( e, `+` ) then
+
+	RETURN ( map ( denom, convert ( e, list ) ) );
+	
+else
+
+	RETURN ( [denom ( e )] );
+	
+fi;
+
+end:
+
+#########################################################################################
+#
+#	START LX-Routinen
+#
+#########################################################################################
+
+
+lprintx := proc ()
+
+local argsl, outstr;
+
+argsl:= map ( xx->convert(xx,string), [args] );
+outstr := cat ( op(argsl) );
+writeline ( default, outstr );
+
+end;
+
+
+
+#
+#	lxcaseheading nimmt den Codes wie ( true, false, true, false ) entgegegen und
+#	druckt Zeilen wie sigmx = 0 sigmy <> 0 rhox = 0 rhoy <> 0 in Tex-Form aus
+#	
+
+latexX := proc ( e )
+
+lprintx ( `## latex begin` );
+tempforgetdep ();
+lprintx ( e );
+restoredep ();
+lprintx ( `## latex end` );
+
+end;
+
+#
+#
+
+lxcaseheading := proc ( ccode )
+
+lprintx ( `\\sigma_x ` );
+
+lxiszero ( ccode[1] );
+
+lprintx ( `,\\sigma_y ` );
+lxiszero ( ccode[2] );
+
+lprintx ( `,\\rho_x ` );
+lxiszero ( ccode[3] );
+
+lprintx ( `,\\rho_y ` );
+lxiszero ( ccode[4] );
+
+end:
+
+
+#
+#
+#
+
+lxiszero := proc ( zeroflag )
+
+if zeroflag = true then
+
+	lprintx ( `= 0\\ ` );
+	
+else
+
+	lprintx ( `\\neq 0\\ ` );
+
+fi;
+
+end:
+
+#
+#
+
+lxdisplay := proc ( e )
+
+lprintx ( `\\[` );
+latexX(e);
+lprintx ( `\\]` );
+
+end:
+
+#
+#
+
+lxformula := proc ( e )
+
+lprintx ( `\\(` );
+latexX(e);
+lprintx ( `\\)` );
+
+end:
+
+#
+#
+
+lxformulas := proc ( el )
+
+local i;
+
+lprintx ( `\\begin{center}` );
+
+for i from 1 to nops ( el ) do
+
+	lxformula ( el[i] );
+
+	if ( i < nops ( el ) ) then
+	
+		lprintx ( `\\\\` );
+		
+	fi;
+	
+od;
+
+lprintx ( `\\end{center}` );
+
+end:
+
+#
+#
+
+lxdisplays := proc ( el )
+
+local i;
+
+for i from 1 to nops ( el ) do
+
+	lxdisplay ( el[i] );
+	
+od;
+
+end:
+
+#
+#
+
+lxwrap := proc ( e )
+
+local n, e1, eleft, eqflag, den, num, i, j, endflag, num1, num2;
+
+global _etest;
+
+
+if nargs >= 2 then
+
+	n := args[2];
+	
+else
+
+	n := 3;
+	
+fi;
+
+if type ( e, equation ) then
+
+	e1 := rhs( e );
+	eleft := lhs( e );
+	eqflag := true;
+	
+else
+
+	e1 := e;
+	eqflag := false;
+
+fi;
+
+_etest := e1;
+
+e1 := dunindex ( e1 );
+e1 := normal ( e1 );
+
+
+if denom ( e1 ) <> 1 then
+
+	den := denom ( e1 );
+	num := numer ( e1);
+	
+else
+
+	num := e1;
+	den := 1;
+	
+fi;
+
+den := dreindex ( den );
+num := dreindex ( num );
+
+
+if type ( num, `+` ) then
+
+	num := convert ( num, list );
+	
+else
+
+	num := [num];
+	
+fi;
+
+lprintx ( `\\begin{eqnarray*}` );
+
+for i from 1 to nops ( num ) by n do
+
+	j := i + n - 1;
+	if j >= nops ( num ) then
+		j := nops ( num );
+		endflag := true;
+	fi;
+	
+	num1 := [op(num[i..j])];
+ # update to V4
+	
+	num2 := convert ( num1, `+` );
+	
+	if ( i <> 1 ) or (not (eqflag = true )) then
+	
+		lprintx ( `& + &` );
+
+	else
+	
+		latexX ( eleft );
+		lprintx ( `& = & ` );
+		
+	fi;
+	
+	latexX ( num2/den );
+	
+	if not ( endflag = true ) then
+		lprintx ( `\\\\` );
+	fi;
+	
+od;
+
+lprintx ( `\\end{eqnarray*}` );
+
+end:
+
+#
+#
+#
+
+tempforgetdep ();
+
+_greekLetters := [sigma, rho, xi, eta, phi];
+
+restoredep ();
+
+
+costTeX := proc ( e )
+
+local cst,ee,den,num,cstnum,cstden;
+
+global _greekLetters;
+
+if type ( e, `+` ) then
+
+	cst := convert( map ( costTeX, convert( e,list) ), `+` ) + nops(e) - 1;
+
+elif type ( e, `*` ) then
+
+	ee := convert ( e ,list );
+	
+### WARNING: note that `I` is no longer of type `^`
+	den := select ( x->type(x,`^`) and op(2,x) < 0, ee );
+	den := map (x->1/x, den );
+	
+### WARNING: note that `I` is no longer of type `^`
+	num := select ( x->not(type(x,`^`) and op(2,x) <0), ee );
+	
+	cstnum := convert ( map (costTeX, num), `+` ) + (nops (num)-1);
+	cstden := convert ( map (costTeX, den), `+` ) + (nops (den)-1);
+	
+	cst := max ( cstnum, cstden );
+		
+### WARNING: note that `I` is no longer of type `^`
+elif type ( e, `^` ) then
+
+	cst := costTeX(op(1,e))+costTeX(op(2,e))+0.75;
+
+elif type ( e, indexed ) then
+
+	cst := costTeX(op(0,e)) + costTeX(op(e))*0.9;
+	
+elif type ( e, name ) then
+
+	if member ( e, _greekLetters ) then
+	
+		cst := 1;
+		
+	else
+	
+		cst := length ( e );
+		
+	fi;
+
+else
+
+	cst := length(convert(e,name));
+	
+fi;
+
+RETURN ( cst );
+
+end:
+
+
+isfrac := proc ( e )
+
+if type ( e, `*` ) then
+
+### WARNING: note that `I` is no longer of type `^`
+	if nops(e)=2 and type ( op(2,e), `^` ) then
+	
+		if op(2,op(2,e)) = -1 then
+		
+			RETURN ( true );
+			
+		fi;
+	fi;
+	
+	RETURN ( false );
+	
+elif type ( e, fraction ) then
+
+	RETURN ( true );
+	
+else
+
+	RETURN ( false );
+	
+fi;
+end:
+
+		 
+	
+	
+
+lxwrapX := proc ( e )
+
+local n,e1,eleft,eqflag,den,num,i,j,endflag,max,nowrapperflag,L,imain,iterm,
+    nterm,t1,firstflag,numerout,denomout,out,newmainflag,numakt,denomakt,
+    eofflag,numeroutnew,denomoutnew,outnew,outtest,newcst;
+
+global _etest;
+
+
+if nargs >= 2 then
+
+	max := args[2];
+	
+else
+
+	max := 44;
+	
+fi;
+
+if has ( [args], `nowrapper` ) then
+
+	nowrapperflag := true;
+	
+else
+
+	nowrapperflag := false;
+	
+fi;
+
+
+if type ( e, equation ) then
+
+	e1 := rhs( e );
+	eleft := lhs( e );
+	eqflag := true;
+	
+else
+
+	e1 := e;
+	eqflag := false;
+
+fi;
+
+_etest := e1;
+
+
+if type ( e1, `+` ) then
+
+	L := convert ( e1, list );
+	
+else
+
+	L := [e1];
+	
+fi;
+
+L := map ( y-> dfrontendX ( x->[numer(x), denom(x)], [y] ), L );
+
+L := map ( proc ( x ) option operator;
+
+				local x1;
+				
+				if not type (x[1], `+` ) then
+				
+					x1 := expand ( x[1] );
+					
+				else
+				
+					x1 := x[1];
+					
+				fi;
+
+				if type ( x1, `+` ) then
+				
+					[convert(x1,list),x[2]];
+					
+				else
+				
+					[[x1],x[2]];
+					
+				fi;
+			end,  L );
+
+if nowrapperflag = false then
+
+	lprintx ( `\\begin{eqnarray*}` );
+
+fi;
+
+imain := 0;
+iterm := 0;
+nterm := 0;
+
+t1 := EMPTY;
+
+firstflag := true;
+
+while true do
+
+#	out := empty;
+	
+	if t1 <> EMPTY then
+	
+		numerout := t1[1];
+		denomout := t1[2];
+		
+		out := 0;
+		
+	else
+		
+		numerout :=0;
+		denomout := 1;
+		
+		out := 0;
+		
+	fi;
+	
+	while true do;
+
+
+#		t1 := getnext;
+
+		if iterm = nterm then
+		
+			iterm := 1;
+			imain := imain + 1;
+			
+			newmainflag := true;
+			
+			if imain <= nops ( L ) then
+
+				numakt := L[imain][1];
+				denomakt := L[imain][2];
+
+				nterm := nops ( numakt );
+
+
+			else
+
+				eofflag := true;
+
+			fi;
+			
+		else
+		
+			newmainflag := false;
+			iterm := iterm + 1;
+			
+		fi;
+				
+		if eofflag <> true then
+		
+			t1 := [ numakt[iterm], denomakt ];
+			
+		fi;
+		
+		
+		if eofflag = true then
+		
+			break;
+			
+		fi;
+
+		if newmainflag = false then
+		
+		
+			numeroutnew := numerout + t1[1];
+			denomoutnew := denomout;
+			outnew := out;
+							
+		else
+		
+			numeroutnew := t1[1];
+			denomoutnew := t1[2];
+			outnew := out + numerout/denomout;
+			
+		fi;
+
+
+		outtest := outnew + numeroutnew/denomoutnew;		
+		newcst := costTeX ( outtest );
+
+		if newcst > max then
+
+			break;
+
+		fi;
+
+#		out := out + t1;
+
+		out := outnew;
+		numerout := numeroutnew;
+		denomout := denomoutnew;
+
+	od;
+
+	out := out + numerout / denomout;
+	
+	if firstflag = true then
+	
+		if eqflag = true then
+		
+			latexX ( eleft );
+			lprintx ( ` & = & ` );
+			
+		else
+		
+			lprintx ( ` & & ` );
+			
+		fi;
+		
+		firstflag := false;
+		
+	else
+	
+		lprintx ( ` & + & ` );
+
+	fi;
+	
+	latexX ( out );
+#	latexX ( costTeX(out) );
+	lprintx ( `\\\\` );
+	
+	
+	if eofflag = true then
+	
+		break;
+		
+	fi;
+	
+od;
+
+if nowrapperflag = false then
+
+	lprintx ( `\\end{eqnarray*}` );
+
+fi;
+
+end:
+
+##########################################################################################
+#
+#	END LX-Routinen
+#
+##########################################################################################
+
+
+
+
+
+
+##########################################################################################
+#
+#	ROUTINEN ZUM SORTIEREN VON JANET-BASEN-LISTEN
+#
+##########################################################################################
+
+invertTable := proc ( tbl, procvalue, procindex )
+
+local invtbl,indexlst,ind,newval;
+
+invtbl := table ( [] );
+
+indexlst := [indices ( tbl )];
+
+for ind in indexlst do
+
+	newval := procvalue ( tbl[op(ind)] );
+	
+	if not assigned ( invtbl[newval] ) then
+	
+		invtbl[newval] := [];
+		
+	fi;
+	
+	invtbl[newval] := [op(invtbl[newval]), procindex ( ind )];
+	
+od;
+
+RETURN ( eval ( invtbl ));
+
+end:
+
+
+#
+#
+#
+
+invertJbsTable1 := proc ( jbstbl )
+
+local indexs, invtbl, ind, jbs, jbstype, aktnum, aktcase, aktspeccond,
+	oldmainentry, oldsubentry, prepmainentry, newentry, subentry, newmainentry;
+
+indexs := [ indices ( jbstbl ) ];
+
+invtbl := table ( [] );
+
+
+for ind in indexs do
+
+	jbs := jbstbl[op(ind)];
+	
+	if op(0, jbs) = POINTER then
+		
+		next;
+		
+	fi;
+	
+	jbstype := cBasetype ( jbs, [xi,eta] );
+	
+	aktnum := ind[1];
+	aktcase := ind[2];
+	
+	if nops ( ind ) > 2 then
+	
+		aktspeccond := ind[3];
+		
+	else
+	
+		aktspeccond := evaln ( aktspeccond );
+		
+	fi;
+	
+	if not assigned ( invtbl[jbstype] ) then
+	
+		oldmainentry := [];
+		oldsubentry := [];
+		prepmainentry := [];
+		
+	else
+	
+		oldmainentry := invtbl[jbstype];
+		oldsubentry := select ( (x,y)->x[1]=y, oldmainentry, aktnum );
+		prepmainentry := select ( ( x,y ) -> x[1] <> y, oldmainentry, aktnum );
+			
+	fi;
+		
+	if not assigned( aktspeccond ) then
+	
+		newentry := [aktcase, jbstbl[op(ind)] ];
+		
+		if nops ( oldsubentry ) = 0 then
+		
+			subentry := [aktnum, [ newentry ]];
+			
+		else
+		
+			subentry := [oldsubentry[1][1],[op(oldsubentry[1][2]),newentry]];
+		
+		fi;
+		
+	else
+
+		newentry := [aktcase, jbstbl[op(ind)], aktspeccond ];
+
+		if nops ( oldsubentry ) = 0 then
+		
+			subentry := [aktnum, [ newentry ]];
+			
+		else
+		
+			subentry := [oldsubentry[1][1],[op(oldsubentry[1][2]),newentry]];
+		
+		fi;
+		
+			
+	fi;
+	
+	newmainentry := [op(prepmainentry), subentry ];
+	
+	newmainentry := sort ( newmainentry, (x,y)->evalb(x[1] <= y[1]) );
+	
+	invtbl[jbstype] := newmainentry;
+	
+od;
+
+eval ( invtbl );
+
+end:
+
+#
+#
+#
+
+janetBaseShortForm := proc ( janbas )
+
+local jban;
+
+jban := cAnalyzeEqList ( janbas, [xi,eta], nolead );
+
+jban := map ( x->x[1], jban );
+
+RETURN ( jban );
+
+end:
+
+#
+#
+#
+
+####################################################################################
+#
+#		START buildJanetBaseTable
+#
+####################################################################################
+
+#
+#
+
+jbsTypeLeq := proc ( jbstype1, jbstype2 )
+
+local n,i,dl1,dl2,f1,f2;
+
+if nops ( jbstype1 ) < nops ( jbstype2 ) then
+
+	RETURN ( true );
+	
+fi;
+
+if nops ( jbstype1 ) > nops ( jbstype2 ) then
+
+	RETURN ( false );
+	
+fi;
+
+n := nops ( jbstype1 );
+
+for i from 1 to n do
+
+dl1 := difflist( jbstype1[i] );
+dl2 := difflist( jbstype2[i] );
+
+if dl1 = dl2 then next; fi;
+
+f1 := convert ( dl1[1],name );
+f2 := convert ( dl2[1],name );
+
+dl1 := convert( [op(dl1[2..nops(dl1)])], name );
+ # update to V4
+dl2 := convert( [op(dl2[2..nops(dl2)])], name );
+ # update to V4
+
+if f1 = f2 then
+
+	RETURN ( lexorder ( dl1, dl2 ) );
+	
+else
+
+	RETURN ( lexorder ( f1, f2 ) );
+	
+fi;
+
+od;
+
+RETURN ( true );
+
+end:
+ 
+#
+#
+#		
+
+getnlambda := proc ( jb )
+
+local res;
+
+res := determineLambda ( jb, [xi,eta] );
+
+res;
+
+end;
+
+#
+#
+#
+
+getnsip := proc ( jb )
+
+local res, n;
+
+res := determineSip ( jb, [xi,eta] );
+
+if has ( res, _alpha ) then
+
+	n := 3;
+	
+else
+
+	n := nops ( res );
+
+fi;
+
+[n, res];
+
+end;
+
+#
+#
+#
+
+printnsip := proc ( n )
+
+if n < 3 then
+
+	n;
+	
+else
+
+	`infinitely many`;
+	
+fi;
+
+
+end;
+
+#
+#
+
+buildJanetBaseTable := proc ( indl )
+
+local indl1,
+		jbtable,
+		jbakt,
+		iakt,
+		nl, nsip, res, sysip, jbt,
+		entry,
+		ff,
+		cc;
+		
+global _jbtable;
+
+indl1 := cexpandIndl ( indl );
+indl1 := cexpandIndlTotal ( indl1 );
+
+jbtable := [];
+
+print ( nops ( indl1 ), ` entries to do.` );
+cc := 0;
+
+
+for iakt in indl1 do
+
+	jbakt := getGenJanetBase ( iakt );
+
+
+	# lambda - invariant
+	
+	nl := getnlambda ( jbakt );
+	
+
+	# systems of imprimitivity
+	
+	res := getnsip ( jbakt );
+	
+	# returns a pair [ no. of sips, sips ];
+	
+	nsip := res[1];
+	
+	sysip := res[2];
+
+	
+	# Janet-base type
+	
+	jbt := cJanetBasetype ( jbakt, [xi, eta] );
+	
+
+	entry := [jbt, nl, nsip, sysip, iakt, jbakt];
+
+	jbtable := [op(jbtable), entry];
+
+	cc := cc + 1;
+	print ( cc, ` entries done` );
+	
+od;	
+
+_jbtable := jbtable;
+
+ff:=(x,y)->evalb( ( jbsTypeLeq( x[1], y[1] ) and x[1] <> y[1] ) or 
+				 ( x[1] = y[1] and x[2] < y[2] ) or
+ 					( x[1] = y[1] and x[2] = y[2] and x[3] < y[3] ) );
+
+print ( `start sort` );
+
+jbtable := sort ( jbtable, ff );
+
+print ( `sort end` );
+
+jbtable;
+
+end;
+#
+#
+
+sel_jbt := proc ( x ) x[1] end;
+
+sel_nl := proc ( x ) x[2] end;
+
+sel_nsip := proc ( x ) x[3] end;
+
+sel_sysip := proc ( x ) x[4] end;
+
+sel_typinfo := proc ( x ) x[5] end;
+
+sel_janetbase := proc ( x ) x[6] end;
+
+#
+#
+#
+#
+#
+
+
+
+###############################################################################
+#
+#	Beginn 		janetBaseClassifyTable
+#		
+#	N E U E    H A U P T K L A S S I F I Z I E R U N G S R O U T I N E
+#
+#
+###############################################################################
+			
+janetBaseClassifyTable := proc ( indl )
+
+local jbasetable,
+		jbtold, nlold, nsipold,
+		jbtakt, nlakt, nsipakt,
+		firstjbt, firstlambda, firstsip,
+		jbecnt, jbpatt,
+		texpr,
+		coeffbedsip, coeffbedsipcl,
+		nsb,
+		texprla,
+		coeffbedlamb1,
+		siprunstart,
+		ifword,
+		jbcount,
+		nextjbt, nextnl, nextnsip,
+		necesscp,
+		cpeout,
+		nsipval, typinfoakt,
+		jbe,
+		jbs,
+		oul,
+		res, reseqs,
+		eqs, jbs1,
+		rels, munuVal,
+		nn, C, Cx, Cx1, Ax1,
+		tlist,
+		j, k, s, i,
+		cp, ccoll,
+		cpe, kform,
+		ffu, ffu1,
+		cpx, cpx1, cpx11, cpx2,
+		evalprep,
+		disc2, disc31,
+		disc321, disc322, disc323, disc324,
+		discs3,
+		ccc,
+		fl11,
+		xx,
+		ee,
+		progrfname;
+
+global _progrfd, _noprogout, MAPLEHOME;
+
+if nargs > 1 then
+
+	progrfname := args[-1];
+	
+else
+
+	progrfname := cat( MAPLEHOME, `/packages/dpack4/recog/recogifs` );
+	
+fi;
+
+
+_progrfd := fopen ( progrfname, WRITE, TEXT );
+
+jbasetable := buildJanetBaseTable ( indl );
+
+
+jbtold := FAIL;
+
+nlold := FAIL;
+
+nsipold := FAIL;
+
+
+firstjbt := true;
+firstlambda := true;
+firstsip := true;
+
+jbecnt := 1;
+
+for jbe in jbasetable do 
+
+	jbtakt := sel_jbt ( jbe );
+	
+	if jbtakt <> jbtold then
+		
+		print ();
+		print ( `****************** Zum Janet-Basis-Typ ***********************` );
+		print ();
+
+		map ( print, 
+				map ( dindexform, jbtakt, noargs) );
+
+		print ();
+		print ( `gehoeren die folgenden Faelle` );
+		print ();
+			
+		jbtold := jbtakt;
+		
+		nlold := FAIL;
+		nsipold := FAIL;
+		
+
+		jbpatt := makejbpattern ( jbtakt, [xi, eta], withargs, depend );
+
+
+		print ( `Die allgemeine Form ist also: ` );
+
+		print ();
+
+		map( print , map ( dindexform, jbpatt, noargs ) );
+
+		print ();
+
+		texpr := mu^2 * diff( xi, y ) - 
+					mu * nu * ( diff ( xi, x ) - diff ( eta, y) ) -
+					nu^2 *diff ( eta, x );
+
+
+		texpr := reduceTestExpr ( texpr, jbpatt, [xi, eta] );
+		texpr := dselect ( texpr, [xi,eta], x->ddeg(x)=1 );
+
+		coeffbedsip := dcoeffs ( texpr, [xi,eta] );
+
+		coeffbedsip := [coeffbedsip];
+
+		coeffbedsip := map ( xx->collect (xx, [mu, nu] ), coeffbedsip );
+
+		coeffbedsipcl := map ( (xx,f) -> [f[1](xx), f[2](xx), f[3](xx) ],
+				coeffbedsip, [ u->coeff(u,mu,2), u->coeff(coeff(u,mu),nu), 
+							u->coeff(u,nu,2) ] );
+
+
+		nsb := nsipbed ( coeffbedsipcl );
+
+		print ( `die Bedingungen fuer 2 Imprimitivitaetsgebiete:` );
+
+		map ( print, nsb[1] );
+
+		print ( `die Bedingungen fuer unendlich viele Imprimitivitaetsgebiete: ` );
+
+		map ( print, nsb[2] );
+
+
+		texprla := diff(xi,x)+diff(eta,y);
+
+		texprla := reduceTestExpr ( texprla, jbpatt, [xi, eta] );
+		texprla := dselect ( texprla, [xi,eta], x->ddeg(x)=1 );
+
+		coeffbedlamb1 := dcoeffs ( texprla, [xi,eta] );
+
+		coeffbedlamb1 := map ( x->x=0, [coeffbedlamb1] );
+		
+		coeffbedlamb1 := simplifyand ( coeffbedlamb1 );
+
+
+		print ( `die Bedingungen fuer lambda gleich 1:` );
+
+		map ( print, coeffbedlamb1 );
+
+
+		################################################################
+
+		#	erzeuge den Code des Erkenners ( jbt )
+			
+			
+		if not firstsip then
+		
+			indentadd ( -4 );
+		
+			programout ( `fi;` );
+			
+			firstsip := true;
+			
+		fi;
+		
+		if not firstlambda then
+		
+			indentadd ( -4 );
+		
+			programout ( `fi;` );
+			
+			firstlambda := true;
+			
+		fi;
+		
+		indentset ( 0 );
+		
+		if not firstjbt then
+		
+			programout ( `elif jbtype = %a then `, jbtakt );
+		
+		else
+		
+			programout ( `if jbtype = %a then `, jbtakt );
+		
+			firstjbt := false;
+		
+		fi;
+		
+		indentadd ( 4 );
+		
+		
+		
+		
+			
+	fi;
+	
+	
+	nlakt := sel_nl ( jbe );
+	
+	if nlakt <> nlold then
+	
+		print ();
+	
+		print ( `******************* mit `||lambda||` gleich `||nlakt );
+		
+		print ();		
+	
+		nlold := nlakt;
+		
+		nsipold := FAIL;
+		
+		
+	###############################################################
+		
+	#   erzeuge den Code des Erkenners ( lambda )
+
+		firstsip := true;
+		
+				
+		if not firstlambda then
+			
+			indentadd ( -4 );
+		
+			programout ( `fi;` );
+			
+			indentadd ( -4 );		
+		
+			programout ( `else` );	
+								
+		else
+		
+			if nlakt = 0 then
+		
+				programout ( `cond := %a; `, condprocess ( coeffbedlamb1 ) ) ;
+
+				programout ( `l1bed := normevalsubs ( rels, cond ) ;`);
+
+				programout ( `l1bed := evalb ( convert ( l1bed, ``and`` ));` );
+				
+				programout ( `if not l1bed then` );
+		
+			else
+			
+				programout ( `if true then` );
+
+			fi;
+
+			firstlambda := false;
+		
+		fi;
+		
+		indentadd ( 4 );	
+		
+		
+	fi;
+	
+	nsipakt := sel_nsip ( jbe );
+	
+	if nsipakt <> nsipold then
+	
+		nsipval := printnsip ( nsipakt );
+
+		print ();
+				
+		print ( `******** mit `||nsipval||` Imprimitivitaetssystemen` );
+	
+		print ();
+		
+		nsipold := nsipakt;
+
+		siprunstart := true;
+
+	###############################################################
+		
+	#	erzeuge den Code des Erkenners ( sip )
+		
+					
+		if not firstsip then
+		
+			indentadd ( -4 );
+			
+			ifword := `elif`;
+			
+		else
+		
+			ifword := `if`;
+
+			programout ( `cond2 := %a; `, condprocess ( nsb[1][1] ) ) ;
+			programout ( `cond3 := %a; `, condprocess ( nsb[2]) ) ;
+
+			if nops ( nsb[1] ) > 1 then
+			
+				programout ( `cond21 := %a; `, condprocess ( nsb[1][2] ) ) ;
+				programout ( `cond22 := %a; `, condprocess ( nsb[1][3] ) ) ;
+			
+			fi;
+
+
+			if nops ( nsb[1] ) = 1 then
+			
+				programout ( `lbed2 := normevalsubs ( rels, cond2 );`);
+				programout ( `lbed2 := evalb ( convert ( lbed2, ``and`` ) );` );
+				
+			else
+
+				programout ( `lbed2 := normevalsubs ( rels, cond2 );`);
+				programout ( `lbed21 := normevalsubs ( rels, cond21 );`);
+				programout ( `lbed22 := normevalsubs ( rels, cond22 );`);
+
+				programout ( `lbed2 := evalb ( convert ( lbed2, ``and`` ) );` );
+				programout ( `lbed21 := evalb ( convert ( lbed21, ``and`` ) );` );
+				programout ( `lbed22 := evalb ( convert ( lbed22, ``and`` ) );` );
+			
+				programout ( `lbed2 := evalb ( lbed2 or lbed21 or lbed22 );` );
+			
+			fi;
+
+			programout ( `lbed3 := normevalsubs ( rels, cond3 );`);
+			programout ( `lbed3 := evalb ( convert ( lbed3, ``and`` ) );` );
+		
+			programout ( `lbed1 := evalb ( not (lbed2 or lbed3) );` );
+			
+			firstsip := false;
+			
+		fi;
+		
+		if nsipakt = 1 then
+
+			programout ( `%s lbed1 then`, ifword );
+
+
+		elif nsipakt = 2 then
+
+			programout ( `%s lbed2 then`, ifword );
+
+
+		elif nsipakt = 3 then
+
+			programout ( `%s lbed3 then`, ifword ); 
+
+		fi;
+
+		
+		indentadd ( 4 );
+				
+		jbcount := 0;
+				
+	fi;
+	
+
+	typinfoakt := sel_typinfo ( jbe );
+	
+
+
+	nn := getliedim ( typinfoakt );
+
+	C := dstructConst ( jbpatt, [xi,eta] );
+	Cx := C;
+
+	Ax1:=array(1..nn,1..nn);
+
+	tlist := [ seq( t[i], i=1..nn ) ];
+
+	for j from 1 to nn do
+		for k from 1 to nn do
+			s:=0;
+			for i from 1 to nn do
+				s := s + t[i] * Cx[i,j,k];
+			od;
+			Ax1[j,k]:=normal(s);
+		od;
+	od; 
+
+	cp := linalg[charpoly](Ax1,lambda):
+
+	ccoll := subs ( tll = tlist,
+			x -> collect ( x, tll ) );
+
+	cpe := collect(cp,lambda, ccoll ):
+	
+	
+	############################################################################
+	
+	# test for necessary characteristic polynomial
+	
+	if jbecnt < nops ( jbasetable ) then
+	
+		nextjbt := sel_jbt ( jbasetable[jbecnt+1] );
+		nextnl := sel_nl ( jbasetable[jbecnt+1] );
+		nextnsip := sel_nsip ( jbasetable[jbecnt+1] );
+	
+		necesscp := evalb(nextjbt = jbtakt and nextnl = nlakt and nextnsip = nsipakt);
+	
+	else
+	
+		necesscp := false;
+		
+	fi;
+
+	
+	if necesscp = true and siprunstart = true then
+
+		siprunstart := false;
+
+		print ( );
+		
+		print ( `mehr als ein Typ mit den gleichen Lie-Invarianten gefunden,` );
+		
+		print ( `das charakteristische Polynom dient zur Unterscheidung: ` );
+		
+		print ( cpe );
+		
+		print ( );
+					
+	###########################################################################
+	#
+	#   Ausgabe des Erkenners	
+	
+		if not ( _noprogout = true ) then
+		
+			programout ( `# need characteristic polynomial to distinguish cases` );
+
+			cpeout := condprocess ( [cpe] );
+
+			cpeout := op ( cpeout );
+
+			if _minimalspace = true then
+			
+				cpeout := convert ( cpeout, horner );
+				
+			fi;
+
+			cpeout := longexprout ( cpeout );
+
+			programout ( `cpe := %s`, cpeout[1] );
+
+			for i from 2 to nops ( cpeout ) do
+
+				programout ( `%s`, cpeout[i] );
+
+			od;			
+
+			programout ( `;` );
+
+			programout ( `# end characteristic polynomial` );
+		
+		fi;
+		
+	fi;
+
+	########################################################################
+	
+	#	Code des Erkenners ausgeben
+	
+	
+	jbcount := jbcount + 1;	
+	
+	programout ( `# Gruppe %a`, maketypinfostring ( typinfoakt ) );	
+	
+	programout ( `print ( ``%s`` );`, maketypinfostring ( typinfoakt ) );
+	
+	programout ( `res := %a;`, typinfoakt );
+	
+	########################################################################	
+	
+	
+	print ();
+	
+	print ();
+	
+	print ( `Gruppe g `, maketypinfostring ( typinfoakt ) );
+	
+	print ();
+	
+	print ( `mit den Nebenbedingungen` );
+
+	print ();
+	
+	oul := booltoprint ( stringtobool ( getcase ( typinfoakt ) ));
+
+	print ( op(oul) );
+
+	print ();
+	
+	print ();
+
+
+
+	jbs := sel_janetbase ( jbe );			
+
+
+	jbs := csimpJanetBase ( jbs, [xi,eta] );
+
+
+	rels := zip ( (xx,yy)-> dmatch ( xx, yy, [xi,eta] ),
+			jbpatt, jbs );
+
+	rels := map ( x->x[2..-1], rels );
+
+	rels := flatten1 ( rels );
+
+
+
+	munuVal := sel_sysip ( jbe );
+
+	print ();
+	
+	print ( `das Imprimitivitaetsgebiet wird beschrieben durch:` );
+	
+	subsprint ( munuVal );
+	
+	
+
+	if killformflag = true then
+
+		print ( `die Killingform ist: ` );
+
+		kform :=killform ( Cx, nn );
+
+		kform := factor( normal ( eval (value ( subs (
+			rels, kform )))));
+
+		subsprint ( evalm(dindexform(kform,noargs)) );
+
+
+	fi;
+
+	if _minimalspace = true then
+	
+		ffu1 := zz->convert ( zz, horner );
+		
+	else
+	
+		ffu1 := zz->zz;
+		
+	fi;
+
+	#cpx := factor( normal ( eval (value ( subs (
+	#		rels, cpe )))));
+
+	if member ( getlienr ( typinfoakt ), [18] ) then 
+
+		ffu := subs ( RELS = rels, FFU1 = ffu1,
+				xx->econsubs ( RELS, FFU1(xx) ) );
+
+	else
+
+		ffu := subs ( RELS = rels, FFU1 = ffu1,
+				xx->normal(eval(value(subs ( RELS, FFU1(xx) )))) );
+
+	fi;
+	
+	cpx := collect ( cpe, [lambda, op(tlist)], ffu );
+
+	cpx := collect  ( cpx, lambda );
+
+	cpx := factor ( cpx );	
+
+	cpx1 := cpx;
+
+	print ( `und das charakteristische Polynom der Liealgebra A ist:` );
+
+	#cpx1 := factor ( cpx1 );
+
+	#print ( dindexform ( cpx1, noargs ) );			
+
+	ccoll := subs ( tll = tlist,
+			x-> collect(x,lambda, y->collect(y, tll ) ) );
+
+	cpx1 := prodprep ( cpx1, ccoll );
+
+	ccoll := subs ( ll = lambda,
+				z-> polymakemonic ( z, ll ));
+
+
+	cpx1 := prodprep ( cpx1, ccoll );
+
+	cpx1 := polynormalform ( cpx1, lambda ); 
+
+	ccoll := subs ( tll = tlist,
+			x-> collect(x,lambda, y->collect(y, tll ) ) );
+
+	cpx1 := prodprep ( cpx1, ccoll );
+
+			
+	subsprint ( cpx1 );
+
+	for i from nn to 0 by -1 do
+
+		if degree ( denom ( cpx1/lambda^i ), lambda ) = 0 then
+
+			buildJanetBaseTable__factMess ( i );
+			cpx11 := normal(cpx1 / lambda^i);
+			break;
+
+		fi;
+
+	od;
+
+	cpx2 := collect ( cpx11, lambda );
+
+	for i from 0 to 3 do
+
+		P||i := coeff (cpx2, lambda, i );
+
+		ccoll := subs ( tll = tlist,
+						FFF = [sig(x,y),rh(x,y),rh(x),rh(y),sig(x),sig(y)],
+			xx->collect ( xx, tll, zz->collect ( zz, FFF )) );
+
+		P||i := ccoll ( normal ( P||i ) );
+
+
+	od;
+
+	evalprep := {p0=P0,p1=P1,p2=P2,p3=P3};
+
+	if degree ( cpx11, lambda ) = 2 then
+
+		disc2 := -4 * p0 + p1^2;
+
+		disc2 := subs ( evalprep, disc2 );
+		disc2 := normal ( eval ( value ( subs ( rels, disc2 ))));
+		disc2 := factor ( disc2 );
+
+		ccoll := subs ( tll = tlist,
+					x->collect (x, tll ) );
+
+		#print ( ccoll );
+
+		disc2 := prodprep ( disc2, ccoll  );				
+
+		print ( `Diskrimante 1:` );
+
+		subsprint ( disc2 );
+
+
+	elif degree ( cpx11, lambda ) = 3 then
+
+		ccc := (lambda - aa) * (lambda - bb) * (lambda - cc);
+
+		ccc := expand ( ccc );
+		
+		for i from 0 to 2 do
+		
+			qq||i := coeff ( ccc, lambda, i )
+
+		od;
+		
+		fl11 := frontend ( factors, [numer(cpx11)] );
+
+		xx := [];
+
+		for ee in fl11[2] do
+		
+			xx := [op(xx),
+					-coeff(ee[1],lambda,0)/coeff(ee[1],lambda,1) $ ee[2] ];
+					
+		od;
+
+		ASSERT ( nops ( xx ) = 3, `listlen <> 3` );
+
+		disc31 := -18*p2*p0*p1-p2^2*p1^2+4*p1^3+27*p0^2+4*p0*p2^3;
+
+		disc321 := p2^2-3*p1;
+		disc322 := p2^3-27*p0;
+		#disc323 := -p1^2+3*p2*p0;
+		#disc324 := -27*p0^2+p1^3;
+
+		#discs3 := [disc31, disc321, disc322, disc323, disc324];	
+		discs3 := [disc31, disc321, disc322];	
+
+		discs3 := subs ( [p0=qq0,p1=qq1,p2=qq2], discs3 );
+		
+		discs3 := normal ( discs3 );
+		
+		discs3 := traperror (  
+			econsubs ( [aa=xx[1],bb=xx[2],cc=xx[3]], discs3 ) );
+
+		#evalprep := 
+		#{ op ( zip((x,y)-> x = y ,[p0,p1,p2],
+		#				[P0,P1,P2] ) ) } ;	
+
+		#print ( evalprep );
+		#print ( normal(P3) );
+
+		#for su in evalprep do
+
+		#	discs3 := traperror (
+		#		map ( (z,e)-> econsubs ( e, z ),
+		#							 discs3, [su] ) );
+									 									 
+		#	if type ( discs3, string ) then
+			
+		#		break;
+				
+		#	fi;
+
+		#od;		
+
+		if type ( discs3, {string, name} ) then
+	
+			print ( discs3 );
+			
+		else
+	
+			discs3 := map ( factor, discs3 );
+
+			ccoll := subs ( tll = tlist,
+				x->collect ( x, tll ) );
+
+			discs3 := map ( 
+				(y, cco )->prodprep ( y, cco ),
+							discs3, ccoll );				
+
+			print ( `Diskrimante 31:` );
+
+			subsprint ( discs3[1] );
+
+			print ( `Diskriminanten 321, 322:` );
+
+			map ( x->subsprint( x ), [op(discs3[2..nops(discs3)])] );
+		
+		fi;
+
+	fi;
+
+jbecnt := jbecnt + 1;
+
+od;
+
+fclose ( _progrfd );
+
+end;
+
+
+
+#################################################################################
+#
+#	einige Ausgaberoutinen
+#
+#
+
+indentset := proc ( n )
+
+global _indent;
+
+_indent := n;
+
+end;
+
+#
+#
+
+indentadd := proc ( n )
+
+global _indent;
+
+_indent := _indent + n;
+
+end;
+
+#
+#
+
+
+programout := proc ( )
+
+local indent,
+		argsout;
+
+global _progrfd, _indent, _noprogout;
+
+if _noprogout = true then
+
+	RETURN ();
+	
+fi;
+
+indent := cat ( ` ` $ _indent );
+
+if length ( indent ) > 0 then
+
+	argsout := cat ( indent, args[1], `\n` ), args[2..-1];
+	
+else
+
+	argsout := cat ( args[1], `\n` ), args[2..-1] ;
+	
+fi;
+
+fprintf ( _progrfd, argsout );
+
+fprintf ( _progrfd, `\n` );
+
+end;
+
+
+#
+#
+
+subsprint := proc ( e )
+
+local e1;
+
+e1 := subs ( sig(x,y)=sigma, rh(x,y)=rho,
+			  sig(x) = sigma, rh(x) = rho,
+			  sig(y) = sigma, rh(y) = rho, e );
+
+e1 := dindexform ( e1, noargs );
+
+print ( e1 );
+
+end;
+
+#
+#
+
+buildJanetBaseTable__factMess := proc ( n )
+
+if n = 1 then
+
+	print ( `ein linearer Faktor spaltet ab` );
+	
+elif n = 2 then
+
+	print ( `ein quadratischer Faktor spaltet ab` );
+	
+elif n = 3 then
+
+	print ( `ein kubischer Faktor spaltet ab` );
+	
+elif n = 4 then
+
+	print ( `ein biquadratischer Faktor spaltet ab` );
+	
+fi;
+
+end:
+
+#
+#
+
+booltoprint := proc ( bl )
+
+local oul;
+
+oul := zip ( (x,y)->[x,y],
+	map ( dindexform,
+	[diff(sigma,x), diff(sigma,y), diff(rho,x), diff(rho,y)] ),
+				bl );
+
+
+oul := map ( proc ( x ) option operator;
+					if x[2] = true then
+						subs( tt=x[1], 'tt = 0' );
+					else
+						subs ( tt=x[1], 'tt <> 0' );
+					fi; end, oul );
+
+end;
+
+#
+################################################################################
+
+#
+#
+
+bigsubs := proc ( sl, e )
+
+local e1, s;
+
+e1 := e;
+
+for s in sl do
+
+	e1 := normal(eval(value(subs ( s, e1 ))));
+	
+od;
+
+e1;
+
+end;
+
+
+#
+#
+
+econsubs := proc ( sl, e )
+
+local e1,s,ee,ee1,m;
+
+if type ( e, `+` ) then
+
+	e1 := convert ( e, list );
+	
+	s := 0;
+	
+	for ee in e1 do
+		
+		ee1 := normal ( eval ( value ( econsubs1 ( sl, ee ))));
+		s := normal ( s + ee1 );
+	od;
+	
+	RETURN ( s );
+
+elif type ( e, `*` ) then
+
+	e1 := convert ( e, list );
+	
+	m := 1;
+	
+	for ee in e1 do
+		
+		ee1 := normal ( eval ( value ( econsubs1 ( sl, ee ))));
+		m := normal ( m * ee1 );
+	od;
+	
+	RETURN ( m );
+
+else
+
+	RETURN ( normal ( eval ( value ( subs ( sl, e )))) );
+	
+fi;
+
+end:
+
+#
+#
+
+econsubs1 := proc ( sl, e )
+
+local e1,s,ee,ee1,m;
+
+if type ( e, `+` ) then
+
+	e1 := convert ( e, list );
+	
+	s := 0;
+	
+	for ee in e1 do
+		
+		ee1 := normal ( eval ( value ( subs ( sl, ee ))));
+		s := normal ( s + ee1 );
+	od;
+	
+	RETURN ( s );
+
+elif type ( e, `*` ) then
+
+	e1 := convert ( e, list );
+	
+	m := 1;
+	
+	for ee in e1 do
+		
+		ee1 := normal ( eval ( value ( subs ( sl, ee ))));
+		m := normal ( m * ee1 );
+	od;
+	
+	RETURN ( m );
+
+else
+
+	RETURN ( normal ( eval ( value ( subs ( sl, e )))) );
+	
+fi;
+
+end:
+
+
+#
+#
+
+polymakemonic := proc ( p, v )
+
+local lc,ccoll;
+
+lc := lcoeff ( p, v );
+
+ccoll := subs ( lcc = lc,
+			z -> normal ( z/ lcc ) );
+
+lc * collect ( p, v, ccoll );
+
+end:
+
+#
+#
+
+polynormalform := proc ( p, v )
+
+local p1, 
+	mp,cf,
+	fct;
+
+if type ( p, `*` ) then
+
+	p1 := [op(p)];
+	
+else
+
+	p1 := [p];
+	
+fi;
+
+mp := 1;
+cf := 1;
+
+for fct in p1 do
+
+	if has ( fct, v ) then
+	
+		mp := mp * fct;
+		
+	else
+	
+		cf := cf * fct;
+		
+	fi;
+	
+od;
+
+normal ( cf ) * mp;
+
+end:
+
+#
+#
+#
+
+prodprep := proc ( p, f )
+
+local p1, p2;
+
+if type ( p, `*` ) then
+
+	p1 := [op(p)];
+	
+else
+
+	p1 := [p];
+	
+fi;
+
+p2 := map ( proc ( x, ff  ) option operator;
+### WARNING: note that `I` is no longer of type `^`
+		if type ( x, `^` ) then
+			ff(op(1,x))^op(2,x);
+		else
+			ff(x);
+		fi; end, p1, f );
+		
+RETURN ( convert( p2, `*` ) );
+
+end:
+
+#
+#
+#
+
+discQ := proc ( a, b, c )
+
+b^2 - 4 * a * c;
+
+end;
+
+
+#
+#
+#
+
+nsipbed := proc ( qfl )
+
+local a, b, c,
+		a1, b1, c1,
+		a2, b2, c2,
+		cond1, cond2, cond3,
+		cond21, cond22,
+		res;
+
+if nops ( qfl ) = 1 then
+
+	a := qfl[1][1];
+	b := qfl[1][2];
+	c := qfl[1][3];
+	
+	cond3 := simplifyand( [a=0, b=0, c=0] );
+	
+	cond2 := simplifyand([discQ ( a, b, c ) <> 0]);
+	
+	cond1 := simplifyand([discQ ( a, b, c ) = 0]);
+	
+	res := [[cond2], cond3];
+
+elif nops ( qfl ) = 2 then
+
+	a1 := qfl[1][1];
+	b1 := qfl[1][2];
+	c1 := qfl[1][3];
+	
+	a2 := qfl[2][1];
+	b2 := qfl[2][2];
+	c2 := qfl[2][3];
+	
+	
+	cond3 := [ a1 = 0, b1 = 0, c1 = 0,
+			  a2 = 0, b2 =0, c2 = 0 ];
+	
+	cond3 := simplifyand ( cond3 );					
+	
+	cond2 := [ discQ ( a1, b1, c1 ) <> 0,
+			   discQ ( a2, b2, c2 ) <> 0,
+			 
+			 ( a1 * b2 - a2 * b1 ) = 0,
+			 ( a1 * c2 - a2 * c1 ) = 0,
+			 ( b1 * c2 - b2 * c1 ) = 0 ];
+
+	cond21 := [ a1 = 0, b1 = 0, c1 = 0,
+				discQ ( a2, b2, c2 ) <> 0 ];
+				
+	cond22 := [ a2 = 0, b2 = 0, c2 = 0,
+				discQ ( a1, b1, c1 ) <> 0 ];
+			 
+	cond2 := simplifyand ( cond2 );
+	cond21 := simplifyand ( cond21 );
+	cond22 := simplifyand ( cond22 );
+	
+	
+	res := [[cond2,cond21,cond22], cond3];
+	
+else
+
+	ERROR ( `three quadratic forms not implemented ( shouldn't occur )` );
+	
+fi;
+
+RETURN ( res );
+
+end;
+
+#
+#
+
+simplifyand := proc ( lc )
+
+local lc1;
+
+lc1 := map ( proc ( x ) option operator;
+
+				if type ( lhs ( x ), constant ) then
+				
+					evalb ( x );
+					
+				else
+				
+					x;
+					
+				fi; end, lc );
+
+if member ( false, lc1 ) then
+
+	RETURN ( [false] );
+	
+else
+
+	lc1 := remove ( (x,y)->x=y, lc1, true );
+	
+fi;
+
+lc1 := removedouble ( (x,y)->evalb ( op(0,x) = op(0,y) and
+							type ( normal ( lhs ( x )/lhs(y) ), constant )),
+							lc1 );
+							
+lc1;
+
+end;
+
+#
+#
+#
+
+condprocess := proc ( lc )
+
+local res,
+		idts,
+		ce,
+		sl;
+
+res := [];
+
+for ce in lc do
+
+	idts := indets ( ce );
+	
+	idts := select ( type, idts, function(name) );
+	
+	sl := map ( xx->
+			xx = 
+			cat ( `RCGI` ,op(0,op(0,xx)) )[op(op(0,xx))](op(xx)), idts );
+	
+	res := [op(res), subs(sl, ce)];
+	
+od;
+
+res;
+
+end;
+
+#
+#
+
+longexprout := proc ( e )
+
+local es, es1,
+		c,
+		i, j,
+		deli,
+		res;
+
+
+deli := [ `*`, `+`, `-`, `)`, `/` ];
+
+es := sprintf ( `%a`, e );
+
+es1 := ``;
+
+j := 1;
+
+res := [];
+
+for i from 1 to length ( es ) do
+
+	c := substring ( es, i );
+	
+	es1 := cat ( es1, c );
+	
+	if j > 60 and member ( c, deli ) then
+	
+		j := 1;
+		
+		res := [op(res), es1];
+		
+		es1 := ``;
+		
+		# es1 := cat ( es1, `\n` );
+		
+	fi;
+	
+	j := j + 1;
+	
+od;
+
+if length ( es1 ) > 0 then
+
+	res := [op(res), es1];
+	
+fi;
+
+res;
+
+end;
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+#
+#
+#
+#
+
+
+dtrmssolve := proc ( eqslist, dtrmsa, slextrna )
+
+local dtrms,slextrn,eqslist1,dtrm1,nn,i,eq,ls1,sl,slextrnakt,eqslist2,extdlist1,
+    eqq,extdlist11,extdlist2,extdlist21,eqslistakt,dtrmsakt;
+
+global _lasteq;
+
+
+dtrms := dtrmsa;
+slextrn := slextrna;
+
+eqslist1 := eqslist;
+
+while true do
+
+
+while not has ( eqslist1 ,dtrms[1] ) do
+
+	print ( `excluded`, dtrms[1] );
+	dtrms := [op(dtrms[2..nops(dtrms)])];
+ # update to V4
+	
+	if nops ( dtrms ) = 0 then break; fi;
+	
+od;
+
+if nops ( dtrms ) = 0 then
+
+	RETURN ( slextrn );
+	
+fi;
+
+dtrm1 := dtrms[1];
+
+
+
+print ( `solving for `||dtrm1 );
+
+eqslist1 := map ( x->x[1],
+				sort (
+					map (x ->[x,nops(numer(x))], eqslist1 ),
+						(x,y)->evalb(x[2] <= y[2]) ) );
+
+nn := nops ( eqslist1 );
+
+for i from 1 to nn do
+
+	eq := eqslist1[i];
+
+	_lasteq := eq;
+
+
+	ls1 := solve ( eq, dtrm1 );
+	
+	if nops ( [ls1] ) = 0 then
+	
+		next;
+		
+	fi;
+	
+	if has ( ls1, dtrm1 ) then
+	
+		next;
+		
+	fi;
+	
+	print ( `succeed` );
+
+	sl := [dtrm1 = ls1];
+	
+	slextrnakt := [op(
+						map( ( z,s )->lhs(z)=normal(eval(value(subs(s,rhs(z))))),
+							slextrn, sl ) ),op(sl)]; 
+	slextrn := slextrnakt;
+
+	eqslist2 := map ( (z,s)->tdsubs (s, z ), [op(eqslist1[1..i-1]),op(eqslist1[i+1..nn])], sl );
+ # update to V4
+
+	if not has ( eqslist2, dtrms[2] ) then
+	
+		print ( `first extension necessary` );
+	
+		extdlist1 := [];
+		
+		for eqq in eqslist2 do
+
+			extdlist1 := [op(extdlist1), tdsubs ( slextrn, diff(eqq,x))];
+			extdlist1 := [op(extdlist1), tdsubs ( slextrn, diff(eqq,y))];
+			
+		od;
+
+		print ( `generated new : `, nops ( extdlist1 ) );
+
+		
+		extdlist11 := extdlist1;
+		extdlist11 := select ( (z,dt)->z <> 0 and has ( z,dt ), extdlist11, dtrms[2] );
+		
+		if not has ( extdlist11, dtrms[2] ) and false then
+				
+			print ( `second extension necessary` );
+		
+			extdlist2 := [];
+
+			for eqq in eqslist2 do
+
+				extdlist2 := [op(extdlist2), tdsubs ( slextrn, diff(eqq,x,x))];
+				extdlist2 := [op(extdlist2), tdsubs ( slextrn, diff(eqq,x,y))];
+				extdlist2 := [op(extdlist2), tdsubs ( slextrn, diff(eqq,y,y))];
+				#extdlist2 := [op(extdlist2), tdsubs ( slextrn, diff(eqq,x,x,x))];
+				#extdlist2 := [op(extdlist2), tdsubs ( slextrn, diff(eqq,x,x,y))];
+				#extdlist2 := [op(extdlist2), tdsubs ( slextrn, diff(eqq,x,y,y))];
+				#extdlist2 := [op(extdlist2), tdsubs ( slextrn, diff(eqq,y,y,y))];
+				
+			od;
+
+			print ( `generated new : `, nops ( extdlist2 ) );
+
+			extdlist21 := extdlist2;
+			extdlist21 := select ( (z,dt)->z <> 0 and has(z, dt), extdlist21, dtrms[2] );
+		
+			extdlist11 := [op(extdlist11), op(extdlist21)];
+			
+		fi;
+
+		print ( `added : `,nops(extdlist11) );
+
+		eqslist2 := [op(eqslist2), op(extdlist11)];		
+		
+	fi;
+		
+	eqslistakt := eqslist2;
+	dtrmsakt := [op(dtrms[2..nops(dtrms)])];
+ # update to V4
+
+	# erg := dtrmssolve ( eqslist2, [dtrms[2..nops(dtrms)]], [op(slextrn),op(sl)] );
+	
+	break;
+
+od;
+
+if i = nn + 1 then
+
+	RETURN ( FAIL );
+	
+fi;
+
+
+eqslist1 := eqslistakt;
+dtrms := dtrmsakt;
+
+od;
+
+end:
+
+	
+
+
+
+

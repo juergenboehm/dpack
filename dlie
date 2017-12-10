@@ -1,0 +1,1214 @@
+
+
+
+
+recipGrp := proc ( vfl )
+
+local vars,vB,
+		n,
+		fs,
+		zexpr,
+		cnd,
+		j,
+		cnda,
+		res;
+
+
+if nargs >= 2 then
+
+	vars := args[2];
+	
+else
+
+	vars := [x,y];
+	
+fi;
+
+if nargs >= 3 then
+
+	vB := args[3];
+	
+else
+
+	vB := [p,q];
+
+fi;
+
+n := nops ( vB );
+
+fs := [seq ( BCF||j(op(vars)), j=1..n ) ];
+
+zexpr := add ( fs[j] * vB[j], j=1..n );
+
+cnd := [];
+
+for j from 1 to nops (vfl ) do
+
+	cnda := vliebrack ( vfl[j], zexpr, vars, vB );
+
+	cnda := numer ( normal ( cnda ) );
+
+	cnda := collect ( cnda, vB );
+
+	cnda := coeffs ( cnda, vB );
+
+	cnd := [op(cnd), cnda];
+
+od;
+
+if has ( [args], solve = true ) then
+
+	res := solveGrpBase ( cnd, fs, vB );
+
+else
+
+	res := [cnd, fs];
+
+fi;
+
+res;
+
+end:
+
+#
+#
+#
+#
+
+
+structConst := proc ( vfList, vars1 )
+
+local vars,vB,n,Cxx,i,j,k,Xij,eq,unkns,eqs,eqs1,eqsi,idts,eqsi1,res,C;
+
+
+if nops(vars1) > 0 then
+
+	vars := vars1;
+	
+else
+
+	vars := [];
+	
+fi;
+
+if nargs >= 3 then
+
+	vB := args[3];
+	
+else
+
+	vB := [ p, q ];
+	
+fi;
+
+n := nops ( vfList );
+
+C := table ([]);
+
+
+for i from 1 to n do
+
+	for j from 1 to n do
+	
+		Xij := vliebrack ( vfList[i], vfList[j], vars, vB );
+		
+		eq := Xij;
+
+		unkns := {};
+
+		for k from 1 to n do
+		
+			eq := eq - vfList[k] * aaa||k;
+			
+			unkns := unkns union { aaa||k };
+			
+			
+		od;
+
+		eq := collect ( eq, vB );
+		
+		eqs := {coeffs ( eq, vB )};
+		eqs1 := {};
+		
+		if nops ( vars ) > 0 then
+		
+			for eqsi in eqs do
+
+				idts := select ( (x,y)->has (x,y), [op(indets(eqsi))], vars );
+				idts := [op(rawsort ( idts ))];
+				
+				eqsi1 := collect ( eqsi, idts, distributed );
+				
+				#eqsi1 := frontend ( collect , [eqsi,idts,distributed] );
+				
+				eqsi1 := {coeffs ( eqsi1, idts ) };
+				
+				#eqsi1 := {frontend ( coeffs, [eqsi1, idts] )};
+				
+				eqs1 := eqs1 union eqsi1;
+
+			od;
+			
+		else
+		
+			eqs1 := eqs;
+			
+		fi;
+		
+	
+		res := solve ( eqs1, unkns );
+		
+		
+		for k from 1 to n do
+		
+			C[i,j,k] := subs(res, (aaa||k));
+
+		od;
+		
+	od;
+	
+od;
+
+RETURN ( eval ( C ) );
+
+end:
+
+#
+#
+#
+
+paramDerivsList := proc ( jb, fs )
+
+local pdvs;
+
+pdvs := paramDerivs ( jb, fs );
+pdvs := paramDerivsApply ( pdvs, fs );
+pdvs := flatten2 ( pdvs );
+
+end;
+
+#
+#
+#
+
+paramDerivsApply := proc ( pdvs, fs )
+
+zip ( (xx,yy)->map((vv,ff)->diffX(ff,op(vv)),xx,yy), pdvs, fs );
+
+end;
+
+#
+# paramDerivs gives the parametric derivatives of a janet base
+#
+
+paramDerivs := proc ( el, fs )
+
+local vars, lterml, n, erg, ltermakt, ltavl, ltavln, nn, VL, i;
+
+vars := dgetvars ( fs );
+
+lterml := map ( (x,y) -> dlterm ( x, y ), el, fs );
+
+n := nops ( fs );
+
+erg := [];
+
+for i from 1 to n do
+
+	ltermakt := select ( (x,y)->has(x,y), lterml, fs[i] );
+	
+	ltavl := map ( fdifflist, ltermakt );
+	ltavl := map ( x->[op(x[2..nops(x)])], ltavl );
+ # update to V4
+	
+	ltavln := map ( x->nops(x), ltavl );
+	nn := max ( op(ltavln) );
+		
+	VL := mkvlist ( vars, nn );
+
+	VL := map ( x->x[1],
+			sort (
+				map ( x->[x,nops(x)], VL ),
+				 (x,y)->evalb(x[2] >= y[2] ) ) );
+				 
+	VL := select ( proc ( va, tl ) option operator;
+	
+					convert(
+						map (
+							x->evalb(x=FAIL),
+								map ( (t,u)->listminus( u, t ), tl, va )),
+							`and` );
+					end, VL, ltavl );
+					
+	erg := [op(erg), VL];
+	
+od;
+
+RETURN ( erg );
+
+end:
+
+#
+# paramDerivs1 includes the leading derivatives too
+#
+
+paramDerivs1 := proc ( el, fs )
+
+local vars, lterml, n, erg, ltermakt, ltavl, ltavln, nn, VL, i;
+
+vars := dgetvars ( fs );
+
+lterml := map ( (x,y) -> dlterm ( x, y ), el, fs );
+
+n := nops ( fs );
+
+erg := [];
+
+for i from 1 to n do
+
+	ltermakt := select ( (x,y)->has(x,y), lterml, fs[i] );
+	
+	ltavl := map ( fdifflist, ltermakt );
+	ltavl := map ( x->[op(x[2..nops(x)])], ltavl );
+ # update to V4
+	
+	ltavln := map ( x->nops(x), ltavl );
+	nn := max ( op(ltavln) );
+		
+	VL := mkvlist ( vars, nn );
+
+	VL := map ( x->x[1],
+			sort (
+				map ( x->[x,nops(x)], VL ),
+				 (x,y)->evalb(x[2] >= y[2] ) ) );
+				 
+	VL := select ( proc ( va, tl ) option operator;
+	
+					convert(
+						map (
+							x->evalb(x=FAIL or x = []),
+								map ( (t,u)->listminus( u, t ), tl, va )),
+							`and` );
+					end, VL, ltavl );
+					
+	erg := [op(erg), VL];
+	
+od;
+
+RETURN ( erg );
+
+end:
+
+
+#
+# dstructConst erwartet eine monische Janet-Basis in den Funktionen, die in der
+# Liste fs uebergeben werden.
+#
+# Sie liefert die Strukturkonstanten der Liealgebra, die von den Loesungen des durch die
+# Janet-Basis gegebenen partiellen Differentialgleichungssystems gebildet wird, und zwar
+# in der Form von Funktionen, die von denselben Variablen abhaengen koennen, wie
+# die Loesungen selbst.
+#
+# Dabei muss die Liealgebra der Loesungen stets von endlicher Dimension sein.
+#
+
+dstructConst := proc ( jb, fs )
+
+global _liedim;
+
+local vars,n,fs1,i,fs2,fs3,vB,vf1,vf2,vf3,vf3l,jb1,rel,sl1,sl2,rels,PDL,
+        PDL3vals,aktcoeff,aktdiff,e,dll,RS,XXS,XX,XX1,XX2,C,j,Lij,k;
+ 
+
+vars := dgetvars(fs);
+n := nops ( fs );
+
+fs1 := [ seq ( xi1XXX||i(op(vars)), i = 1..n ) ];
+fs2 := [ seq ( xi2XXX||i(op(vars)), i = 1..n ) ];
+
+vB := [ seq ( ppp||i, i = 1..n ) ];
+
+vf1 := convert ( zip ( (x,y) -> x*y, fs1, vB ), `+` );
+vf2 := convert ( zip ( (x,y) -> x*y, fs2, vB ), `+` );
+
+vf3 := vliebrack ( vf1, vf2, vars, vB );
+
+vf3l := [seq ( coeff ( vf3, vB[i] ), i = 1..n )];
+
+jb1 := dsortlist ( jb, fs );
+jb1 := map ( dmakemonic, jb1, fs );
+rel := map ( (x,f)->dlterm ( x, f ) = -x + dlterm ( x, f ), jb1, fs );
+
+sl1 := zip ( (x,y) -> x=y, fs, fs1 );
+sl2 := zip ( (x,y) -> x=y, fs, fs2 );
+
+rels := [op(subs(op(sl1), rel)), op(subs(op(sl2), rel))];
+
+
+PDL := paramDerivs ( jb, fs );
+
+PDL3vals := [];
+ 
+for i from 1 to n do
+
+	aktcoeff := coeff ( vf3, vB[i] );
+	
+	for aktdiff in PDL[i] do
+		
+		# print (aktdiff);
+			
+		e := mkdiff ( aktcoeff, aktdiff );
+		e := tdsubs ( rels, e );
+		e := normal ( e );
+		
+		PDL3vals := [op(PDL3vals), e ];
+		
+	od;
+	
+od;
+
+dll := nops ( PDL3vals );
+
+RS := [1, 0 $ ( dll - 1 )];
+
+XXS := zip ( (f,P) -> map ( (PP,ff) ->mkdiff( ff , PP ), P, f ), fs, PDL );
+XXS := flatten2 ( XXS );
+
+for i from 1 to dll do
+
+	XX[i] := zip ( (x,y)->x=y, XXS, RS );
+
+	XX1[i] := subs ( op ( sl1 ), XX[i] );
+	XX2[i] := subs ( op ( sl2 ), XX[i] );
+	
+	RS := [RS[nops(RS)], op(RS[1..nops(RS)-1])];
+ # update to V4
+	
+od;
+
+C := table ([]);
+
+for i from 1 to dll do
+
+	for j from 1 to dll do
+	
+		Lij := subs ( op(XX1[i]), op(XX2[j]), PDL3vals );
+		Lij := map ( normal, Lij );
+		
+	
+		for k from 1 to dll do
+
+			C[i,j,k] := Lij[k];
+
+		od;
+
+	od;
+	
+od;
+
+
+RETURN ( eval ( C ) );
+
+end:
+
+#
+#
+#
+
+solvableRad := proc ( jb, fs )
+
+local vars,n,Cx,PDL,nlie,kf,jbd,fs1,i,fs3,vB,vf1,rel,sl1,sl3,rels,kfarg1,kfarg2,
+    j,CFL,pdrv,res;
+
+vars := dgetvars(fs);
+n := nops ( fs );
+
+
+Cx := dstructConst ( jb, fs );
+
+PDL := paramDerivs ( jb, fs );
+
+nlie := convert ( map ( z->nops(z), PDL ), `+` );
+
+kf := killform ( Cx, nlie );
+
+
+jbd := makeCommBase ( jb, fs );
+jbd := makeJanetBase ( jbd, fs );
+
+
+
+fs1 := [ seq ( xi1XXX||i(op(vars)), i = 1..n ) ];
+fs3 := [ seq ( xi3XXX||i(op(vars)), i = 1..n ) ];
+
+vB := [ seq ( ppp||i, i = 1..n ) ];
+
+vf1 := convert ( zip ( (x,y) -> x*y, fs1, vB ), `+` );
+
+
+jbd := csimpJanetBase( jbd, fs );
+
+rel := map ( (x,f)->dlterm ( x, f ) = -x + dlterm ( x, f ), jbd, fs );
+
+sl1 := zip ( (x,y) -> x=y, fs, fs1 );
+sl3 := zip ( (x,y) -> x=y, fs, fs3 );
+
+rels := [op(subs(op(sl1), rel))];
+
+
+kfarg1 := [];
+kfarg2 := [];
+
+j := 0;
+
+CFL := [];
+
+for i from 1 to n do
+
+	for pdrv in PDL[i] do
+	
+		kfarg1 := [op(kfarg1), mkdiff( fs3[i], pdrv ) ];
+		j := j + 1;
+		kfarg2 := [op(kfarg2), mkdiff ( fs1[i], pdrv )];
+		
+		CFL := [op(CFL), mkdiff ( fs1[i], pdrv )];
+		
+	od;
+	
+od;
+
+res := evalm ( linalg[transpose](kfarg1) &* kf &* kfarg2 );
+
+res := tdsubs ( rels, res );
+
+res := collect ( res, CFL, distributed );
+
+res := coeffs ( res, CFL );
+
+res := subs ( map ( x->rhs(x)=lhs(x), sl3 ), [res] );
+
+res := select ( x-> normal(x) <> 0, res );
+
+res := makeJanetBase ( [op(jb),op(res)], [xi,eta] );
+
+res := csimpJanetBase ( res, [xi,eta] );
+
+end:
+
+#
+#
+#
+
+
+inverseGrpBase := proc ( vfl )
+
+local vars, vB, fs,
+		cnsts,
+		i, j,
+		vf0,
+		fns, cnstsj,
+		res,
+		sol,
+		xversold;
+
+global _xvers;
+
+for i from 1 to nargs do
+
+	if type ( args[i], name=algebraic ) then
+	
+		break;
+		
+	fi;
+	
+od;
+
+sol := false;
+sol := subs ( [args[i..-1]], `solve` );
+
+if i - 1 > 2 then
+
+	vars := args[2];
+	
+else
+
+	vars := [x,y];
+	
+fi;
+
+if i - 1 > 3 then
+
+	vB := args[3];
+	
+else
+
+	vB := [p,q];
+	
+fi;
+
+
+fs := args[i-1];
+fns := [];
+cnsts :=[];
+
+
+vf0 := convert ( zip ((x,y)->x*y, fs, vB ), `+` );
+
+for j from 1 to nops ( vfl ) do
+
+	cnstsj := [seq ( _CCC||i||`x`||j, i = 1..nops ( vfl ) ) ];
+
+	cnsts := [op(cnsts), op(cnstsj)];
+	
+	res := vliebrack ( vf0, vfl[j], vars, vB );
+
+	res := res - convert ( zip ( (x,y)->x*y, cnstsj, vfl ), `+` );
+	
+	res := collect ( res, vB );
+	
+	fns := [op(fns), coeffs ( res, vB )];
+
+od;
+
+res := parmElim ( fns, vars, cnsts );
+
+xversold := _xvers;
+_xvers := true;
+
+res := makeJanetBase ( res, fs );
+
+_xvers := xversold;
+
+if sol = true then
+
+	res := solveGrpBase ( res, fs, vB );
+	
+fi;
+
+res;
+
+end;
+
+#
+#
+#
+
+solveGrpBase := proc ( jb, fs )
+
+local vB,
+		res;
+
+if nargs = 3 then
+
+	vB := args[3];
+	
+else
+
+	vB := [p,q];
+	
+fi;
+
+res := xpdesolve ( jb, fs );
+
+res := vectfform ( res, fs, vB, '_CC', '_FF' );
+
+end;
+
+#
+#
+
+
+#
+#
+
+killform := proc(C,n)
+            
+local a,i,j,r,s,ss;
+
+a := array (1..n,1..n );
+
+for i to n do
+                    
+	for j to n do   
+
+		ss := 0;
+		
+        for r to n do  
+        	for s to n do
+        		ss := ss+C[i,s,r]*C[j,r,s];
+        	od
+        od;
+		
+		a[i,j] := ss;
+        
+    od;
+    
+od;
+
+RETURN(evalm(a));
+
+end:
+
+#
+#
+#
+#
+#
+#
+
+liecharmat := proc ( C, n )
+    
+local indletter,a,j,k,s,i;
+
+if nargs > 2 then
+
+	indletter := args[3];
+
+else
+
+	indletter := 't';
+
+fi;
+
+a := array ( 1..n, 1..n );
+
+for j from 1 to n do
+	for k from 1 to n do
+	
+		s := 0;
+
+		for i from 1 to n do
+			
+			s := s + indletter[i] * C[i,j,k];
+			
+		od;
+		
+		a[j,k] := s;
+		
+	od;
+od;
+
+RETURN ( evalm(a) );
+end:
+
+
+#
+#
+#
+
+vliecharpoly := proc ( vf, vB, vars, v )
+                
+local Cx,Ax;
+
+Cx := structConst ( vf, vars, vB );
+
+Ax := liecharmat ( Cx, nops ( vf ) );
+
+linalg[charpoly](Ax, lambda );
+
+end:
+
+
+#
+#
+
+vliesubs := proc ( vfl, vB, varsubs )
+
+local vars,newvars,i,varsl,newvarfun,vBsl,vflres,vf,vf1,vf2;
+
+
+vars := map ( lhs, varsubs );
+
+newvars := [seq ( UU||i, i = 1..nops(vars) )];
+
+varsl := zip ( (x,y) -> x=y, vars, newvars );
+
+newvarfun := subs ( varsl, map ( rhs, varsubs )) ;
+
+vBsl := [seq( vB[i] = diff(DD(op(vars)), vars[i] ), i=1..nops ( vB ) )];
+
+vflres := [];
+
+for vf in vfl do
+
+	vf1 := subs ( vBsl, vf );
+	
+	vf2 := vsubs ( newvars, zip ( (x,y)->x=y, vars, newvarfun ),
+						[DD(op(vars))=DD(op(newvars))], vf1 );
+						
+	vf2 := subs ( zip ( (x,y) -> x=y, newvars, vars ), vf2 );
+
+	vf2 := subs ( map( x->rhs(x)=lhs(x), vBsl ), vf2 );
+	
+	vf2 := normal ( vf2 );
+	
+	vflres := [op(vflres), vf2 ];
+	
+od;
+
+vflres;
+
+end:
+
+#
+#
+#
+
+vliesort := proc ( vfl, vars, vB )
+
+local vfl1,
+		leqf;
+
+vfl1 := map ( (xx,vb) -> [coeffslin ( xx, vb ),xx], vfl, vB );
+
+leqf := subs ( EXPRLEQ = exprleq, (xx,yy) -> lexleq ( xx[1], yy[1], EXPRLEQ ) );
+
+vfl1 := sort ( vfl1, leqf );
+
+vfl1 := map ( xx->xx[2], vfl1 );
+
+end;
+
+#
+#
+#
+
+liecommtable := proc ( C, n, vf )
+
+local cr,i,j,k;
+ 
+
+cr := array(1..n,1..n);
+
+
+for i from 1 to n do
+	
+	for j from 1 to n do
+	
+		cr[i,j] := convert ( 
+					[seq ( C[i,j,k] * vf[k], k=1..n )], `+` );
+					
+	od;
+	
+od;
+
+evalm ( cr );
+
+end:
+
+#
+#
+#
+#
+
+liematch := proc ( C1, C2, n )
+
+local res,
+		i, j, k, p, q, r,
+		ls, rs,
+		vl;
+
+res := [];
+
+for i from 1 to n do
+
+	for j from i + 1 to n do 
+	
+		for k from 1 to n do
+
+			ls := 0;
+
+			for r from 1 to n do
+
+				ls := ls + a[r,k] * C2[i,j,r];
+
+			od;
+
+			rs := 0;
+
+			for p from 1 to n do
+
+				for q from 1 to n do
+
+					rs := rs + a[i,p] * a[j,q] * C1[p,q,k];
+
+				od;
+
+			od;
+
+			res := [op(res), ls - rs ];
+	
+		od;
+
+	od;
+	
+od;
+
+vl := [seq ( seq ( a[i,j], j = 1..n ), i = 1..n )];
+
+[res, vl];
+
+end;
+
+#
+#
+#
+
+#
+#
+
+glg_partitionlist := proc ( n, explist )
+   
+local minlen,erg,i,begprt,endprt;
+
+if nargs = 3 then
+
+	minlen := args[3];
+	
+elif explist[1] = 0 then
+
+	minlen := 0;
+	
+else
+
+	minlen := 1;
+
+fi;
+
+if n = 0 then
+
+	RETURN ( [[]] );
+	
+fi;
+
+erg := [];
+
+
+for i from minlen to n do
+
+
+	begprt := [explist[1] $ i ];
+
+	if minlen > 0 then
+
+		endprt := glg_partitionlist ( n - i, [op(explist[2..nops(explist)])], i );
+ # update to V4
+	
+	else
+	
+		endprt := glg_partitionlist ( n - i, [op(explist[2..nops(explist)])] );
+ # update to V4
+	
+	fi;
+	
+	if begprt = [] then
+	
+		erg := [op(erg), op(endprt) ];
+
+	else
+
+		erg := [op(erg),op(
+				outer ( [[begprt], endprt], (x,y)->[x,op(y)] )) ];
+
+	fi;
+			
+od;
+
+RETURN ( erg );
+
+end:
+
+#
+#
+
+
+glg_vectflist := proc ( vdim, typnr )
+    
+local prtlist,erglist,elist,suberglis,sublis,i;
+
+
+prtlist := glg_partitionlist ( vdim, [ 0, 1, a, b, c, d, e, f, g, h, j, k, l, m, n ] );
+
+if typnr = 18 then
+
+	prtlist := select ( x -> x[1][1]=0, prtlist );
+	prtlist := select ( x -> nops ( x ) = 1 or nops( x[2] ) <= nops ( x[1] ), 
+							prtlist );
+	
+fi;
+
+erglist := [];
+
+
+for elist in prtlist do
+
+	suberglis := [];
+
+	for sublis in elist do
+	
+		for i from 1 to nops ( sublis ) do
+		
+			suberglis := [op(suberglis), x^(i-1)*exp(sublis[i]*x)*q];
+			
+		od;
+	od;
+	
+	erglist := [op(erglist), suberglis ];
+	
+od;
+
+erglist;
+
+end:
+
+#
+#
+#
+
+#
+
+getliealgX := proc ( typinfo1 )
+
+local lienr, liedim, 
+		subtypnr, vf, 
+		typinfo, sl, sl1;
+
+
+typinfo := gettypinfo1 ( typinfo1 );
+sl := getliesubsl ( typinfo1 );
+	
+lienr := getlienr ( typinfo1 );
+liedim := getliedim ( typinfo1 );
+
+subtypnr := getsubtypnr ( typinfo1 );
+
+
+vf := getliealg ( lienr, liedim );
+
+if subtypnr <> FAIL then
+
+	vf := vf[subtypnr];
+	
+fi;
+
+if sl <> FAIL then
+
+	vf := subs ( sl, vf );
+
+fi;
+
+RETURN ( vf );
+
+end;
+
+#
+#
+
+getliealg := proc ( lienr )
+
+local ldim,erg,i;
+
+if nargs >= 2 then
+
+	ldim := args[2];
+	
+fi;
+
+
+if lienr = 1 then
+
+	erg := [ p, q, x*q, x*p-y*q, y * p ];
+	
+elif lienr = 2 then
+
+	erg := [ p, q, x*q, y*q, x*p, y*p ];
+	
+elif lienr = 3 then
+
+	erg := [ p, q, x*q, y*q, x*p, y*p, x^2*p+x*y*q, x*y*p+y^2*q ];
+	
+elif lienr = 4 then
+
+	erg := [ q, y*q ];
+	
+elif lienr = 5 then
+
+	erg := [ p, q, y*q ];
+	
+elif lienr = 6 then
+
+	erg := [ p, q, y*q, x*p ];
+	
+elif lienr = 7 then
+
+	erg := [ p, q, x*p+c*y*q ];
+		
+elif lienr = 8 then
+
+	erg := [ q, y*q, y^2*q ];
+	
+elif lienr = 9 then
+
+	erg := [ p, q, y*q, y^2*q ];
+	
+elif lienr = 10 then
+
+	erg := [ p+q, x*p+y*q, x^2*p+y^2*q ];
+	
+elif lienr = 11 then
+
+	erg := [ p, q, y*q, x*p, y^2*q ];
+	
+elif lienr = 12 then
+
+	erg := [ p, q, y*q, x*p, y^2*q, x^2*p ];
+	
+elif lienr = 13 then
+
+	erg := [ p, x*p+y*q, x^2*p+2*x*y*q ];
+	
+elif lienr = 14 then
+
+	erg := [ y*q, p, x*p, x^2*p+x*y*q ];
+	
+elif lienr = 15 then
+
+	if ldim < 2 then
+	
+		erg := [];
+		
+	else
+	
+		erg := [ q, x*q, seq( phi||i(x)*q, i=1..ldim - 2 )];
+	
+	fi;
+	
+elif lienr = 16 then
+
+	if ldim < 3 then
+
+		erg := [];
+
+	else
+
+		erg := [ q, x*q, seq(phi||i(x)*q,i=1..ldim-3) ];
+		erg := [ op(erg), y*q ];
+
+	fi;
+	
+elif lienr = 17 then
+	
+	erg := outer ( [glg_vectflist(ldim-1, 17),[[p]] ], (x,y)->[op(x),op(y)] );
+		
+elif lienr = 18 then
+
+	if ldim < 3 then
+	
+		erg := [];
+		
+	else
+
+		erg := outer ( [glg_vectflist(ldim-2, 18),[[ y*q, p]] ], 
+		
+			(x,y)->[op(x),op(y)] );
+			
+	fi;
+
+elif lienr = 19 then
+
+	if ldim < 4 then
+	
+		erg := [];
+		
+	else
+
+		erg := [ seq( x^i*q, i=0..ldim-3 ), p, x*p+c*y*q ];
+
+	fi;
+	
+elif lienr = 20 then
+
+	if ldim < 3 then
+	
+		erg := [];
+
+	else
+	
+		erg := [ seq( x^i*q, i=0..ldim-3 ), p, x*p+((ldim-2)*y+x^(ldim-2))*q ];
+
+	fi;
+	
+elif lienr = 21 then
+
+	if ldim < 5 then
+
+		erg := [];
+		
+	else
+	
+		erg := [ seq ( x^i * q, i = 0..ldim-4 ), y*q, p , x*p ];
+	
+	fi;
+	 
+elif lienr = 22 then
+
+	if ldim < 5 then
+	
+		erg := [];
+		
+	else
+	
+		erg := [ seq ( x^i * q, i = 0..ldim-4 ), p, 2*x*p+(ldim-4)*y*q, x^2*p+(ldim-4)*x*y*q
+					];
+		
+	fi;
+
+elif lienr = 23 then
+
+	if ldim < 6 then
+	
+		erg := [];
+		
+	else
+	
+		erg := [ seq ( x^i * q, i=0..ldim-5 ), y*q, p, x*p, x^2*p+(ldim-5)*x*y*q ];
+		
+	fi;
+	
+elif lienr = 24 then
+
+	erg := [ p, q, x*p+y*q ];
+	
+elif lienr = 25 then
+
+	erg := [ q, x*p+y*q ];
+	
+elif lienr = 26 then
+
+	erg := [p,q];
+	
+elif lienr = 27 then
+
+	erg := [p];
+	
+elif lienr = 100 then
+
+	erg := [p, 2*x*p + y*q, x^2*p+x*y*q];
+	
+else
+
+	erg := [];
+	
+fi;
+
+erg;
+
+end:
+	
+#
+#
+#
+
+	
+	
+	

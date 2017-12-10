@@ -1,0 +1,113 @@
+
+mubool := proc ( e )
+
+if e = true then TRUE
+
+elif e = false then FALSE
+
+else e;
+
+fi;
+
+end;
+
+
+
+dxmakeJanetBaseMu := proc ( eqlista, fs )
+
+local xxxx1, xxxx2,i,j,
+		fd;
+
+global _eqsubsl, _watchlist, _assumelist, _assertlist;
+
+xxxx1 := eqlista;
+xxxx2 := fs;
+
+sl := [ seq ( substring ( `abcdefgh`, i ), i =1..length(`abcdefgh`) ) ];
+
+sl := map ( xx->[seq(xx[j]=``.xx.j.QQ, j=1..12 )], sl );
+
+sl := flatten2 ( sl ); 
+
+xxxx1 := subs ( sl, xxxx1 );
+
+_eqsubsl := subs ( sl, _eqsubsl );
+
+tempforgetdep ();
+
+save xxxx1, xxxx2, `mudatafile`;
+
+fd := fopen ( `muinputfile`, WRITE );
+
+fprintf ( fd, `read ( "/home/boehm/maple/mudatafile" ); \n` );
+
+fprintf ( fd, `read ( "/home/boehm/MuPAD/packages/dpack4/dtypes.mu" );\n` );
+
+fprintf ( fd, `read ( "/home/boehm/MuPAD/packages/dpack4/dpack.mu" );\n` );
+
+fprintf ( fd, `read ( "/home/boehm/MuPAD/packages/dpack4/dxpack.mu" );\n` );
+
+
+
+oldcotes := setcotes ( fs, totDegOrder(fs) );
+setcotes ( fs, oldcotes );
+
+fprintf ( fd, `dxinit(); \n` );
+
+fprintf ( fd, `_eqnr := 100; \n` );
+
+if assigned ( _verbose ) then
+
+	fprintf ( fd, `_verbose := %a;\n`, mubool ( _verbose ) );
+
+fi;
+
+if assigned ( _dxfastmode ) then
+
+	fprintf ( fd, `_dxfastmode := %a;\n`, mubool ( _dxfastmode ) );
+
+fi;
+
+if assigned ( _doeconsubs ) then
+
+	fprintf ( fd, `_doeconsubs := %a;\n`, _doeconsubs );
+
+fi;
+
+fprintf ( fd, `setcotes ( xxxx2, %a );\n`, oldcotes );
+
+fprintf ( fd, `_watchlist := %a; \n`, _watchlist );
+fprintf ( fd, `_assertlist := %a; \n`, _assertlist );
+fprintf ( fd, `_assumelist := %a; \n`, _assumelist );
+
+fprintf ( fd, `_eqsubsl := %a; \n`, _eqsubsl );
+
+fprintf ( fd, `_dxaddlist := %a; \n`, _dxaddlist );
+
+fprintf ( fd, `yyyy := dxmakeJanetBase ( xxxx1, xxxx2 );\n ` );
+
+fprintf ( fd, `write ( Text, "/home/boehm/maple/muoutput", yyyy );\n` );
+
+fprintf ( fd, `quit; \n` );
+
+fclose ( fd );
+
+system ( `mupad < /home/boehm/maple/muinputfile` );
+
+system ( `sed -e 's/ //g' muoutput > /tmp/muoutput` );
+
+system ( `cp /tmp/muoutput muoutput` );
+
+system ( `sed -e 's/sysassign(yyyy,hold(/yyyy:=/' muoutput | sed -e 's/)):/;/' > /tmp/muoutput` );
+
+system ( `cp /tmp/muoutput muoutput` );
+
+read `muoutput`;
+
+restoredep();
+
+yyyy;
+
+end;
+
+

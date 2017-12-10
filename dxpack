@@ -1,0 +1,2601 @@
+
+remdep ( [sigma, rho] );
+
+depend ( [sigma, rho], [x,y] );
+
+#
+#
+
+dxindets := proc ( e, fs )
+
+local idts;
+
+idts := indets ( e );
+
+idts := select ( (x,y) -> type ( x, diffmonom ) and has ( x, y ), [op(idts)], fs );
+
+idts := dsortterms ( idts, fs );
+
+end:
+
+#
+#
+
+setdxmode := proc ( mode )
+
+global _dindetsfun, dindets, dxindets, _dxmodeison;
+
+if mode = 'on' and not assigned ( _dxmodeison ) then
+
+	_dxmodeison := true;
+
+	_dindetsfun := eval ( dindets );
+	
+	dindets := dxindets;
+	
+elif mode = 'off' and assigned ( _dxmodeison ) then
+
+	dindets := eval ( _dindetsfun );
+	
+	unassign ( '_dxmodeison' );
+	
+fi;
+
+end:
+
+#
+#
+
+dxcollect := proc ( e, fs )
+
+local dxidts,arglist,form, defcoteset;
+
+if denom ( e ) <> 1 and has ( denom(e), fs ) then
+
+	RETURN ( dxcollect ( numer ( e ), args[2..-1] )/ dxcollect ( denom ( e ), args[2..-1] ) );
+
+fi;
+
+
+if not isCoteAssigned ( fs ) then
+
+	setCotesDefault ( fs );
+	
+	defcoteset := true;
+	
+fi;
+
+dxidts := dxindets (e, fs );
+
+if defcoteset = true then
+
+	remcotes ( fs );
+	
+fi;
+
+arglist := e, dxidts;
+
+form := select ( (x,y)->has(x,y),[args],[distributed,recursive]);
+
+if nops ( form ) = 1 then
+
+	arglist := arglist,op(form);
+		
+fi;
+
+
+if not has ( args[nargs], [distributed, recursive] ) and
+		nargs > 2 then
+
+	arglist := arglist,args[nargs];
+
+fi;
+
+collect ( arglist );
+	
+
+
+end:
+
+#
+#
+
+dxlterm := proc ( e, fs )
+
+local dxidts;
+
+dxidts := dxindets ( e, fs );
+
+if nops ( dxidts ) > 0 then
+
+	dxidts[1];
+	
+else
+
+	[];
+	
+fi;
+
+end:
+
+#
+#
+#
+
+dxmakeeql := proc ( el, fs )
+
+local reslist, el1, res;
+
+global _zeroexprl;
+
+reslist := [];
+
+el1 := el;
+
+while nops ( el1 ) > 0 do
+
+	_zeroexprl := {};
+
+	res := map ( dxmakeeq, el1, fs );
+
+	reslist := [op(reslist), op(res)];
+
+	el1 := [op(_zeroexprl)];
+	
+od;
+
+reslist;
+
+end;
+
+#
+#
+#
+
+dxmakeeq := proc ( e, fs )
+
+local dxlt,
+		e1,
+		d,
+		cntntl,
+		fctr,
+		ff,
+		valzero,
+		uu, p,
+		val,
+		res,
+		kk,
+		valiszero,
+		fctr1;
+
+global _resflag, _eqnr, _eqsubsl,
+		_zeroexprl;
+
+dxlt := dxlterm ( e, fs );
+
+e1 := normal ( e );
+
+e1 := numer ( e1 );
+
+e1 := dxcollectX ( e1, fs );
+
+dxlt := dxlterm ( e1, fs );
+
+d := degree ( e1, dxlt );
+
+e1 := dprimpart ( e1, dxlt, 'cntnt' );
+
+e1 := dxcollect ( e1, fs );
+
+
+cntntl := frontend ( factors ,[ cntnt ] );
+
+uu := cntntl[1];
+
+p := 1;
+
+if type ( uu, constant ) then
+
+	uu := 1;
+	
+fi;
+
+
+
+for fctr in cntntl[2] do
+
+	if _superminimal <> true then
+
+		if assigned ( _doeconsubs ) then
+
+			ff := _doeconsubs;
+
+		else
+
+			ff := subs;
+
+		fi;
+
+		val := tdsubs ( _dxaddlist , 
+				normal ( eval ( value ( ff ( _eqsubsl, fctr[1] ) ) )  ) );
+	
+	
+		valiszero := evalb ( val = 0 );
+
+	else
+	
+		val := [seq ( xtaylor ( fctr[1], _xtaylvar, _xtayln, kk ), kk=1.._xtaylk )];
+		
+		valiszero := iszerol ( val );
+		
+	fi;
+		
+
+	#if val = 0 then
+	
+	#	_eqnr := _eqnr + 1;
+		
+	#	RETURN ( [ 0, 1, [], 1, 1, _eqnr ] );
+		
+	#fi;
+	
+	
+	if not valiszero then
+	
+		if _superminimal <> true then
+		
+			debugprint ( `must be <> 0: `||val );
+	
+		else
+		
+			debugprint ( `must be <> 0:` , fctr[1] );
+	
+		fi;
+	
+	fi;
+	
+	if not valiszero then
+	
+		if _superminimal = true then
+		
+			if not has ( fctr[1], _coefffunl ) then
+
+				res := assertNotZero ( fctr[1], _assumelist );
+				
+				if nops ( res ) = 0 then
+				
+					next;
+					
+				fi;
+
+			else
+			
+				if assigned ( _doeconsubs ) then
+				
+					ff := _doeconsubs;
+					
+				else
+				
+					ff := dagsubs;
+					
+				fi;				
+			
+				fctr1 := traperror (
+							normal ( eval ( value ( ff ( _eqsubsl, fctr[1] ) ) ) )
+							);
+							
+				if not type ( fctr1, {string, name} ) then
+							
+					fctr1 := tdsubs ( _dxaddlist, fctr1 );
+
+					res := assertNotZero ( fctr1, _assumelist );
+
+					if nops ( res ) = 0 then
+
+						next;
+
+					fi; 
+
+				fi;
+
+			fi;
+
+		else
+
+			res := assertNotZero ( val, _assumelist );
+		
+			if nops ( res ) = 0 then
+
+				next;
+
+			fi;
+
+		fi;
+	
+	else
+	
+		valzero := true;
+		
+		debugprint ( `is zero: `, fctr[1] );
+		
+		if has ( fctr[1], fs ) then
+	
+			_zeroexprl := dxinserteq ( fctr[1], _zeroexprl );
+					
+		fi;
+
+	fi;
+	
+	debugprint ( `factor multiplied` );
+		
+	p := p * fctr[1]^fctr[2];
+		
+od;
+
+
+
+if valzero = true then
+
+	_eqnr := _eqnr + 1;
+
+	RETURN ( [ 0, 1, [], 1, 1, _eqnr ] );
+
+fi;
+
+e1 := e1 * p * uu;
+
+_eqnr := _eqnr + 1;
+
+[e1, dxlt^d, dxlt, d, d * 10 + nops ( e1 )  ,_eqnr];
+
+end:
+
+#
+#
+#
+#
+
+eqeq := proc ( e )
+
+e[1];
+
+end;
+
+#
+#
+
+eqlt := proc ( e )
+
+e[2];
+
+end;
+
+#
+#
+
+eqlm := proc ( e )
+
+e[3];
+
+end;
+
+#
+#
+
+eqdg := proc ( e )
+
+e[4];
+
+end;
+
+#
+#
+
+eqcp := proc ( e )
+
+e[-2];
+
+end;
+
+#
+#
+
+eqnr := proc ( e )
+
+e[-1];
+
+end;
+
+#
+#
+#
+
+
+seqsubs := proc ( sl, e )
+
+local e1, idts,
+		sl1;
+
+e1 := e;
+
+idts := indets ( e1 );
+
+sl1 := select ( (xx,yy)->member(lhs(xx),yy), sl, idts );
+
+e1 := normal ( eval ( value ( subs ( sl1, e1 ) ) ) );
+
+e1;
+
+end;
+
+#
+#
+#
+
+ssubs1 := proc ( sl, e )
+
+local e1,
+		idts,
+		sl1,
+		i;
+		
+idts := indets ( e );
+		
+sl1 := select ( (xx,yy)->member(lhs(xx),yy), sl, idts );		
+		
+e1 := e;
+		
+for i from 1 to nops ( sl1 ) do
+
+	e1 := normal ( eval ( value ( subs ( sl1[-i], e1 ) ) ) );
+
+od;
+
+e1;
+
+end;
+
+
+#
+#
+#
+
+dxrecurse := proc ( e, fs, d )
+
+local dxidts,
+	e1, lm,
+	res,
+	optseq,
+	val,
+	cl, tl,
+	i, FUN,
+	subsf,
+	allzero, vvv, ff, vv,
+	sll, eex, snew,
+	k,
+	valzero,
+	e2, vv1,
+	nn,
+	tl1;
+
+global _zeroexprl, _minimalspace, _doeconsubs, _coefffunl;
+
+dxidts := dxindets ( e, fs );
+
+
+if nops ( dxidts ) = 0 then
+
+	# does not have fs, coefficient expression
+	
+	if _superminimal <> true then
+
+		if _minimalspace = true then
+
+			e1 := convert ( e, horner )
+
+		else
+
+			# e1 := collect ( e, _coefffunl, recursive );
+
+			e1 := e;
+
+		fi;
+
+		if assigned ( _doeconsubs ) then
+
+			ff := _doeconsubs;
+			e1 := ff ( _eqsubsl, e1 );
+			e1 := eval ( value ( e1 ) );
+
+
+		else
+
+			ff := subs;
+			e1 := normal ( eval ( value ( subs ( _eqsubsl, e1 ) ) ) );
+
+		fi;
+
+		e1 := tdsubs ( _dxaddlist, e1 );
+
+		e1 := collect ( e1, [op(fs),op(_cnstlist),op(_coefffunl)],
+							 recursive, normal );
+		
+	else
+
+		e1 := e;
+
+		e2 := [seq ( xtaylor ( e1, _xtaylvar, _xtayln, k ), k = 1.._xtaylk ) ];
+
+		if iszerol ( e2 ) then
+		
+			RETURN ( DD ( 0, e2 ) );
+			
+		else
+		
+			RETURN ( DD ( e, e2 ) );
+			
+		fi;
+
+	fi;
+		
+	if e1 = 0 then
+	
+		RETURN ( DD ( 0, 0 ) );
+		
+	else
+	
+		RETURN ( DD ( e, e1 ) );
+	
+	fi;
+	
+fi;
+
+lm := dxidts[1];
+
+FUN := subs ( FS = fs, DD= d+1, XXX->dxrecurse ( XXX, FS, DD ) );
+
+res := collect ( e, lm );
+
+cl := coeffs ( res, lm, 'tl' );
+
+cl := map ( FUN, [cl] );
+
+tl := [tl];
+
+
+#print ( cl, tl );
+
+if _superminimal <> true then
+
+	allzero := convert (
+				map ( x->evalb(op(2,x)=0), cl ), `and` );
+
+	if allzero then
+
+		RETURN ( DD ( 0, 0) );
+
+	fi;
+
+else
+
+	allzero := convert (
+				map ( x->evalb(iszerol(op(2,x))), cl ), `and` );
+				
+	if allzero then
+	
+		RETURN ( DD ( 0, [0 $ _xtaylk] ) );
+		
+	fi;
+
+fi;	
+
+if d > 0 then
+
+if _superminimal <> true then
+
+	val := zip ( (x,y)->op(2,x)*y, cl, tl );
+	val := convert ( val , `+` );
+
+	val := tdsubs ( _dxaddlist, val );
+
+	val := normal ( val );
+
+
+else
+	
+	tl1 := map ( proc(xx,vv,nn,kkm)
+					local kk;
+						[seq(xtaylor(xx,vv,nn,kk),kk=1..kkm)] end ,tl,_xtaylvar,
+																_xtayln,_xtaylk); 
+
+	val := [seq ( zip ( (x,y)->x*y, map((x,kk)->op(2,x)[kk],cl,k), 
+									map((x,kk)->x[kk], tl1, k ) ), k=1.._xtaylk ) ];
+	
+	val := map ( xx->convert ( xx, `+` ), val );
+	
+	val := [seq ( xtaylor ( val[k], _xtaylvar, _xtayln, k ), k=1.._xtaylk ) ];
+		
+fi;
+
+if _superminimal <> true then
+
+	if _minimalspace = true then
+
+		val := convert ( val, horner );
+
+	else
+
+		val := collect ( val, [op(fs), op(_cnstlist), op(_coefffunl) ], recursive, normal );
+
+	fi;
+
+fi;
+
+if _superminimal <> true then
+
+	valzero := evalb ( val = 0 );
+	
+else
+
+	valzero := iszerol ( val );
+	
+fi;
+
+
+if valzero and d > 0 then
+	
+	vvv := frontend ( factors, [e] );
+	
+	for ff in vvv[2] do
+	
+		if has ( ff[1], fs ) then
+		
+			if assigned ( _doeconsubs ) then
+			
+				subsf := _doeconsubs;
+				
+			else
+			
+				subsf := subs;
+				
+			fi;
+		
+			if not ( _superminimal = true ) then
+		
+				vv := normal ( eval ( value ( subsf ( _eqsubsl, ff[1] ) ) ) );
+				vv := tdsubs ( _dxaddlist, vv );
+		
+			else
+			
+				vv := subs ( _eqsubsl, ff[1] );
+			
+				nn := _xtaylk;
+				
+				while nn > 0 do
+				
+					vv1 := xtaylor ( vv, _xtaylvar, _xtayln, nn );
+						
+					if vv1 <> 0 then
+					
+						break;
+						
+					fi;
+					
+					nn := nn - 1;
+										
+				od;
+				
+				vv := vv1;
+													
+			fi;
+				
+			
+			if vv = 0 then
+
+				debugprint ( `added to _zeroexprlist` );
+				debugprint ( `length zeroexprl = `, nops ( _zeroexprl ) );
+				debugprint ( `element = `, ff[1] );
+
+				_zeroexprl := dxinserteq ( ff[1], _zeroexprl );
+				
+			fi;			
+		fi;		
+	od;
+
+	RETURN ( DD ( 0, 0) );
+	
+fi;
+
+fi;
+
+e1 := zip ( (x,y)->op(1,x)*y,cl,tl);
+
+e1 := convert ( e1, `+` );
+
+
+RETURN ( DD ( e1, val ) );
+
+end;
+
+
+
+#
+#
+#
+
+dxcollectX  := proc ( e, fs )
+
+local res, e1;
+
+res := dxrecurse ( e, fs, 0 );
+
+RETURN ( op ( 1, res ) );
+
+end;
+
+#
+#
+
+dxtrmleq := proc ( trm1, trm2, fs )
+
+local p1, p2,
+		m1, m2,
+		m1c, m2c;
+
+p1 := dxexpo ( trm1 );
+p2 := dxexpo ( trm2 );
+
+m1 := dxbase ( trm1 );
+m2 := dxbase ( trm2 );
+
+if m1 = m2 then
+
+	RETURN ( evalb ( p1 <= p2 ) );
+	
+fi;
+
+usecotes ( fs );
+
+m1c := getcotes ( m1 );
+m2c := getcotes ( m2 );
+
+RETURN ( mleq ( m1c, m2c, _cotevars ) );
+
+end;
+
+#
+#
+#
+
+dxexpo := proc ( trm )
+
+### WARNING: note that `I` is no longer of type `^`
+if type ( trm , `^` ) then
+
+	op ( 2, trm );
+	
+else
+	
+	1;
+	
+fi;
+
+end;
+
+#
+#
+
+dxbase := proc ( trm )
+
+### WARNING: note that `I` is no longer of type `^`
+if type ( trm, `^` ) then
+
+	op ( 1, trm );
+	
+else
+
+	trm;
+	
+fi;
+
+end;
+
+#
+#
+#
+
+dxsorteql := proc ( eqlist, fs )
+
+local eql, LEQFUN;
+
+eql := map ( x->[x, eqlt(x),
+						eqcp(x)], eqlist );
+
+LEQFUN := subs ( FS = fs, (XXX,YYY)->evalb(
+						dxtrmleq ( XXX[2], YYY[2], FS ) or
+							( XXX[2] = YYY[2] and XXX[3] < YYY[3] ) ) );
+						
+eql := sort ( eql, LEQFUN );
+							
+eql := map ( x->x[1], eql );
+
+
+end;
+
+#
+#
+#
+#
+#
+
+dxinserteq := proc ( e, el )
+
+local res, eq;
+
+res := el;
+
+for eq in el do
+
+	if type ( normal ( e/eq ), constant ) then
+	
+		RETURN ( res );
+		
+	fi;
+	
+od;
+
+debugprint ( `inserted `, e );
+
+res := res union {e};
+
+RETURN ( res );	
+
+end;
+
+#
+#
+
+
+#
+#
+
+reduct := proc ( e, v )			# Reduktum
+
+local t, c;
+
+c := lcoeff ( e, v, `t` );
+
+if nargs = 3 then
+
+	assign ( args[3], [c,t] );
+	
+fi;
+
+c * t - e;
+
+end;
+
+#
+#
+#
+
+dxinit := proc ()
+
+global _eqnr, _eqsubsl, _dxaddlist;
+
+_eqsubsl := [1=1];
+
+_dxaddlist := [];
+
+remcotes ( [sigma,rho] );
+
+setcotes ( [sigma, rho], totDegOrder ([sigma,rho]) );
+
+_eqnr := 0;
+
+end;
+
+
+
+
+#
+#
+#
+
+dxreduce := proc ( eq1a, eq2a, fs )
+
+local res;
+
+global _skipred;
+
+res := dxreduce1 ( eq1a, eq2a, fs );
+
+if type ( res, {string, name} ) then
+
+	print ( `Error occured: `||res );
+
+	_skipred[ eqnr(eq1a), eqnr(eq2a) ] := false;
+
+	RETURN ( [false, eq2a] );
+	
+else
+
+	RETURN ( res );
+	
+fi;
+
+
+end;
+
+
+
+#
+#
+#
+
+
+dxreduce1 := proc ( eq1a, eq2a, fs )
+
+local e1, lm1,
+	reddone1, reddone,
+	e2, lm2, lm11,
+	e11, e21,
+	dxidts1, dxidts2, dxidts11,
+	vars,
+	d1, d2,
+	c1, c2, c11,
+	eq1, eq2,
+	xskml;
+
+global _eqsubsl, _skipred, _zeroexprl, _safeskip;
+
+eq1 := eq1a;
+eq2 := eq2a;
+
+if _skipred[ eqnr( eq1 ), eqnr ( eq2 ) ] = true then
+
+	RETURN ( [ false, eq2 ] );
+	
+fi;
+
+e1 := eqeq ( eq1 );
+
+lm1 := eqlm ( eq1 );
+
+reddone1 := false;
+
+xskml := {}; # eXtraordinary reduction SKip Monomial List
+
+while true do
+
+	e2 := eqeq ( eq2 );
+
+	dxidts2 := dxindets ( e2, fs );
+	
+	reddone := false;
+	
+	while nops ( dxidts2 ) > 0 do
+	
+		lm2 := dxidts2[1];
+		
+		if member(lm2, xskml) and _safeskip = true then next; fi;
+		
+		dxidts2 := dxidts2[2..-1];
+		
+		vars := diffcompare ( lm2, lm1 );
+
+		if vars = FAIL then
+		
+			next;
+		
+		elif vars = [] then
+		
+			d1 := degree ( e1, lm1 );
+			d2 := degree ( e2, lm2 );
+			
+			if d2 < d1 then
+
+				next;			
+				
+			else
+
+				c1 := lcoeff ( e1, lm1 );
+				c2 := lcoeff ( e2, lm1 );
+
+				e21 := c1 * e2 - c2 * lm2^(d2-d1) * e1;				
+				
+				reddone := true;
+								
+				eq2 := dxmakeeq ( e21, fs );
+				
+				break;
+				
+			fi;
+				
+		else
+		
+			e11 := diff ( e1, op ( vars ));
+			
+			e11 := dxcollectX ( e11, fs );
+			
+			dxidts11 := dxindets ( e11, fs );
+			
+			lm11 := dxidts11[1];
+			
+			if lm11 <> lm2 then
+			
+				print ( `extraordinary reduction skip` );
+				
+				xskml := xskml union {lm2};
+				
+				next;
+				
+			fi;
+			
+			c11 := lcoeff ( e11, lm11 );
+			
+			c2 := lcoeff ( e2, lm2 );
+			
+			d2 := degree ( e2, lm2 );
+			
+			e21 := e2 * c11 - e11 * c2 * lm11 ^ ( d2 - 1);
+				
+			reddone := true;
+						
+			eq2 := dxmakeeq ( e21, fs );
+			
+			break;
+	
+		
+		fi;
+
+	od;
+	
+	if reddone then
+		
+		reddone1 := true;
+		
+		next;
+		
+	else
+	
+		if reddone1 = false then
+		
+			_skipred[ eqnr ( eq1 ), eqnr ( eq2 ) ] := true;
+			
+		fi;
+	
+		RETURN ( [ reddone1, eq2] );
+		
+	fi;
+	
+od; 
+	
+
+end:
+
+#
+#
+#
+
+dxdelta := proc ( eq1, eq2, fs )
+
+local e1, e2,
+	lm1, lm2,
+	dm1, dm2, dm3,
+	vars1, vars2,
+	dp1, dp2,
+	cc1, cc2, cc3,
+	eq1n, eq2n,
+	e3,
+	res;
+
+e1 := eqeq ( eq1 );
+
+e2 := eqeq ( eq2 );
+
+lm1 := eqlm ( eq1 );
+
+lm2 := eqlm ( eq2 );
+
+vars1 := fdifflist ( lm1 )[2..-1];
+vars2 := fdifflist ( lm2 )[2..-1];
+
+dm1 := convert ( vars1, `*` );
+dm2 := convert ( vars2, `*` );
+
+dm3 := lcm ( dm1, dm2 );
+
+dp1 := dm3 / dm1;
+dp2 := dm3 / dm2;
+
+vars1 := mon2ms ( dp1 );
+vars2 := mon2ms ( dp2 );
+
+eq1n := dxmakeeq ( diff ( e1, op (vars1 ) ) ,fs );
+eq2n := dxmakeeq ( diff ( e2, op (vars2 ) ), fs );
+
+e1 := eqeq ( eq1n );
+e2 := eqeq ( eq2n );
+
+cc1 := frontend ( lcoeff, [  e1, eqlm ( eq1n ) ] );
+cc2 := frontend ( lcoeff, [  e2, eqlm ( eq2n ) ] ); 
+
+#cc3 := frontend( lcm, [ cc1, cc2 ] );
+
+#e3 := normal(cc3/cc2) * e2 - normal(cc3/cc1) * e1;
+e3 := cc1 * e2 - cc2 * e1;
+
+res := dxmakeeq ( e3, fs );
+
+end;
+
+#
+#
+
+
+
+dxautored := proc ( eqlista, fs )
+
+local eqlist,ii,nn,i,
+	diterm, djterm,
+	reddone, reddone1,
+	j,jj,
+	ttt,
+	eqi,eqj,
+	erg,
+	xtral;
+
+global _eqlistakt, _onlysimple, _zeroexprl, _skipsecond, _skipfirst;
+
+eqlist := eqlista;
+
+while true do
+
+eqlist := select ( x->eqeq(x) <> 0, eqlist );
+
+eqlist := dxsorteql ( eqlist, fs );
+
+_eqlistakt := eqlist;
+
+savestate ();
+
+
+#ttt := dsimplify(eval(value(subs(_eqsubsl, map ( eqeq, eqlist ) ))),symbolic);
+#ttt := map ((x,y)->tdsubs(y,x), ttt, _dxaddlist );
+
+#ttt := remove ( x->x=0, ttt );
+
+ttt := [];
+
+if nops ( ttt ) > 0 then
+
+
+	print ( `Reduktion war ` );
+	print ( eqj );
+	print ( `mit ` );
+	print ( eqi );
+	
+	print ( [eqi,eqj] );
+	
+	ERROR ( `**** equation violated` );
+	
+fi;
+
+print ( map ( x->eqlt(x), eqlist ) );
+
+if _interactice = true then
+
+	_skipfirst := askvalue ( `value of _skipfirst = `, [true, false]);
+	
+fi;
+
+#tdelta := diff(sigma,x)*diff(rho,y)-diff(sigma,y)*diff(rho,x);
+
+#tdelta := normal(eval(value(subs(_eqsubsl,tdelta))));
+
+#tdelta := tdsubs ( _dxaddlist, tdelta );
+
+#if tdelta <> 0 then 
+#	
+#	print ( `determinant ok` );
+#
+#else
+#
+#	print ( `Reduktion war ` );
+#	print ( eqj );
+#	print ( `mit ` );
+#	print ( eqi );
+#	
+#	ERROR ( `tdelta zero` );
+#
+#	RETURN ( [eqi,eqj] );
+#	
+#fi;
+
+nn := nops ( eqlist );
+
+reddone := false;
+
+_onlysimple := false;
+
+i := 1;
+
+_zeroexprl := {};
+
+# first try reduction of equations with same leading term
+
+if not ( _skipfirst = true ) then
+
+while i <= nn - 1 do
+
+	diterm := eqlt(eqlist[i]);
+
+	for j from i+1 to nn do
+		
+		djterm := eqlt ( eqlist[j] );
+		
+		if djterm = diterm then
+		
+			erg := dxreduce ( eqlist[i], eqlist[j], fs );
+
+			if reddone = INCONSIST then
+
+				RETURN ( [ INCONSIST, eqlist ] );
+
+			fi;
+			
+			reddone := erg[1] or reddone;
+			
+			if erg[1] then
+			
+				debugprint ( i, ` .. `, j );
+			
+				eqlist[j] := erg[2];
+		
+			fi;
+			
+		else
+			
+			if reddone = false then
+			
+				break;
+				
+			else
+			
+				i := j - 1;
+				break;
+			
+			fi;
+							
+		fi;
+		
+	od;
+	
+	i := i + 1;	
+	
+od;
+
+fi;
+
+_onlysimple := false;
+
+# now try reduction with quasilinear terms
+
+if not reddone and not ( _skipsecond = true ) then
+
+reddone := false;
+			
+for i from 1 to nn - 1 do
+	
+	eqi := eqlist[i];
+
+	if eqdg ( eqi ) > 1 then next; fi;
+
+	diterm := eqlt ( eqlist[i] );
+	
+	reddone := false;
+	reddone1 := false;
+
+	for j from i+1 to nn do
+		
+		eqj := eqlist[j];
+	
+		erg := dxreduce ( eqlist[i], eqlist[j], fs );
+		
+		reddone := erg[1];
+		
+		if reddone = INCONSIST then
+		
+			RETURN ( [ INCONSIST, eqlist ] );
+		
+		fi;
+				
+		reddone1 := reddone1 or reddone;
+		
+		if reddone then
+		
+			eqlist[j] := erg[2];
+		
+			debugprint ( i, `..`, j );
+			
+			
+		fi;
+		
+		if not ( _dxfastmode = true ) then
+			
+			if reddone then break; fi;
+		
+		fi;
+		
+	od;
+
+	reddone := reddone1;
+	if reddone = false then next; fi;
+	
+	break;
+	
+od;
+
+fi;
+
+# at last try every reduction
+
+if not reddone then
+
+reddone := false;
+			
+for i from 1 to nn - 1 do
+
+	diterm := eqlt ( eqlist[i] );
+	
+	reddone := false;
+	reddone1 := false;
+
+	for j from i+1 to nn do
+		
+		eqi := eqlist[i];
+		eqj := eqlist[j];
+	
+		erg := dxreduce ( eqlist[i], eqlist[j], fs );
+		
+		reddone := erg[1];
+		
+		if reddone = INCONSIST then
+		
+			RETURN ( [ INCONSIST, eqlist ] );
+		
+		fi;
+				
+		reddone1 := reddone1 or reddone;
+		
+		if reddone then
+		
+			eqlist[j] := erg[2];
+		
+			debugprint ( i, `..`, j );
+			
+			
+		fi;
+		
+		if not ( _dxfastmode = true ) then
+			
+			if reddone then break; fi;
+		
+		fi;
+		
+	od;
+
+	reddone := reddone1;
+	if reddone = false then next; fi;
+	
+	break;
+	
+od;
+
+fi;
+
+#_zeroexprl := [];
+
+xtral := dxmakeeql ( [op(_zeroexprl)], fs );
+
+eqlist := [op(eqlist), op(xtral)];
+
+if reddone = false then break; fi;
+
+od;
+
+print ( eqlist );
+
+eqlist;
+
+end:
+
+#
+#
+# eqlist1 are the relations, eq2arg is the equation to be reduced
+# or a list of such.
+#
+#
+
+dxreduceEqlist := proc ( eqlist1, eq2arg, fs )
+
+local eq2, res,
+		eqlist11,
+		erg,
+		reddone,
+		eq1;
+
+if type ( eq2arg, list(list(anything)) ) then
+
+	res := map ( (x,y,z) -> dxreduceEqlist ( y, x, z ), eq2arg, eqlist1, fs );
+	res := select ( x-> eqeq(x) <> 0, res );
+	
+ 	RETURN ( res );
+ 	
+fi;
+
+
+eq2 := eq2arg;
+
+eqlist11 := dxsorteql ( eqlist1, fs );
+
+eqlist11 := reverse ( eqlist11 );
+
+while true do
+
+	reddone := false;
+
+	for eq1 in eqlist11 do
+	
+		erg := dxreduce ( eq1, eq2, fs );
+
+		if erg[1] = true then
+		
+			eq2 := erg[2];
+			
+			reddone := true;
+				
+			break;
+			
+		fi;
+		
+	od;
+	
+	if reddone = false then
+	
+		break;
+		
+	fi;
+	
+od;
+
+RETURN ( eq2 );
+
+end:
+
+#
+#
+#
+
+dxfullreduceEqlist := proc ( eql1, eq2a, fs )
+
+local erg,
+		eq2,
+		res;
+		
+global _zeroexprl;
+
+erg := [];
+
+eq2 := eq2a;
+
+eq2 := [op(eq2), op(dxmakeeql ( [op(_zeroexprl)], fs )) ];
+
+while true do
+
+	res := dxreduceEqlist ( eql1, eq2, fs );
+
+	erg := [op(erg), op(res) ];
+
+	eq2 := dxmakeeql ( [op(_zeroexprl)], fs );
+
+	if nops ( eq2 ) = 0 then
+	
+		break;
+		
+	fi;
+
+od;
+
+erg;
+
+end;
+
+#
+#
+
+dxpr1 := proc ( sindex, vars, fs )
+
+local L1, varsrev, i;
+
+global _fsX, _erglistX, _eqlistX, _varsXrev, _varsX, _checkset;
+
+if nops ( sindex ) = 0 then
+
+	RETURN ([]);
+	
+fi;
+
+varsrev := [seq ( vars[nops(vars)-i], i = 0..nops(vars)-1 )];
+
+
+L1 := sindex;
+
+L1 := map ( x->[fdifflist(x[1]),x[2]], L1 );
+
+L1 := map ( x->[[op(x[1][2..nops(x[1])])],x[2]], L1 );
+
+L1 := map ( (x,y)->[map((u,v)->numboccur(v,u),y,x[1]),x[2], 1, false ],
+				 L1, varsrev );
+
+_fsX := fs;
+
+_erglistX := [];
+
+_checkset := {};
+_varsX := vars;
+_varsXrev := varsrev; 
+
+dxsyzEqX ( L1, nops(vars), [], [] );
+
+RETURN ( _erglistX );
+
+end:
+
+#
+#
+
+dxsyzEq := proc ( L1, n, a3, a4 )
+
+local A, LX, Ind, i, L1akt, Anew, Anew1, LXakt,
+	L1arg, iold, L0, L, l0,
+        ee, ff, ii, jj, gg, dp1, dp2, dp3, dm1, dm2, vars,
+        ggeq;
+        
+global _newentry, _varsX, _varsXrev, _checkset, _eqlistX, _erglistX, _fsX;
+
+if nops ( L1 ) = 1 then
+
+	RETURN ( L1 );
+	
+fi;
+
+if n > 1 then
+
+		
+	A := [];
+    Anew := [];
+    Anew1 := [];
+
+    Ind := { op(map ( x->x[1][1], L1) ) };
+    
+    Ind := sort ( [op(Ind)] );
+    
+    for i in Ind do
+
+		LX := map ( (x,y,z)->[x[1],x[2],x[3]*y^z,x[4]], Anew1, _varsX[n],
+					 i-iold);
+					 
+ 		LX := map ( x->[x[1],x[2],x[3],false], LX );
+ 
+        L1akt := select ( (x,y) -> (x[1][1] = y), L1, i );
+        L1akt := map ( (x,y)->[[op(x[1][2..y])],x[2],x[3],x[4]], L1akt, n );
+ 
+        LXakt := map ( (x,y)->[[op(x[1][2..y])],x[2],x[3],x[4]], LX, n );
+        
+                        
+        L1arg := [op(L1akt), op(LXakt) ];
+                         
+   	    Anew := dxsyzEq ( L1arg, n-1, [], [] );
+         
+        Anew1 := Anew;
+ 		
+ 	        
+        Anew := select ( (x,y)->not member(x[1],y), Anew, 
+        						map(x->[x[1][2..nops(x[1])]], A) ); 
+
+        
+        Anew := map ( (x,y)->[[y,op(x[1])],x[2],x[3],x[4]], Anew, i );
+        Anew1 := map ( (x,y)->[[y,op(x[1])],x[2],x[3],x[4]], Anew1, i );
+        
+        A := [op(A), op(Anew)];
+         
+ 		iold := i;
+        
+    od;
+    
+    RETURN ( A );
+        
+else
+
+	L := sort ( L1, (x,y)->evalb( x[1][1] <= y[1][1] ) );
+
+	L0 := select ( (x,y)->x[1][1]=y, L, L[1][1][1] );
+	
+	L0 := sort ( L0, (x,y)-> not monleq(x[3],y[3], _varsXrev, plex ) );
+
+	l0 := L0[1];
+	
+	L := sort ( L1, (x,y)->monleq(x[3],y[3],_varsXrev, plex) );
+	
+	ii := L[1][2];
+	
+	L := [op(L[2..nops(L)])];
+
+    
+    for i from 1 to nops ( L ) do
+    
+        jj := L[i][2];
+        
+        gg := dxdelta ( _eqlistX[ii], _eqlistX[jj], _fsX );
+        
+        ggeq := eqeq ( gg );
+        
+		if type ( ggeq, constant ) and ggeq <> 0 then
+		
+			ggeq := INCONSIST ( ggeq );
+			
+		fi;
+		
+		if ggeq = 0 then
+		
+			next;
+			
+		fi;
+
+		_erglistX := [op(_erglistX), gg]
+    
+    od;
+
+    RETURN ( [l0] );
+    
+fi;
+
+end:
+
+#
+#
+#
+
+dxsyzEqX := proc ( L1, n, a3, a4 )
+
+local  L, slist, pair, ii, jj, gg, dp1, dp2, dp3, dm1, dm2, vars,
+        ggeq;
+        
+global _eqlistX, _erglistX, _fsX;
+
+if nops ( L1 ) = 1 then
+
+	RETURN ( L1 );
+	
+fi;
+
+L := map ( x->[x[1],x[2]], L1 );
+
+slist := grobnersyz3 ( L );
+
+#slist := remove ( x->nops ( x ) = 1, {op(slist)} );
+
+
+for pair in slist do
+
+	ii := pair[1];
+
+    jj := pair[2];
+    
+    gg := dxdelta ( _eqlistX[ii], _eqlistX[jj], _fsX );
+
+    ggeq := eqeq ( gg );
+
+	if type ( ggeq, constant ) and ggeq <> 0 then
+
+		ggeq := INCONSIST ( ggeq );
+
+	fi;
+
+	if ggeq = 0 then
+
+		next;
+
+	fi;
+
+	_erglistX := [op(_erglistX), gg]
+
+od;
+
+
+end:
+
+#
+#
+#
+
+dxmakeintgrb := proc ( eqlista, fs )
+
+local i,
+	sindex,sindex1,
+	res,
+	vars,ff,
+	res1;
+
+global _eqlistX, _zeroexprl;
+
+_eqlistX := eqlista;
+
+vars := dgetvars(fs);
+
+sindex := [seq ( [eqlm(eqlista[i]), i], i = 1..nops(eqlista))];
+
+res := [];
+
+_zeroexprl := {};
+
+for ff in fs do
+
+	sindex1 := select ( (x,f)->fdifflist(x[1])[1]=f, sindex, ff  );
+
+	res := [op(res) , op(dxpr1 ( sindex1, vars, fs )) ];
+	 
+od;
+
+res1 := dxmakeeql ( [ op ( _zeroexprl ) ], fs );
+
+res := [op(res), op(res1)];
+
+RETURN ( res );
+
+end:
+
+#
+#
+#
+#
+#
+
+dxdefaultflags := proc ( verb )
+
+global _doeconsubs, _dxfastmode, _verbose;
+
+_doeconsubs := dagsubs;
+_dxfastmode := true;
+
+_verbose := verb;
+
+end;
+
+#
+#
+#
+
+
+showdxflags := proc ()
+
+global _minimalspace, _doeconsubs, _safeskip;
+
+print ( `_minimalspace = `||_minimalspace );
+print ();
+print ( `_doeconsubs   = `||_doeconsubs );
+print ();
+print ( `_safeskip     = `||_safeskip );
+print ();
+print ( `_dxfastmode     = `||_dxfastmode );
+print ();
+print ( `_superminimal     = `||_superminimal );
+print ();
+
+end;
+
+#
+#
+#
+#
+
+savestate := proc ()
+
+local oldcotes;
+
+global _savestate;
+
+oldcotes := setcotes ( _fsglob, [] );
+
+setcotes ( _fsglob, oldcotes );
+
+_savestate := [eval(_skipred), _eqsubsl, _dxaddlist, 
+					_coefffunl, _eqlistakt, _eqnr, _fsglob, oldcotes,
+					_watchlist, _assertlist, _assumelist];
+
+if _savetofile = true then
+
+	tempforgetdep ();
+
+	save _savestate, makeSAVEFILENAME(`dxmakeJanetBase`);
+
+	restoredep ();
+
+fi;
+
+end;
+
+#
+
+restorestate := proc ()
+
+local SFN;
+
+global _savestate;
+
+
+SFN := makeSAVEFILENAME ( `dxmakeJanetBase` );
+
+if not fileExists ( SFN ) then
+
+	RETURN ( FAIL );
+	
+fi;
+
+tempforgetdep ();
+
+read SFN;
+
+restoredep ();
+
+_savestate;
+
+end;
+
+
+#
+#
+#
+
+#
+#
+#
+#
+
+dxmakeJanetBase := proc ( eqlista, fsa )
+
+local eqlist, igblist, xtralist, savestate, fs;
+
+global _verbose, _fsglob, _skipred, _eqnr, _zeroexprl,
+		_eqsubsl, _coefffunl, _dxaddlist,
+		_cnstlist, _xtaylvar1,
+		_watchlist, _assertlist, _assumelist, _dagsubsinit;
+
+fs := fsa;
+
+_dagsubsinit := true;
+
+_skipred := table ([]);
+
+if has ( [ args ], restoreState ) then
+
+	if not assigned ( _savestate ) then
+	
+		savestate := restorestate ();
+		
+		if savestate = FAIL then
+		
+			RETURN ( FAIL );
+			
+		fi;
+		
+	fi;
+	
+	fs := savestate[7];
+	
+	_fsglob := savestate[7];
+	
+	_skipred := savestate[1];
+	
+	eqlist := savestate[5];
+	
+	_coefffunl := savestate[4];
+	
+	_dxaddlist := savestate[3];
+	
+	_eqsubsl := savestate[2];
+	
+	_eqnr := savestate[6];
+	
+	setcotes ( fs, savestate[8] );
+	
+	if _superminimal = true then
+	
+		_cnstlist := {a,b,c};
+
+		_cnstlist := _cnstlist intersect indets ( _eqsubsl );
+
+		if nops ( _cnstlist ) > 0 then
+
+			_xtaylvar1 := [op(_cnstlist)];
+
+		else
+
+			unassign ( '_xtaylvar1' );
+
+		fi;
+		
+		xtaylorinit ( 5, 5 );
+		
+	fi;
+	
+	if type ( savestate[9], list ) then
+	
+		_watchlist := savestate[9];
+		
+		_assertlist := savestate[10];
+		
+		_assumelist := savestate[11];
+		
+	fi;	
+	
+else
+
+	_fsglob := fs;
+
+	eqlist := eqlista;
+
+	if not assigned ( _verbose ) then
+
+		_verbose := false;
+
+	fi;
+
+	_eqsubsl := sort ( _eqsubsl, 
+					(xx,yy)->evalb ( length ( rhs(xx) ) > length ( rhs(yy) ) ) );
+
+	_coefffunl := map ( lhs, _eqsubsl );
+
+	if _coefffunl = [1] then
+	
+		_coefffunl := [];
+
+	fi;
+
+fi;
+
+
+while true do
+
+	eqlist := dxautored ( eqlist, fs );
+
+	if nops(eqlist) > 0 and eqlist[1] = INCONSIST then
+	
+		RETURN ( eqlist );
+		
+	fi;
+	
+	if _noigb = true then
+	
+		RETURN ( eqlist );
+		
+	fi;
+	
+	print ( `***** start make IGBList ` );
+
+	igblist := dxmakeintgrb ( eqlist, fs );
+
+	if has ( igblist, INCONSIST ) then
+	
+		RETURN ( [INCONSIST, op(igblist), op(eqlist) ] );
+		
+	fi;
+
+	print ( `start reduce IGB List` );
+
+	# _zeroexprl := {};
+
+	igblist := dxfullreduceEqlist ( eqlist, igblist, fs );
+
+	#xtralist := dxmakeeql ( [op(_zeroexprl)], fs );
+
+	#print ( xtralist );
+
+	igblist := [op(igblist)];
+
+	debugprint ( `end reduce IGB List` );
+
+	debugprint ( `IGBlist = `, igblist );
+
+	if nops ( igblist ) = 0 then
+
+		RETURN ( eqlist );
+
+	fi;
+
+	eqlist := [op(eqlist), op(igblist)];
+
+od;
+
+end:
+
+_eqnr := 0;
+
+### WARNING: persistent store makes one-argument readlib obsolete
+readlib ( freeze );
+
+
+
+#
+#
+#
+#
+
+grobnerproc := proc ( eqlist, fs )
+
+local idts, idtsc,
+		sl, slc,
+		gvars,
+		idtsnew,
+		sl1, slc1,
+		eql1;
+
+eql1 := map ( eqeq, eqlist );
+
+idtsc := indets ( eql1 ); 
+
+idtsc := remove ( member, idtsc, [op(fs[1])] );
+
+idts := dxindets ( eql1, fs );
+
+idtsc := idtsc minus {op(idts)};
+
+slc := uniquesubslist ( idtsc, YYYY );
+
+sl := uniquesubslist ( idts, XXXX );
+
+idtsnew := map ( rhs, sl );
+
+eql1 := subs ( slc, subs ( sl, eql1 ));
+
+gvars := select ( (xx,yy)->has(yy,xx), idtsnew, eql1 );
+
+eql1 := grobner[gsolve] ( eql1, gvars );
+
+sl1 := swapeqs ( sl );
+
+slc1 := swapeqs ( slc );
+
+eql1 := subs ( slc1, subs ( sl1, eql1 ));
+
+eql1 := numer ( normal ( eql1 ) );
+
+eql1 := map ( dxmakeeq, eql1, fs );
+
+eql1;
+
+end;
+
+#
+#
+#
+
+
+dxeconsubs := proc ( sl, e )
+
+local e1,s,ee,ee1,m,
+		e11, e12,
+		s11, s12,
+		ll, lm;
+
+if type ( e, constant ) then
+
+	RETURN ( e );
+	
+fi;
+
+if type ( e, `+` ) then
+
+	e1 := convert ( e, list );
+	
+	s := 0;
+	
+	ll := nops ( e1 );
+	
+	if ll = 1 then
+	
+		s := normal ( eval ( value ( dxeconsubs ( sl, ee ))));
+		
+		s := collect ( s, _fsglob, recursive );
+		
+		RETURN ( s );
+		
+	fi;
+		
+	lm := floor ( ll/2 );
+		
+	e11 := convert ( e1[1..lm], `+` );
+	
+	s11 := dxeconsubs ( sl, e11);
+
+	e12 := convert ( e1[lm+1..ll], `+` );
+	
+	s12 := dxeconsubs ( sl, e12 );
+	
+	s := collect ( normal(s11 + s12), _fsglob, recursive );
+		
+	RETURN ( s );
+
+elif type ( e, `*` ) then
+
+	e1 := convert ( e, list );
+	
+	m := 1;
+	
+	for ee in e1 do
+		
+		ee1 := normal ( eval ( value ( dxeconsubs ( sl, ee ))));
+		m := normal ( m * ee1 );
+		
+		m := collect ( m, _fsglob, recursive );
+		
+	od;
+	
+	RETURN ( m );
+
+### WARNING: note that `I` is no longer of type `^`
+elif type ( e, `^` ) then
+
+	e1 := dxeconsubs ( sl, op(1,e) );
+	
+	e1 := e1 ^ op(2,e);
+	
+	RETURN ( e1 );
+
+else
+
+	RETURN ( collect ( normal ( eval ( value ( subs ( sl, e )))),
+		_fsglob, recursive ) );
+	
+fi;
+
+end:
+
+#
+#
+
+dxeconsubs1 := proc ( sl, e )
+
+local e1,s,
+	ll,
+	lm,
+	e11,s11,
+	e12,s12,
+	ee,ee1,
+	m;
+
+if type ( e, `+` ) then
+
+	e1 := convert ( e, list );
+	
+	s := 0;
+	
+	ll := nops ( e1 );
+	
+	if ll = 1 then
+	
+		s := normal ( eval ( value ( subs ( sl, ee ))));
+		
+		s := collect ( s, _fsglob, recursive );
+		
+		RETURN ( s );
+		
+	fi;
+		
+	lm := floor ( ll/2 );
+		
+	e11 := convert ( e1[1..lm], `+` );
+	
+	s11 := dxeconsubs1 ( sl, e11);
+
+	e12 := convert ( e1[lm+1..ll], `+` );
+	
+	s12 := dxeconsubs1 ( sl, e12 );
+	
+	s := collect ( normal(s11 + s12), _fsglob, recursive );
+	 
+	RETURN ( s );
+	
+
+elif type ( e, `*` ) then
+
+	e1 := convert ( e, list );
+	
+	m := 1;
+	
+	for ee in e1 do
+		
+		ee1 := normal ( eval ( value ( subs ( sl, ee ))));
+		m := normal ( m * ee1 );
+		
+		m := collect ( m, _fsglob, recursive );
+		
+	od;
+	
+	RETURN ( m );
+
+else
+
+	RETURN ( collect ( normal ( eval ( value ( subs ( sl, e )))), 
+					_fsglob, recursive ) );
+	
+fi;
+
+end:
+
+#
+#
+#
+
+
+dagsubs:=proc(tosubs::{name=algebraic,functionx (name)=algebraic,
+			list(name=algebraic),list(functionx (name)=algebraic)},expr)
+
+local dosubs,i, res;
+
+global _dagsubsinit, _dagsubstrace;
+
+    dosubs:=proc(expr) option remember;
+
+		if type ( expr, constant ) then
+		
+			expr;
+
+		elif type (expr, function ) and member ( op(0,expr), [Diff, diff, RootOf] ) then
+
+			map ( procname, expr );
+			
+        elif nops(expr)>1 and (not type ( expr, functionx (name) ) ) then 
+         
+        	map(procname,expr);
+        	
+        elif type (expr, {list, set} ) then
+
+			map (procname, expr );
+
+		else
+        
+        	expr;
+        	
+        fi 
+    end;
+
+	if _dagsubsinit = true then
+	
+		forget ( dosubs );
+		
+	fi;
+
+	if _dagsubstrace = true then
+
+		debug ( dosubs );
+
+	fi;
+
+    if type(tosubs,name=algebraic) or 
+    	type(tosubs,functionx (name)=algebraic) then dosubs(op(1,tosubs)):=op(2,tosubs);
+
+    else for i in tosubs do dosubs(op(1,i)):=op(2,i) od fi;
+
+    res := dosubs(expr);
+
+	if _dagsubstrace = true then
+
+		undebug ( dosubs );
+
+	fi;
+
+	res;
+
+end:
+
+#
+#
+#
+
+_dagsubsinit := true;
+
+#
+#
+#
+
+
+
+xtaylor := proc ( e, v, n, k )
+
+forget ( getsigmaval );
+forget ( getrhoval );
+
+xtaylor1 ( e, v, n, k );
+
+end;
+
+
+
+#
+#
+
+xtaylor1 := proc ( e, v, n, k )
+
+local e1,
+		i, j,
+		e2,
+		al, vv;
+
+global _rhoval, _sigmaval;
+
+if member ( e, _taylcoeffl ) then
+
+	e1 := subs ( _taylsubsl, e );
+
+	e1 := mtaylor ( e1[k], v, n );
+
+	e1 := normal ( e1 );
+
+elif not has ( e, [sigma, rho, op(_taylcoeffl)] ) then
+
+	e1 := mtaylor ( eval(value(e)), v, n );
+	
+elif type ( e, `+` ) then
+
+	i := floor ( nops ( e ) / 2 );
+	
+	e1 := convert ( [op(1..i, e )], `+` );
+	
+	e2 := convert ( [op(i+1..-1, e)], `+` );
+		
+	e1 := xtaylor1 ( e1, v, n, k );
+			
+	e2 := xtaylor1 ( e2, v, n, k );
+	
+	e1 := mtaylor ( e1+e2, v, n );
+
+	e1 := normal ( e1 );
+
+	
+elif type (e, `*` ) then
+
+	i := floor ( nops ( e ) / 2 );
+	
+	e1 := convert ( [op(1..i, e )], `*` );
+	
+	e2 := convert ( [op(i+1..-1, e)], `*` );
+		
+	e1 := xtaylor1 ( e1, v, n, k );
+			
+	e2 := xtaylor1 ( e2, v, n, k );
+	
+	e1 := mtaylor ( e1*e2, v, n );
+
+	e1 := normal ( e1 );
+	
+### WARNING: note that `I` is no longer of type `^`
+elif type ( e, `^` ) then
+
+	e1 := op(1, e );
+	
+	e1 := xtaylor1 ( e1, v, n, k );
+	
+	e1 := mtaylor ( e1 ^ op(2,e), v, n );
+
+	e1 := normal ( e1 );
+	
+elif type ( e, specfunc(algebraic, 'diff') ) then
+
+	al := [op ( e )];
+	
+	vv := op(2..-1,al);
+	
+	e1 := xtaylor1 ( al[1], v, n + nops ( [vv] ), k );
+	
+	e1 := diff ( e1, vv );
+	
+	e1 := normal ( e1 );
+	
+elif e = sigma then
+
+	e1 := getsigmaval ( n, k );
+	
+elif e = rho then
+
+	e1 := getrhoval ( n, k );
+	
+else
+
+	e1 := mtaylor ( e, v, n );
+	
+	e1 := normal ( e1 );
+	
+fi;
+
+e1;
+
+end;
+
+#
+#
+
+getsigmaval := proc ( n, k )
+
+option remember;
+
+mtaylor ( _sigmaval[k], _xtaylvar, n );
+
+end;
+
+#
+#
+
+getrhoval := proc ( n, k )
+
+option remember;
+
+mtaylor ( _rhoval[k], _xtaylvar, n );
+
+end;
+
+
+#
+#
+
+setrhosigmaval := proc ( n, kk )
+
+local i, j, k,
+		assertlist,
+		ee,
+		aa, bb, cc, dd;
+
+global _rhoval, _sigmaval, _assertlist;
+
+_rhoval := table ( [] );
+_sigmaval := table ( [] );
+
+
+if assigned ( _assertlist ) then
+
+	assertlist := _assertlist;
+
+else
+
+	assertlist := [];
+
+fi;
+
+
+for k from 1 to kk do
+
+	while true do
+		
+		if tdsubs ( _dxaddlist, diff ( rho, x ) ) = 0 then
+
+			_rhoval[k] := -1 + y + 
+						add ( add ( (1 + rand() mod 13 ) * x^i*y^(j-i), i=0..0 ), j=2..n+20 );	
+					
+		elif tdsubs ( _dxaddlist, diff ( rho, y ) ) = 0 then
+
+			_rhoval[k] := -1 + 2 * x +
+						add ( add ( (1 + rand() mod 13 ) * x^i*y^(j-i), i=j..j ), j=2..n+20 );	
+					
+		else
+
+			_rhoval[k] := -1 + 2 * x +  y + 
+						add ( add ( (1 + rand() mod 13 ) * x^i*y^(j-i), i=0..j ), j=2..n+20 );	
+		
+		
+		fi;
+		
+		
+		if tdsubs ( _dxaddlist, diff ( sigma, x ) ) = 0 then
+
+			_sigmaval[k] := 1 + y + 
+						add ( add ( (1 + rand() mod 13 ) * x^i*y^(j-i), i=0..0 ), j=2..n+20 );
+		
+		elif tdsubs ( _dxaddlist, diff ( sigma, y ) ) = 0 then
+
+			_sigmaval[k] := 1 - x +
+						add ( add ( (1 + rand() mod 13 ) * x^i*y^(j-i), i=j..j ), j=2..n+20 );
+		
+		else;	
+		
+			_sigmaval[k] := 1 - x + y + 
+						add ( add ( (1 + rand() mod 13 ) * x^i*y^(j-i), i=0..j ), j=2..n+20 );
+
+		fi;
+
+
+		for ee in assertlist do
+
+			ee := subs ( sigma = _sigmaval[k], rho = _rhoval[k], ee );
+
+			ee := traperror( xtaylor ( 1 / ee, _xtaylvar, n, k ) );
+
+			if type ( ee, {string, name} ) then
+
+				break;
+
+			fi;
+
+		od;
+
+		if not type ( ee, {string, name} ) then
+
+			break;
+
+		fi;
+
+	od;
+
+od;
+
+end;
+
+
+#
+#
+
+
+xtaylorinit := proc ( n, k )
+
+
+local i, kk,
+		xx;
+
+global _xtayln, _xtaylk, _xtaylvar, _xtaylvar1,
+		_eqsubsl, _taylsubsl, _taylcoeffl;
+
+
+_xtayln := n;
+
+_xtaylk := k;
+
+_xtaylvar := [x,y];
+
+if type ( _xtaylvar1, list ) then
+
+	_xtaylvar := [op(_xtaylvar),op(_xtaylvar1)];
+
+fi;
+
+### WARNING: persistent store makes one-argument readlib obsolete
+readlib ( mtaylor );
+
+_taylcoeffl := [];
+
+setrhosigmaval ( n, k );
+
+debugprint ( `begin computing coefficients : `, nops ( _eqsubsl ) );
+
+_taylcoeffl := map ( lhs, _eqsubsl );
+
+_taylsubsl := [];
+
+for i from 1 to nops ( _eqsubsl ) do
+
+	debugprint ( `coefficient `||i );
+
+	xx := _eqsubsl[i];
+
+	_taylsubsl := [op(_taylsubsl), 
+
+		lhs(xx)=[seq(xtaylor(rhs(xx),_xtaylvar,12, kk),kk=1.._xtaylk)] ];
+
+
+od;
+
+debugprint ( `end computing coefficients` );
+
+end;
+
+

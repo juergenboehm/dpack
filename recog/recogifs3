@@ -1,0 +1,918 @@
+if jbtype = [diff(diff(diff(eta,x),x),x), diff(eta,y), xi] then 
+
+    cond := [-RCGIb[1](x,y) = 0]; 
+
+    l1bed := normevalsubs ( rels, cond ) ;
+
+    l1bed := evalb ( convert ( l1bed, `and` ));
+
+    if not l1bed then
+
+        cond2 := [RCGIb[1](x,y)^2 <> 0]; 
+
+        cond3 := [false]; 
+
+        lbed2 := normevalsubs ( rels, cond2 );
+
+        lbed3 := normevalsubs ( rels, cond3 );
+
+        lbed2 := evalb ( convert ( lbed2, `and` ) );
+
+        lbed3 := evalb ( convert ( lbed3, `and` ) );
+
+        lbed1 := evalb ( not (lbed2 or lbed3) );
+
+        if lbed2 then
+
+            # Gruppe `3_8_ftff`
+
+            print ( `3_8_ftff` );
+
+            res := [3, 8, ftff];
+
+        fi;
+
+    else
+
+        cond2 := [RCGIb[1](x,y)^2 <> 0]; 
+
+        cond3 := [false]; 
+
+        lbed2 := normevalsubs ( rels, cond2 );
+
+        lbed3 := normevalsubs ( rels, cond3 );
+
+        lbed2 := evalb ( convert ( lbed2, `and` ) );
+
+        lbed3 := evalb ( convert ( lbed3, `and` ) );
+
+        lbed1 := evalb ( not (lbed2 or lbed3) );
+
+        if lbed1 then
+
+            # Gruppe `3_15_ftff`
+
+            print ( `3_15_ftff` );
+
+            res := [3, 15, ftff];
+
+        fi;
+
+    fi;
+
+elif jbtype = [diff(diff(diff(eta,y),y),y), diff(eta,x), xi] then 
+
+    cond := [false]; 
+
+    l1bed := normevalsubs ( rels, cond ) ;
+
+    l1bed := evalb ( convert ( l1bed, `and` ));
+
+    if not l1bed then
+
+        cond2 := []; 
+
+        cond3 := [false]; 
+
+        lbed2 := normevalsubs ( rels, cond2 );
+
+        lbed3 := normevalsubs ( rels, cond3 );
+
+        lbed2 := evalb ( convert ( lbed2, `and` ) );
+
+        lbed3 := evalb ( convert ( lbed3, `and` ) );
+
+        lbed1 := evalb ( not (lbed2 or lbed3) );
+
+        if lbed2 then
+
+            # Gruppe `3_8_fttf`
+
+            print ( `3_8_fttf` );
+
+            res := [3, 8, fttf];
+
+        fi;
+
+    fi;
+
+elif jbtype = [diff(diff(diff(xi,x),x),x), diff(xi,y), eta] then 
+
+    cond := [1+RCGIc[1](x,y)*RCGIb[1](x,y) = 0]; 
+
+    l1bed := normevalsubs ( rels, cond ) ;
+
+    l1bed := evalb ( convert ( l1bed, `and` ));
+
+    if not l1bed then
+
+        cond2 := [(-1+RCGIc[1](x,y)*RCGIb[1](x,y))^2+4*RCGIc[1](x,y)*RCGIb[1](x,y) <> 0]; 
+
+        cond3 := [-RCGIb[1](x,y) = 0, -1+RCGIc[1](x,y)*RCGIb[1](x,y) = 0, RCGIc[1](x,y) = 0]; 
+
+        lbed2 := normevalsubs ( rels, cond2 );
+
+        lbed3 := normevalsubs ( rels, cond3 );
+
+        lbed2 := evalb ( convert ( lbed2, `and` ) );
+
+        lbed3 := evalb ( convert ( lbed3, `and` ) );
+
+        lbed1 := evalb ( not (lbed2 or lbed3) );
+
+        if lbed2 then
+
+            # Gruppe `3_8_ffff`
+
+            print ( `3_8_ffff` );
+
+            res := [3, 8, ffff];
+
+        fi;
+
+    else
+
+        cond2 := [(-1+RCGIc[1](x,y)*RCGIb[1](x,y))^2+4*RCGIc[1](x,y)*RCGIb[1](x,y) <> 0]; 
+
+        cond3 := [-RCGIb[1](x,y) = 0, -1+RCGIc[1](x,y)*RCGIb[1](x,y) = 0, RCGIc[1](x,y) = 0]; 
+
+        lbed2 := normevalsubs ( rels, cond2 );
+
+        lbed3 := normevalsubs ( rels, cond3 );
+
+        lbed2 := evalb ( convert ( lbed2, `and` ) );
+
+        lbed3 := evalb ( convert ( lbed3, `and` ) );
+
+        lbed1 := evalb ( not (lbed2 or lbed3) );
+
+        if lbed1 then
+
+            # Gruppe `3_15_ffff`
+
+            print ( `3_15_ffff` );
+
+            res := [3, 15, ffff];
+
+        fi;
+
+    fi;
+
+elif jbtype = [diff(diff(diff(xi,y),y),y), diff(xi,x), eta] then 
+
+    cond := [-RCGIc[1](x,y) = 0]; 
+
+    l1bed := normevalsubs ( rels, cond ) ;
+
+    l1bed := evalb ( convert ( l1bed, `and` ));
+
+    if not l1bed then
+
+        cond2 := [RCGIc[1](x,y)^2 <> 0]; 
+
+        cond3 := [false]; 
+
+        lbed2 := normevalsubs ( rels, cond2 );
+
+        lbed3 := normevalsubs ( rels, cond3 );
+
+        lbed2 := evalb ( convert ( lbed2, `and` ) );
+
+        lbed3 := evalb ( convert ( lbed3, `and` ) );
+
+        lbed1 := evalb ( not (lbed2 or lbed3) );
+
+        if lbed2 then
+
+            # Gruppe `3_8_fftf`
+
+            print ( `3_8_fftf` );
+
+            res := [3, 8, fftf];
+
+        fi;
+
+    else
+
+        cond2 := [RCGIc[1](x,y)^2 <> 0]; 
+
+        cond3 := [false]; 
+
+        lbed2 := normevalsubs ( rels, cond2 );
+
+        lbed3 := normevalsubs ( rels, cond3 );
+
+        lbed2 := evalb ( convert ( lbed2, `and` ) );
+
+        lbed3 := evalb ( convert ( lbed3, `and` ) );
+
+        lbed1 := evalb ( not (lbed2 or lbed3) );
+
+        if lbed1 then
+
+            # Gruppe `3_15_tfff`
+
+            print ( `3_15_tfff` );
+
+            res := [3, 15, tfff];
+
+        fi;
+
+    fi;
+
+elif jbtype = [diff(diff(eta,x),x), diff(eta,y), diff(xi,y), diff(xi,x)] then 
+
+    cond := [-RCGIb[1](x,y) = 0]; 
+
+    l1bed := normevalsubs ( rels, cond ) ;
+
+    l1bed := evalb ( convert ( l1bed, `and` ));
+
+    if not l1bed then
+
+        cond2 := [RCGIb[1](x,y)^2 <> 0]; 
+
+        cond3 := [false]; 
+
+        lbed2 := normevalsubs ( rels, cond2 );
+
+        lbed3 := normevalsubs ( rels, cond3 );
+
+        lbed2 := evalb ( convert ( lbed2, `and` ) );
+
+        lbed3 := evalb ( convert ( lbed3, `and` ) );
+
+        lbed1 := evalb ( not (lbed2 or lbed3) );
+
+        if lbed2 then
+
+            # Gruppe `3_5_ftff`
+
+            print ( `3_5_ftff` );
+
+            res := [3, 5, ftff];
+
+        fi;
+
+    else
+
+        cond2 := [RCGIb[1](x,y)^2 <> 0]; 
+
+        cond3 := [false]; 
+
+        lbed2 := normevalsubs ( rels, cond2 );
+
+        lbed3 := normevalsubs ( rels, cond3 );
+
+        lbed2 := evalb ( convert ( lbed2, `and` ) );
+
+        lbed3 := evalb ( convert ( lbed3, `and` ) );
+
+        lbed1 := evalb ( not (lbed2 or lbed3) );
+
+        if lbed1 then
+
+            # need characteristic polynomial to distinguish cases
+
+            cpe := lambda^3+((RCGId[2](x,y)+RCGIa[1](x,y)-2*RCGIb[3](x,y))*t[1]-
+
+            t[2]*RCGIb[1](x,y)+(diff(RCGIb[1](x,y),x)+RCGIc[2](x,y)-RCGIb[1](x,y)
+
+            *RCGIa[1](x,y))*t[3])*lambda^2+((-diff(RCGIb[3](x,y),x)+RCGIb[1](x,y)
+
+            *RCGIa[3](x,y)-RCGIa[1](x,y)*RCGIb[3](x,y)+RCGIa[2](x,y)+RCGIb[3](x,y)
+
+            ^2)*t[1]^2+((RCGIc[2](x,y)-diff(RCGIb[1](x,y),x)-2*RCGId[1](x,y)
+
+            +RCGIb[3](x,y)*RCGIb[1](x,y)-RCGId[2](x,y)*RCGIb[1](x,y))*t[2]+
+
+            (RCGIc[2](x,y)*RCGId[2](x,y)-RCGIc[2](x,y)*RCGIb[3](x,y)-RCGId[1](x,y)
+
+            *RCGIa[1](x,y)-RCGId[1](x,y)*RCGId[2](x,y)-RCGIb[1](x,y)*RCGIb[3](x,y)
+
+            *RCGId[2](x,y)-diff(RCGIb[1](x,y),x)*RCGIb[3](x,y)+RCGIb[1](x,y)
+
+            *diff(RCGIb[3](x,y),x)-RCGIb[1](x,y)*RCGIa[2](x,y)-RCGIb[1](x,y)
+
+            ^2*RCGIa[3](x,y)+RCGIb[1](x,y)*RCGIa[1](x,y)*RCGIb[3](x,y)+RCGIc[2](x,y)
+
+            *RCGIa[1](x,y))*t[3])*t[1]+(RCGId[1](x,y)*RCGIb[1](x,y)-RCGIc[2](x,y)
+
+            *RCGIb[1](x,y))*t[3]*t[2]+(-RCGId[1](x,y)^2-RCGId[1](x,y)*diff(RCGIb[1](x,y)
+
+            ,x)-RCGIc[2](x,y)*RCGIb[1](x,y)*RCGIa[1](x,y)+RCGIc[2](x,y)*
+
+            RCGId[1](x,y)+RCGIc[2](x,y)*diff(RCGIb[1](x,y),x)+RCGId[1](x,y)
+
+            *RCGIb[1](x,y)*RCGIa[1](x,y))*t[3]^2)*lambda
+
+            ;
+
+            # end characteristic polynomial
+
+            # Gruppe `3_17_4_ftff`
+
+            print ( `3_17_4_ftff` );
+
+            res := [3, 17, 4, ftff];
+
+            # Gruppe `3_17_3_ftff`
+
+            print ( `3_17_3_ftff` );
+
+            res := [3, 17, 3, ftff];
+
+            # Gruppe `3_17_2_ftff`
+
+            print ( `3_17_2_ftff` );
+
+            res := [3, 17, 2, ftff];
+
+            # Gruppe `3_17_1_ftff`
+
+            print ( `3_17_1_ftff` );
+
+            res := [3, 17, 1, ftff];
+
+            # Gruppe `3_13_ftff`
+
+            print ( `3_13_ftff` );
+
+            res := [3, 13, ftff];
+
+        fi;
+
+    fi;
+
+elif jbtype = [diff(diff(eta,y),y), diff(diff(eta,x),y), diff(diff(eta,x),x), xi] then 
+
+    cond := [false]; 
+
+    l1bed := normevalsubs ( rels, cond ) ;
+
+    l1bed := evalb ( convert ( l1bed, `and` ));
+
+    if not l1bed then
+
+        cond2 := [false]; 
+
+        cond3 := [false]; 
+
+        lbed2 := normevalsubs ( rels, cond2 );
+
+        lbed3 := normevalsubs ( rels, cond3 );
+
+        lbed2 := evalb ( convert ( lbed2, `and` ) );
+
+        lbed3 := evalb ( convert ( lbed3, `and` ) );
+
+        lbed1 := evalb ( not (lbed2 or lbed3) );
+
+        if lbed1 then
+
+            # Gruppe `3_16_ftff`
+
+            print ( `3_16_ftff` );
+
+            res := [3, 16, ftff];
+
+        fi;
+
+    fi;
+
+elif jbtype = [diff(diff(eta,y),y), diff(eta,x), diff(xi,y), diff(xi,x)] then 
+
+    cond := [false]; 
+
+    l1bed := normevalsubs ( rels, cond ) ;
+
+    l1bed := evalb ( convert ( l1bed, `and` ));
+
+    if not l1bed then
+
+        cond2 := []; 
+
+        cond3 := [false]; 
+
+        lbed2 := normevalsubs ( rels, cond2 );
+
+        lbed3 := normevalsubs ( rels, cond3 );
+
+        lbed2 := evalb ( convert ( lbed2, `and` ) );
+
+        lbed3 := evalb ( convert ( lbed3, `and` ) );
+
+        lbed1 := evalb ( not (lbed2 or lbed3) );
+
+        if lbed2 then
+
+            # Gruppe `3_5_fttf`
+
+            print ( `3_5_fttf` );
+
+            res := [3, 5, fttf];
+
+        fi;
+
+    fi;
+
+elif jbtype = [diff(diff(xi,x),x), diff(eta,y), diff(eta,x), diff(xi,y)] then 
+
+    cond := [1-RCGIb[1](x,y) = 0]; 
+
+    l1bed := normevalsubs ( rels, cond ) ;
+
+    l1bed := evalb ( convert ( l1bed, `and` ));
+
+    if not l1bed then
+
+        cond2 := [(-1-RCGIb[1](x,y))^2+4*RCGId[1](x,y)*RCGIc[1](x,y) <> 0]; 
+
+        cond3 := [-RCGId[1](x,y) = 0, -1-RCGIb[1](x,y) = 0, RCGIc[1](x,y) = 0]; 
+
+        lbed2 := normevalsubs ( rels, cond2 );
+
+        lbed3 := normevalsubs ( rels, cond3 );
+
+        lbed2 := evalb ( convert ( lbed2, `and` ) );
+
+        lbed3 := evalb ( convert ( lbed3, `and` ) );
+
+        lbed1 := evalb ( not (lbed2 or lbed3) );
+
+        if lbed1 then
+
+            # Gruppe `3_20_ffff`
+
+            print ( `3_20_ffff` );
+
+            res := [3, 20, ffff];
+
+        elif lbed2 then
+
+            # need characteristic polynomial to distinguish cases
+
+            cpe := lambda^3+((1-RCGIb[1](x,y))*t[1]+(RCGIa[1](x,y)-RCGId[1](x,y)
+
+            *RCGIc[3](x,y)+RCGIc[1](x,y)*RCGId[3](x,y)-RCGIb[3](x,y)+RCGIc[2](x,y)
+
+            )*t[2]+(2*RCGId[3](x,y)+diff(RCGId[1](x,y),x)-RCGId[1](x,y)*
+
+            RCGIc[2](x,y)-RCGId[1](x,y)*RCGIa[1](x,y))*t[3])*lambda^2+((-
+
+            RCGIb[1](x,y)-RCGId[1](x,y)*RCGIc[1](x,y))*t[1]^2+((RCGId[1](x,y)
+
+            *RCGIc[3](x,y)*RCGIb[1](x,y)+diff(RCGId[1](x,y),x)*RCGIc[1](x,y)
+
+            -RCGIb[3](x,y)+RCGIc[2](x,y)-RCGId[1](x,y)*RCGIc[2](x,y)*RCGIc[1](x,y)
+
+            -RCGIc[1](x,y)*RCGId[3](x,y)*RCGIb[1](x,y)-RCGIa[1](x,y)*RCGIb[1](x,y)
+
+            -RCGId[1](x,y)*RCGIa[1](x,y)*RCGIc[1](x,y))*t[2]+(RCGIb[3](x,y)
+
+            *RCGId[1](x,y)-2*RCGId[1](x,y)*RCGIc[2](x,y)+RCGId[3](x,y)+diff(RCGId[1](x,y)
+
+            ,x)+RCGIc[1](x,y)*RCGId[3](x,y)*RCGId[1](x,y)-RCGId[1](x,y)^2*
+
+            RCGIc[3](x,y)-RCGId[3](x,y)*RCGIb[1](x,y))*t[3])*t[1]+(RCGIc[2](x,y)
+
+            *RCGIa[1](x,y)-RCGId[1](x,y)*RCGIa[3](x,y)*RCGIc[1](x,y)-RCGIc[1](x,y)
+
+            *RCGId[3](x,y)*RCGIb[3](x,y)-RCGIa[2](x,y)*RCGIc[1](x,y)+RCGId[1](x,y)
+
+            *RCGIc[3](x,y)*RCGIb[3](x,y)-RCGId[1](x,y)*RCGIc[3](x,y)*RCGIc[2](x,y)
+
+            -RCGIa[1](x,y)*RCGIb[3](x,y)+diff(RCGId[3](x,y),x)*RCGIc[1](x,y)
+
+            )*t[2]^2+(-RCGId[3](x,y)*RCGIb[3](x,y)-RCGIa[2](x,y)-RCGIa[2](x,y)
+
+            *RCGIb[1](x,y)+diff(RCGId[1](x,y),x)*RCGIc[2](x,y)-RCGId[3](x,y)
+
+            *RCGIc[2](x,y)*RCGIb[1](x,y)+diff(RCGId[3](x,y),x)*RCGIb[1](x,y)
+
+            -RCGId[1](x,y)*RCGIa[3](x,y)*RCGIb[1](x,y)-RCGId[1](x,y)*RCGIc[2](x,y)
+
+            ^2+diff(RCGId[3](x,y),x)-RCGId[1](x,y)*RCGIa[3](x,y)+RCGIa[1](x,y)
+
+            *RCGId[3](x,y)-diff(RCGId[1](x,y),x)*RCGIb[3](x,y)-RCGId[1](x,y)
+
+            *RCGIa[1](x,y)*RCGIc[2](x,y)+RCGId[1](x,y)*RCGIc[2](x,y)*RCGIb[3](x,y)
+
+            +RCGId[1](x,y)*RCGIa[1](x,y)*RCGIb[3](x,y)+RCGIc[1](x,y)*RCGId[3](x,y)
+
+            ^2-RCGId[1](x,y)*RCGIc[3](x,y)*RCGId[3](x,y))*t[3]*t[2]+(RCGId[3](x,y)
+
+            ^2-diff(RCGId[3](x,y),x)*RCGId[1](x,y)-RCGId[1](x,y)*RCGIa[1](x,y)
+
+            *RCGId[3](x,y)+RCGId[1](x,y)^2*RCGIa[3](x,y)+diff(RCGId[1](x,y)
+
+            ,x)*RCGId[3](x,y)+RCGIa[2](x,y)*RCGId[1](x,y))*t[3]^2)*lambda
+
+            ;
+
+            # end characteristic polynomial
+
+            # Gruppe `3_7_ffff`
+
+            print ( `3_7_ffff` );
+
+            res := [3, 7, ffff];
+
+            # Gruppe `3_5_ffff`
+
+            print ( `3_5_ffff` );
+
+            res := [3, 5, ffff];
+
+        elif lbed3 then
+
+            # Gruppe `3_24_ffff`
+
+            print ( `3_24_ffff` );
+
+            res := [3, 24, ffff];
+
+        fi;
+
+    else
+
+        cond2 := [(-1-RCGIb[1](x,y))^2+4*RCGId[1](x,y)*RCGIc[1](x,y) <> 0]; 
+
+        cond3 := [-RCGId[1](x,y) = 0, -1-RCGIb[1](x,y) = 0, RCGIc[1](x,y) = 0]; 
+
+        lbed2 := normevalsubs ( rels, cond2 );
+
+        lbed3 := normevalsubs ( rels, cond3 );
+
+        lbed2 := evalb ( convert ( lbed2, `and` ) );
+
+        lbed3 := evalb ( convert ( lbed3, `and` ) );
+
+        lbed1 := evalb ( not (lbed2 or lbed3) );
+
+        if lbed1 then
+
+            # need characteristic polynomial to distinguish cases
+
+            cpe := lambda^3+((1-RCGIb[1](x,y))*t[1]+(RCGIa[1](x,y)-RCGId[1](x,y)
+
+            *RCGIc[3](x,y)+RCGIc[1](x,y)*RCGId[3](x,y)-RCGIb[3](x,y)+RCGIc[2](x,y)
+
+            )*t[2]+(2*RCGId[3](x,y)+diff(RCGId[1](x,y),x)-RCGId[1](x,y)*
+
+            RCGIc[2](x,y)-RCGId[1](x,y)*RCGIa[1](x,y))*t[3])*lambda^2+((-
+
+            RCGIb[1](x,y)-RCGId[1](x,y)*RCGIc[1](x,y))*t[1]^2+((RCGId[1](x,y)
+
+            *RCGIc[3](x,y)*RCGIb[1](x,y)+diff(RCGId[1](x,y),x)*RCGIc[1](x,y)
+
+            -RCGIb[3](x,y)+RCGIc[2](x,y)-RCGId[1](x,y)*RCGIc[2](x,y)*RCGIc[1](x,y)
+
+            -RCGIc[1](x,y)*RCGId[3](x,y)*RCGIb[1](x,y)-RCGIa[1](x,y)*RCGIb[1](x,y)
+
+            -RCGId[1](x,y)*RCGIa[1](x,y)*RCGIc[1](x,y))*t[2]+(RCGIb[3](x,y)
+
+            *RCGId[1](x,y)-2*RCGId[1](x,y)*RCGIc[2](x,y)+RCGId[3](x,y)+diff(RCGId[1](x,y)
+
+            ,x)+RCGIc[1](x,y)*RCGId[3](x,y)*RCGId[1](x,y)-RCGId[1](x,y)^2*
+
+            RCGIc[3](x,y)-RCGId[3](x,y)*RCGIb[1](x,y))*t[3])*t[1]+(RCGIc[2](x,y)
+
+            *RCGIa[1](x,y)-RCGId[1](x,y)*RCGIa[3](x,y)*RCGIc[1](x,y)-RCGIc[1](x,y)
+
+            *RCGId[3](x,y)*RCGIb[3](x,y)-RCGIa[2](x,y)*RCGIc[1](x,y)+RCGId[1](x,y)
+
+            *RCGIc[3](x,y)*RCGIb[3](x,y)-RCGId[1](x,y)*RCGIc[3](x,y)*RCGIc[2](x,y)
+
+            -RCGIa[1](x,y)*RCGIb[3](x,y)+diff(RCGId[3](x,y),x)*RCGIc[1](x,y)
+
+            )*t[2]^2+(-RCGId[3](x,y)*RCGIb[3](x,y)-RCGIa[2](x,y)-RCGIa[2](x,y)
+
+            *RCGIb[1](x,y)+diff(RCGId[1](x,y),x)*RCGIc[2](x,y)-RCGId[3](x,y)
+
+            *RCGIc[2](x,y)*RCGIb[1](x,y)+diff(RCGId[3](x,y),x)*RCGIb[1](x,y)
+
+            -RCGId[1](x,y)*RCGIa[3](x,y)*RCGIb[1](x,y)-RCGId[1](x,y)*RCGIc[2](x,y)
+
+            ^2+diff(RCGId[3](x,y),x)-RCGId[1](x,y)*RCGIa[3](x,y)+RCGIa[1](x,y)
+
+            *RCGId[3](x,y)-diff(RCGId[1](x,y),x)*RCGIb[3](x,y)-RCGId[1](x,y)
+
+            *RCGIa[1](x,y)*RCGIc[2](x,y)+RCGId[1](x,y)*RCGIc[2](x,y)*RCGIb[3](x,y)
+
+            +RCGId[1](x,y)*RCGIa[1](x,y)*RCGIb[3](x,y)+RCGIc[1](x,y)*RCGId[3](x,y)
+
+            ^2-RCGId[1](x,y)*RCGIc[3](x,y)*RCGId[3](x,y))*t[3]*t[2]+(RCGId[3](x,y)
+
+            ^2-diff(RCGId[3](x,y),x)*RCGId[1](x,y)-RCGId[1](x,y)*RCGIa[1](x,y)
+
+            *RCGId[3](x,y)+RCGId[1](x,y)^2*RCGIa[3](x,y)+diff(RCGId[1](x,y)
+
+            ,x)*RCGId[3](x,y)+RCGIa[2](x,y)*RCGId[1](x,y))*t[3]^2)*lambda
+
+            ;
+
+            # end characteristic polynomial
+
+            # Gruppe `3_17_4_ffff`
+
+            print ( `3_17_4_ffff` );
+
+            res := [3, 17, 4, ffff];
+
+            # Gruppe `3_17_3_ffff`
+
+            print ( `3_17_3_ffff` );
+
+            res := [3, 17, 3, ffff];
+
+            # Gruppe `3_17_2_ffff`
+
+            print ( `3_17_2_ffff` );
+
+            res := [3, 17, 2, ffff];
+
+            # Gruppe `3_17_1_ffff`
+
+            print ( `3_17_1_ffff` );
+
+            res := [3, 17, 1, ffff];
+
+            # Gruppe `3_13_ffff`
+
+            print ( `3_13_ffff` );
+
+            res := [3, 13, ffff];
+
+        elif lbed2 then
+
+            # Gruppe `3_10_ffff`
+
+            print ( `3_10_ffff` );
+
+            res := [3, 10, ffff];
+
+        fi;
+
+    fi;
+
+elif jbtype = [diff(diff(xi,y),y), diff(eta,y), diff(eta,x), diff(xi,x)] then 
+
+    cond := [-RCGIb[1](x,y) = 0]; 
+
+    l1bed := normevalsubs ( rels, cond ) ;
+
+    l1bed := evalb ( convert ( l1bed, `and` ));
+
+    if not l1bed then
+
+        cond2 := [RCGIb[1](x,y)^2-4*RCGIc[1](x,y) <> 0]; 
+
+        cond3 := [false]; 
+
+        lbed2 := normevalsubs ( rels, cond2 );
+
+        lbed3 := normevalsubs ( rels, cond3 );
+
+        lbed2 := evalb ( convert ( lbed2, `and` ) );
+
+        lbed3 := evalb ( convert ( lbed3, `and` ) );
+
+        lbed1 := evalb ( not (lbed2 or lbed3) );
+
+        if lbed1 then
+
+            # need characteristic polynomial to distinguish cases
+
+            cpe := lambda^3+(-t[1]*RCGIb[1](x,y)+(RCGIc[2](x,y)-RCGId[1](x,y)*RCGIb[1](x,y)
+
+            )*t[2]+(RCGIb[2](x,y)-2*RCGId[1](x,y)+RCGIa[1](x,y))*t[3])*lambda^2+
+
+            (t[1]^2*RCGIc[1](x,y)+((RCGIa[1](x,y)*RCGIc[1](x,y)+RCGIb[2](x,y)
+
+            *RCGIc[1](x,y)-RCGIb[3](x,y)*RCGIb[1](x,y)+RCGId[1](x,y)*RCGIb[1](x,y)
+
+            ^2)*t[2]+(2*RCGId[1](x,y)*RCGIb[1](x,y)+RCGIc[2](x,y)-2*RCGIb[3](x,y)
+
+            )*t[3])*t[1]+(RCGId[1](x,y)*RCGIb[2](x,y)*RCGIc[1](x,y)+RCGIa[3](x,y)
+
+            *RCGIc[1](x,y)-RCGIb[3](x,y)^2-diff(RCGId[1](x,y),y)*RCGIc[1](x,y)
+
+            +RCGId[1](x,y)*RCGIb[1](x,y)*RCGIb[3](x,y)-RCGId[1](x,y)*RCGIb[1](x,y)
+
+            *RCGIc[2](x,y)+RCGIb[3](x,y)*RCGIc[2](x,y))*t[2]^2+(RCGId[1](x,y)
+
+            *RCGIb[2](x,y)*RCGIb[1](x,y)+RCGIc[2](x,y)*RCGIa[1](x,y)-RCGIb[2](x,y)
+
+            *RCGIb[3](x,y)-diff(RCGId[1](x,y),y)*RCGIb[1](x,y)+RCGIb[2](x,y)
+
+            *RCGIc[2](x,y)-RCGId[1](x,y)*RCGIc[2](x,y)-RCGIa[1](x,y)*RCGIb[3](x,y)
+
+            +RCGId[1](x,y)^2*RCGIb[1](x,y)+RCGIa[3](x,y)*RCGIb[1](x,y))*
+
+            t[3]*t[2]+(-diff(RCGId[1](x,y),y)-RCGId[1](x,y)*RCGIa[1](x,y)
+
+            +RCGId[1](x,y)^2+RCGIa[3](x,y))*t[3]^2)*lambda
+
+            ;
+
+            # end characteristic polynomial
+
+            # Gruppe `3_20_ffft_1`
+
+            print ( `3_20_ffft_1` );
+
+            res := [3, 20, ffft, 1];
+
+            # Gruppe `3_20_ffff_1`
+
+            print ( `3_20_ffff_1` );
+
+            res := [3, 20, ffff, 1];
+
+            # Gruppe `3_20_fftf_1`
+
+            print ( `3_20_fftf_1` );
+
+            res := [3, 20, fftf, 1];
+
+        elif lbed2 then
+
+            # need characteristic polynomial to distinguish cases
+
+            cpe := lambda^3+(-t[1]*RCGIb[1](x,y)+(RCGIc[2](x,y)-RCGId[1](x,y)*RCGIb[1](x,y)
+
+            )*t[2]+(RCGIb[2](x,y)-2*RCGId[1](x,y)+RCGIa[1](x,y))*t[3])*lambda^2+
+
+            (t[1]^2*RCGIc[1](x,y)+((RCGIa[1](x,y)*RCGIc[1](x,y)+RCGIb[2](x,y)
+
+            *RCGIc[1](x,y)-RCGIb[3](x,y)*RCGIb[1](x,y)+RCGId[1](x,y)*RCGIb[1](x,y)
+
+            ^2)*t[2]+(2*RCGId[1](x,y)*RCGIb[1](x,y)+RCGIc[2](x,y)-2*RCGIb[3](x,y)
+
+            )*t[3])*t[1]+(RCGId[1](x,y)*RCGIb[2](x,y)*RCGIc[1](x,y)+RCGIa[3](x,y)
+
+            *RCGIc[1](x,y)-RCGIb[3](x,y)^2-diff(RCGId[1](x,y),y)*RCGIc[1](x,y)
+
+            +RCGId[1](x,y)*RCGIb[1](x,y)*RCGIb[3](x,y)-RCGId[1](x,y)*RCGIb[1](x,y)
+
+            *RCGIc[2](x,y)+RCGIb[3](x,y)*RCGIc[2](x,y))*t[2]^2+(RCGId[1](x,y)
+
+            *RCGIb[2](x,y)*RCGIb[1](x,y)+RCGIc[2](x,y)*RCGIa[1](x,y)-RCGIb[2](x,y)
+
+            *RCGIb[3](x,y)-diff(RCGId[1](x,y),y)*RCGIb[1](x,y)+RCGIb[2](x,y)
+
+            *RCGIc[2](x,y)-RCGId[1](x,y)*RCGIc[2](x,y)-RCGIa[1](x,y)*RCGIb[3](x,y)
+
+            +RCGId[1](x,y)^2*RCGIb[1](x,y)+RCGIa[3](x,y)*RCGIb[1](x,y))*
+
+            t[3]*t[2]+(-diff(RCGId[1](x,y),y)-RCGId[1](x,y)*RCGIa[1](x,y)
+
+            +RCGId[1](x,y)^2+RCGIa[3](x,y))*t[3]^2)*lambda
+
+            ;
+
+            # end characteristic polynomial
+
+            # Gruppe `3_7_ffff_1`
+
+            print ( `3_7_ffff_1` );
+
+            res := [3, 7, ffff, 1];
+
+            # Gruppe `3_5_fftf`
+
+            print ( `3_5_fftf` );
+
+            res := [3, 5, fftf];
+
+        fi;
+
+    else
+
+        cond2 := [RCGIb[1](x,y)^2-4*RCGIc[1](x,y) <> 0]; 
+
+        cond3 := [false]; 
+
+        lbed2 := normevalsubs ( rels, cond2 );
+
+        lbed3 := normevalsubs ( rels, cond3 );
+
+        lbed2 := evalb ( convert ( lbed2, `and` ) );
+
+        lbed3 := evalb ( convert ( lbed3, `and` ) );
+
+        lbed1 := evalb ( not (lbed2 or lbed3) );
+
+        if lbed1 then
+
+            # need characteristic polynomial to distinguish cases
+
+            cpe := lambda^3+(-t[1]*RCGIb[1](x,y)+(RCGIc[2](x,y)-RCGId[1](x,y)*RCGIb[1](x,y)
+
+            )*t[2]+(RCGIb[2](x,y)-2*RCGId[1](x,y)+RCGIa[1](x,y))*t[3])*lambda^2+
+
+            (t[1]^2*RCGIc[1](x,y)+((RCGIa[1](x,y)*RCGIc[1](x,y)+RCGIb[2](x,y)
+
+            *RCGIc[1](x,y)-RCGIb[3](x,y)*RCGIb[1](x,y)+RCGId[1](x,y)*RCGIb[1](x,y)
+
+            ^2)*t[2]+(2*RCGId[1](x,y)*RCGIb[1](x,y)+RCGIc[2](x,y)-2*RCGIb[3](x,y)
+
+            )*t[3])*t[1]+(RCGId[1](x,y)*RCGIb[2](x,y)*RCGIc[1](x,y)+RCGIa[3](x,y)
+
+            *RCGIc[1](x,y)-RCGIb[3](x,y)^2-diff(RCGId[1](x,y),y)*RCGIc[1](x,y)
+
+            +RCGId[1](x,y)*RCGIb[1](x,y)*RCGIb[3](x,y)-RCGId[1](x,y)*RCGIb[1](x,y)
+
+            *RCGIc[2](x,y)+RCGIb[3](x,y)*RCGIc[2](x,y))*t[2]^2+(RCGId[1](x,y)
+
+            *RCGIb[2](x,y)*RCGIb[1](x,y)+RCGIc[2](x,y)*RCGIa[1](x,y)-RCGIb[2](x,y)
+
+            *RCGIb[3](x,y)-diff(RCGId[1](x,y),y)*RCGIb[1](x,y)+RCGIb[2](x,y)
+
+            *RCGIc[2](x,y)-RCGId[1](x,y)*RCGIc[2](x,y)-RCGIa[1](x,y)*RCGIb[3](x,y)
+
+            +RCGId[1](x,y)^2*RCGIb[1](x,y)+RCGIa[3](x,y)*RCGIb[1](x,y))*
+
+            t[3]*t[2]+(-diff(RCGId[1](x,y),y)-RCGId[1](x,y)*RCGIa[1](x,y)
+
+            +RCGId[1](x,y)^2+RCGIa[3](x,y))*t[3]^2)*lambda
+
+            ;
+
+            # end characteristic polynomial
+
+            # Gruppe `3_17_4_tfff`
+
+            print ( `3_17_4_tfff` );
+
+            res := [3, 17, 4, tfff];
+
+            # Gruppe `3_17_3_tfff`
+
+            print ( `3_17_3_tfff` );
+
+            res := [3, 17, 3, tfff];
+
+            # Gruppe `3_17_2_tfff`
+
+            print ( `3_17_2_tfff` );
+
+            res := [3, 17, 2, tfff];
+
+            # Gruppe `3_17_1_tfff`
+
+            print ( `3_17_1_tfff` );
+
+            res := [3, 17, 1, tfff];
+
+            # Gruppe `3_13_tfff`
+
+            print ( `3_13_tfff` );
+
+            res := [3, 13, tfff];
+
+        elif lbed2 then
+
+            # Gruppe `3_10_ffff_1`
+
+            print ( `3_10_ffff_1` );
+
+            res := [3, 10, ffff, 1];
+
+        fi;
+
+    fi;
+
+elif jbtype = [diff(diff(xi,y),y), diff(diff(xi,x),y), diff(diff(xi,x),x), eta] then 
+
+    cond := [false]; 
+
+    l1bed := normevalsubs ( rels, cond ) ;
+
+    l1bed := evalb ( convert ( l1bed, `and` ));
+
+    if not l1bed then
+
+        cond2 := [false]; 
+
+        cond3 := [false]; 
+
+        lbed2 := normevalsubs ( rels, cond2 );
+
+        lbed3 := normevalsubs ( rels, cond3 );
+
+        lbed2 := evalb ( convert ( lbed2, `and` ) );
+
+        lbed3 := evalb ( convert ( lbed3, `and` ) );
+
+        lbed1 := evalb ( not (lbed2 or lbed3) );
+
+        if lbed1 then
+
+            # Gruppe `3_16_ffff`
+
+            print ( `3_16_ffff` );
+
+            res := [3, 16, ffff];
+

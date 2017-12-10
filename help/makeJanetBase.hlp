@@ -1,0 +1,64 @@
+
+FUNCTION: makeJanetBase - computes the Janet-Base of a system of linear 
+                          homogeneous partial differential equations ( LPDEs )
+      
+CALLING SEQUENCE:
+   makeJanetBase(elist, fs)
+      
+PARAMETERS:
+   elist    - a list of expressions
+   fs       - a list of functions of the same independent variables
+      
+SYNOPSIS:   
+- The function makeJanetBase considers elist as a list of LPDEs in the functions
+  given in fs and returns the Janet-Base of these LPDEs
+   
+- Several global variables affect the operation of makeJanetBase. These are
+
+    _spprocess      _spcoeff        _spfun
+    _verbose
+    _xvers
+    
+    _assertlist     _assumelist     _watchlist
+    
+    
+  They have the following meaning :
+  
+  If _spcoeff is assigned a function, this function is applied to coefficients
+  of the LPDEs during the computation. _spprocess should be assigned true in
+  this case, unassigned otherwise.
+  
+  If _spfun is assigned a function, this function will be applied to the
+  coefficients of LPDEs newly generated during the computation as so called
+  integrability conditions.
+  
+  If _verbose is assigned true a certain amount of information about the ongoing
+  computation is printed.
+  
+  If _xvers is assigned true a different method of autoreduction is employed 
+  that seems advantageous on systems with large equations.
+        
+  The following mechanism is intended for classification problems : 
+
+  If _watchlist is assigned a list of expressions, preferably functions, a set
+  of expressions is returned in _assumelist that must be <> 0 for the result of
+  the Janet-Base computation to be correct.
+
+  These expressions are coefficients or factors of coefficients that contain
+  members of the list _watchlist, and are assumed <> 0 during the computation -
+  typically leading coefficients or contents of the LPDEs.
+  
+  _assertlist is a list of expressions that are asserted beforehand to be <> 0 
+  to avoid taking unnecessary elements into _assumelist.
+  
+  CAUTION 1 : _watchlist and _assertlist are lists, _assumelist is a set ( ! ).
+  
+  CAUTION 2 : _assumelist must be set to {} when activating this mechanism by
+      setting  _watchlist to some value.
+      
+- The computation may take some time with problems of larger size.
+      
+EXAMPLES:   
+      
+SEE ALSO: dterms
+

@@ -1,0 +1,1078 @@
+#:mode=maple:
+#
+#  INT1 ( [P,Q,R,...], [x,y,z,...] ) = P dx + Q dy + R dy + ...
+#
+
+
+`diff/INT1` := proc ()
+
+local res, v, ll;
+
+v := args[3];
+
+ll := listparallel ( args[1], args[2] );
+
+ll := select ((x,y)->x[2]=y, ll, v );
+
+if nops ( ll ) > 0 then
+
+	RETURN ( ll[1][1] );
+	
+else
+
+	res := map ( (x,y)->diff(x,y), args[1], v );
+	
+	res := INT1 ( res, args[2] );
+	
+	RETURN ( res );
+	
+fi;
+
+end;
+
+
+#
+#
+# EINT1 ( [P,Q,R,...], [x,y,z,...] ) = exp ( INT1 ( [P,Q,R,...], [x,y,z,...] ) )
+#
+#
+
+`diff/EINT1` := proc ()
+
+local v;
+
+v := args[3];
+
+EINT1 (args[1],args[2]) * diff ( INT1 ( args[1], args[2] ), v  );
+
+end;
+
+#
+#
+#
+
+dgrad := proc ( f, vl )
+
+[dnormal(map((x,y)->diff(y,x),vl,f)), vl];
+
+end;
+
+#
+#
+
+dgradlog := proc ( f, vl )
+
+[dnormal ( map ( (x,y)->diff(y,x)/y, vl, f )) , vl ];
+
+end;
+
+#
+#
+#
+
+initefactor := proc ()
+
+local mln;
+
+global libname;
+
+mln := `/home/juergen/maple/lib`;
+
+if not member ( mln, [libname] ) then
+
+	libname := libname, mln;
+	
+fi;
+
+with ( share );
+
+readshare ( ratlode, calculus );
+
+readlib ( `DEtools/diffop/readlibs` );
+
+`DEtools/diffop/readlibs` ( `DEtools/diffop/expsols` );
+
+end;
+
+#
+#
+#
+
+
+# leftside ls, rightside rs, function f
+
+myexpsols := proc ( ls, rs, f )
+
+local rs1, res, eintl, eint, zf, ls1, loes;
+
+rs1 := simpEINT1 ( rs );
+
+if type ( rs1, `+` ) then
+
+	res := map ( (a,b,c)-> myexpsols ( b, a, c), [op(rs1)], ls, f );
+	
+	res := map ( x->x[2], res );
+	
+	res := normal(convert ( res, `+` ));
+	
+	res := [[], res];
+	
+	RETURN ( res );
+	
+fi;
+
+eintl := select ( type, indets ( rs1 ), EINT1 );
+
+if nops ( eintl ) > 1 then ERROR ( `myexpsols: too many EINTs in right side` ); fi;
+
+if nops ( eintl ) = 1 then
+
+	eint := eintl[1];
+
+	zf := DUMMY(op(f));
+
+	ls1 := normal(eval(subs ( f = zf * eint, ls )));
+
+	ls1 := normal(ls1/eint);
+
+	rs1 := normal(rs1/eint);
+
+	loes := DEtools[expsols](ls1-rs1,zf);
+
+	loes := loes[2];
+
+	loes := normal ( loes * eint );
+
+	loes := simpEINT1 ( loes );
+
+	loes := [[], loes];
+
+else
+
+	loes := DEtools[expsols] (ls-rs1,f);
+	
+fi;
+
+loes;
+
+end;
+
+#
+#
+#
+
+expratlode := proc ( deq, f )
+
+local opt, x, DF, expsolsfun, fs, v, dd, cl, tl, ll, h, i, loes,
+		loesa, cnsl, hcfs, hres, loeshl, vv;
+
+#x := `DEtools/diffop/x`;
+
+#DF := `DEtools/diffop/DF`;
+
+expsolsfun := DEtools[expsols];
+
+#print ( `expratlode started` );
+
+opt := condev1 ( has ( [args[3..-1]], rational ), rational );
+
+fs := [f];
+
+v := op(f);
+
+dd := dcollect ( deq, fs );
+
+cl := dcoeffs ( dd, fs, 'tl' );
+
+ll := listparallel ( [cl], [tl] );
+
+h := select ( x->x[2]=1, ll );
+
+ll := remove ( x->x[2]=1, ll );
+
+if nops ( h ) > 0 then
+
+	h := h[1][1];
+	
+else
+
+	h := 0;
+	
+fi;
+
+#dd := add ( ll[i][1] * DF^( nops(fdifflist ( ll[i][2] )) - 1 ), i = 1..nops (ll) );
+
+dd := add ( ll[i][1] * ll[i][2], i = 1..nops (ll) );
+
+#dd := subs ( v = x, dd );
+
+#h := subs ( v = x, h );
+
+if h = 0 then
+
+#	loes := expsols ( dd, 0, opt );
+	loes := expsolsfun ( dd, fs[1] );
+
+else
+
+	# expsols ( \sum ai DF^i, h ) loest (\sum ai DF^i)(g) = h
+
+
+ 	# in the inhomogenous case, do some processing of h, needed for xpdesolve
+	
+	h := -h;
+	
+#	loesa := expsols ( dd, 0, opt );
+	loesa := expsolsfun ( dd, fs[1] );
+	
+	cnsl := [op(indets ( h ))];
+	
+	cnsl := select ( type, cnsl, name );
+	
+	cnsl := remove ( member, cnsl, [v] );
+	
+	cnsl := select ( (xx,ee)->type(ee,linear(xx)), cnsl, h );
+	
+	
+	hcfs := coeffslin ( h, cnsl );
+	
+	hres := normal (h - convert ( zip ((x,y)->x*y, hcfs, cnsl), `+` ) );
+
+	if hres <> 0 then
+	
+		cnsl := [op(cnsl), 1];
+		
+		hcfs := [op(hcfs), hres];
+		
+	fi;
+
+#	loeshl := [seq ( expsols ( dd, hcfs[i], opt ), i=1..nops(hcfs)) ];
+#	loeshl := [seq ( expsolsfun ( dd - hcfs[i], fs[1] ), i=1..nops(hcfs)) ];
+	loeshl := [seq ( myexpsols ( dd, hcfs[i], fs[1] ), i=1..nops(hcfs)) ];
+	
+	loeshl := map ( x->x[2], loeshl );
+	
+	loeshl := add ( loeshl[i] * cnsl[i], i=1..nops(hcfs) );
+ 
+	loes := [loesa,	loeshl];
+	
+fi;
+
+#loes := subs ( x = v, loes );
+
+loes := simplify ( eval(value(subs ( Int=int, simplify(loes,symbolic) ))), symbolic );
+
+vv := select ( x->type(x,list(name)), [args[3..-1]] );
+
+if nops ( vv ) > 0 then
+
+	vv := vv[1];
+	
+	if type ( loes[1], list ) and nops (loes) = 2 then
+	
+		# inhomogeneous ODE
+		
+		loesa := expexpnd ( loes[1], [v,op(vv)] );
+		
+		loesa := remove ( x->x=FAIL, loesa );
+		
+		loes := [loesa, loes[2] ];		
+		
+	else
+	
+		loes := expexpnd ( loes, [v,op(vv)] );
+	
+		loes := remove ( x->x=FAIL, loes );
+
+	fi;
+	
+fi;
+
+#print ( `expratlode finished` );
+
+simpEINT1(loes);
+
+end;
+
+#
+#
+#
+
+expexpnd := proc ( l, vl )
+
+local x, P, l1;
+
+if type ( l, list ) then
+
+	RETURN ( map ( expexpnd, l, vl ) );
+	
+fi;
+
+if type ( l, ratpoly(anything,vl[1]) ) then
+
+	RETURN ( l );
+	
+fi;
+
+x := vl[1];
+
+P := normal ( diff ( l, x ) / l );
+
+l1 := EINT1 ( [P], [x] );
+
+l1 := EINT1expnd ( l1, vl );
+
+end;
+
+#
+#
+#
+#
+
+EINT1expnd := proc ( e, vl )
+
+local res;
+
+res := INT1expnd ( INT1 ( op ( e ) ), vl );
+
+if res = FAIL then
+
+	FAIL;
+	
+else
+
+	EINT1 ( op ( res ) );
+	
+fi;
+
+end;
+
+#
+#
+#
+
+INT1expnd := proc ( e, vl )
+
+local fle, ve, vn, vneu, v, fl, fv;
+
+fle := op(1,e);
+
+ve := op(2,e);
+
+vn := remove ( member, vl, ve );
+
+vneu := [op(ve), op(vn)];
+
+if not type ( fle, list(ratpoly(anything,vneu))) then
+
+	RETURN ( FAIL );
+	
+fi;
+
+for v in vn do
+
+	fl := map ((x,y)->diff(x,y), fle, v );
+
+	fv := intratv ( fl, ve );
+	
+	if fv = FAIL then
+	
+		RETURN ( FAIL );
+		
+	fi;
+	
+	if not type ( fv, ratpoly (anything,vneu) ) then
+	
+		RETURN ( FAIL );
+		
+	fi;
+	
+	fle := [op(fle), fv];
+	
+	ve := [op(ve), v];
+
+od;
+
+INT1 ( fle, ve );
+
+end;
+
+#
+#
+#
+#
+
+`type/EINT1` := proc ( e )
+
+local res;
+
+res:= type ( e, function ) and op(0,e) = EINT1 
+
+and nops ( [op(e)] ) = 2 and
+
+type(op(1,e),list(algebraic)) and
+
+type ( op(2,e), list(name) );
+
+if nargs > 1 then
+
+	res := res and evalb((op(2,e) = args[2]));
+	
+fi;
+
+res;
+
+end;
+
+
+#
+#
+#
+
+intpowEINT1 := proc ( e, n )
+
+local e1;
+
+EINT1 ( map ((x,y)->x*y, op(1,e), n), op(2,e) );
+
+end;
+
+#
+#
+#
+
+resortEINT1 := proc ( e, vlneu )
+
+local fl;
+
+if {op(op(2,e))} <> {op(vlneu)} then
+
+	RETURN ( e );
+	
+fi;
+
+fl := map ( (x,y)->y[firstpos((a,b)->a=b,op(2,e),x)], vlneu, op(1,e) );
+
+EINT1 ( fl, vlneu );
+
+end;
+
+#
+#
+#
+
+normlEINT1 := proc ( eintl )
+
+map ( resortEINT1, eintl, op(2, eintl[1]) );
+
+end;
+
+#
+#
+#
+#
+
+multEINT1 := proc ( eintl )
+
+local fl;
+
+fl := foldl ((x,y)->normal(x+y),[0 $ nops ( op(2, eintl[1]) )], op(map(a->op(1,a), eintl )));
+
+EINT1 ( fl, op(2, eintl[1]) );
+
+end;
+
+#
+#
+#
+
+
+simpEINT1a := proc ( e )
+
+local e1, eintl, eintll, rest;
+
+if type (e, list) then
+
+	e1 := map ( simpEINT1a, e );
+	
+elif type ( e, equation ) then
+
+	e1 := simpEINT1a ( lhs ( e ) ) = simpEINT1a ( rhs ( e ) );
+	
+elif type (e, algebraic ) then
+
+	e1 := expand ( e );
+	
+	if type ( e, `+` ) then
+	
+		e1 := map ( simpEINT1a, e1 );
+		
+	elif type (e, `^` ) then
+	
+		if type ( op(2,e), integer ) and type (simpEINT1a(op(1,e)), EINT1 ) then
+		
+			e1 := intpowEINT1 ( op(1,e), op(2,e) );
+			
+		else
+	
+			e1 := simpEINT1a ( op(1,e) ) ^ simpEINT1a ( op(2,e) );
+	
+		fi;
+		
+	elif type (e, `*` ) then
+	
+		eintl := map ( simpEINT1a, [op(e)] );
+	
+		eintl := splitlist ( type, [op(eintl)], EINT1 );
+		
+		rest:= eintl[2];
+		
+		eintl := eintl[1];
+		
+		eintll := equivclasses ((x,y)->{op(op(2,x))}={op(op(2,y))}, eintl );
+		
+		eintll := map ( normlEINT1, eintll );
+		
+		eintl := map ( multEINT1, eintll );
+		
+		e1 := convert ( [op(rest), op(eintl)], `*` );	
+		
+	elif type (e, function ( algebraic ) ) then
+	
+		e1 := map ( simpEINT1a, e );
+		
+	fi;
+
+fi;
+
+e1;
+
+end;
+
+#
+#
+#
+#
+
+simpEINT1 := proc ( e )
+
+local e1, eintl, eintll, eintll1, sla, sla1;
+
+e1 := simpEINT1a ( e );
+
+eintl := select ( type, indets(e1), EINT1 );
+
+eintll := equivclasses ((x,y)->{op(op(2,x))}={op(op(2,y))}, eintl );
+
+eintll1 := map ( normlEINT1, eintll );
+
+sla := zip((x,y)->zip((a,b)->a=b,x,y), eintll, eintll1 );
+
+sla1 := flatten2 ( sla );
+
+e1 := subs ( sla1, e1 );
+
+eintll1 := map ( x->groupexplist(x,op(2,x[1])), eintll1 );
+
+sla1 := flatten2 ( eintll1 );
+
+e1 := normal ( eval ( subs ( sla1, e1 )));
+
+end;
+
+#
+#
+#
+#
+
+groupexplist := proc ( eintl, vars )
+
+local res, ee, i, grpi, gl, p, foundequiv, ee1;
+
+res := [];
+
+for ee in eintl do
+
+	foundequiv := false;
+
+	for i from 1 to nops ( res ) do
+
+		grpi := res[i];
+
+		gl := rhs ( grpi[1] );
+	
+		p := expequiv ( ee, gl, vars );
+		
+		if p = FAIL then
+		
+			next;
+			
+		fi;
+		
+		grpi := res[i];
+		
+		res := subsop ( i= [op(grpi), ee = p*gl], res );
+		
+		foundequiv := true;
+		
+		break;
+				
+	od;
+
+	if foundequiv = false then
+	
+		# teste Rationalität
+		
+		ee1 := ee;
+		
+		ee := EINT1 ( op( dgradlog ( ee, vars ) ) );
+		
+		p := intlogv ( op ( ee ) );
+		
+		if p <> FAIL then
+		
+			ee1 := p;
+			
+		fi;
+	
+		res := [op(res),[ee = ee1]];
+		
+	fi;
+
+od;
+
+res;
+
+end;
+
+#
+#
+#
+
+expequiv := proc ( a, b, vars )
+
+local a1, b1, c1, d;
+
+a1 := dgradlog ( a, vars );
+
+b1 := dgradlog ( b, vars );
+
+c1 := zip ( (x,y)->normal(x-y), a1[1], b1[1] );
+
+d := intlogv ( c1, vars );
+
+end;
+
+
+
+#
+#
+#
+#
+
+`diff/AEL` := proc ( )
+
+local jb, fs, v, xl, i;
+
+jb := args[1];
+
+fs := args[2];
+
+v := [args[3..-1]];
+
+xl := map ( (x,y)-> diff(x,op(y)), jb, v );
+
+
+add ( AEL ( subsop ( i = xl[i], jb ), fs ), i = 1..nops ( xl ) );
+
+end;
+
+#
+#  AEL stands for "Alternating Element". It is multilinear with respect to functions
+#  and alternating with respect to derivatives of xi, eta etc. in the first argument.
+#
+#  It is used for determining exterior powers of Janet-Bases, the exterior power
+#  Janet-Base is formed with AEL() as system of LPDE in the AEL as dependent variables
+#
+#
+
+AEL := proc ( jb, fs )
+
+local i, e, cfl, tl, jb1, j, res;
+
+for i from 1 to nops ( jb ) do
+	
+	e := jb[i];
+	
+	if type ( e, diffmonom ) then
+	
+		next;
+	
+	fi;
+	
+	e := dcollect ( e, fs, distributed, normal );
+	
+	if e = 0 then RETURN ( 0 ); fi;
+	
+	cfl := [dcoeffs ( e, fs, 'tl' )];
+	
+	tl := [tl];
+	
+	res := add ( AEL ( subsop ( i = tl[j], jb ), fs ) * cfl[j], j = 1..nops ( tl ) );
+	
+	RETURN ( res );
+	
+od;
+
+if nops ( {op(jb)} ) < nops ( jb ) then
+
+	RETURN ( 0 );
+	
+fi;
+
+jb1 := dsorteps ( jb, fs );
+
+jb1[1] * subs ( JB = jb1[2], FS = fs, 'AEL ( JB, FS )' );
+		
+end;
+
+#
+#
+#
+
+
+assellist := proc ( jbtype, fs, m )
+
+local vars, pdvs, n, N, pref, aelfns, i, aeljbs, res;
+
+vars := [op(fs[1])];
+
+pdvs := paramDerivsList ( jbtype, fs );
+
+n := nops ( pdvs );
+
+N := binomial ( n, m );
+
+if type ( args[4], name ) then
+
+	pref := args[4];
+
+	aelfns := [seq ( cat ( pref, i ) ( op (vars ) ), i = 1..N ) ];
+		
+elif type ( args[4], list ) then
+
+	aelfns := args[4];
+	
+fi;
+
+aeljbs :=combinat[choose](pdvs,m);
+
+aeljbs := dsortjbtypes ( aeljbs, fs );
+
+res := zip ( ( x,y ) -> x = y, aelfns, map ( (a,b) -> AEL ( a, b ), aeljbs, fs ) );
+
+end;
+
+#
+# computes the conditions for m-th exterior power of jb, fs. args[4] gives the
+# name of the AEL-functions.
+#
+
+asselrels := proc ( jb, fs, m )
+
+local vars, asl, aslinv, aslrels, rels, v, xl, fsa;
+
+vars := [op(fs[1])];
+
+asl := assellist ( jb, fs, m, args[4] );
+
+aslinv := map ( x->rhs(x)=lhs(x), asl );
+
+aslrels := [];
+
+rels := janbasToeqsys ( jb, fs );
+
+for v in vars do
+
+	xl := map ( (x,y)->diff(lhs(x),y)=diff(rhs(x),y), asl, v );
+	
+	xl := eval(dtsubs ( rels, fs, xl ));
+	
+	xl := subs ( aslinv, xl );
+	
+	aslrels := [op(aslrels), op(xl)];
+	
+od;
+
+fsa := map ( x->lhs(x), asl );
+
+[aslrels, fsa, asl];
+
+end;
+
+#
+#
+#
+#
+#
+
+findfactor := proc ( jb, fs, pdvstry )
+
+local vars, k, pdrvsjb, pdrvsjb1, pdlistjb, pdlist1jb, zlist1, N1,
+		pdvstryxt, pdvstryxt1,
+		fsaa, slfsaazl, slzlfsaa, jbrels, zlist1a, eqsysaa, loesaa,
+		v, lsv, rsv;
+
+vars := [op(fs[1])];
+
+k := nops ( pdvstry );
+
+pdrvsjb := paramDerivs (jb, fs);
+
+pdrvsjb1 := paramDerivs1 ( jb, fs );
+
+
+pdlistjb := paramDerivsApply ( pdrvsjb, fs);
+
+pdlistjb := flatten2 ( pdlistjb );
+
+
+pdlist1jb := paramDerivsApply ( pdrvsjb1, fs );
+
+pdlist1jb := flatten2 ( pdlist1jb );
+
+
+
+pdvstryxt := outer ( [pdvstry, vars], (xx,yy)->diff(xx,yy) );
+
+pdvstryxt := flatten2(pdvstryxt);
+
+pdvstryxt := listsubtract ( pdvstryxt, pdvstry, (x,y)->x=y );
+
+pdvstryxt := makeJanetBase ( pdvstryxt, fs );
+
+pdvstryxt1 := pdvstryxt;
+
+pdvstryxt := [op(`union`({op(pdvstryxt)}, {op(pdvstry)}))];
+
+
+zlist1 := combinat[choose] ( pdlist1jb, k );
+
+zlist1 := map ((x,y)->eval(AEL(x,y)), zlist1, fs );
+
+zlist1 := map (x->op(select(has,indets(x),AEL)), zlist1 );
+
+
+
+N1 := nops ( zlist1 );
+
+
+fsaa := [seq( aaaq||i ( op(vars) ), i=1..N1)];
+
+slfsaazl := zip ( (x,y)->x=y, fsaa, zlist1 );
+
+slzlfsaa := map (x->rhs(x)=lhs(x), slfsaazl );
+
+
+
+jbrels := janbasToeqsys ( jb, fs);
+
+
+zlist1a := eval(dtsubs ( jbrels, fs, zlist1 ));
+
+zlist1a := subs ( slzlfsaa, zlist1a );
+
+eqsysaa := zip ((x,y)-> normal(x-y), fsaa, zlist1a );
+
+
+print ( select ( x->x=0, eqsysaa ) );
+
+
+for v in vars do
+
+	lsv := map ( (x,y)->diff(x,y), fsaa, v );
+	
+	rsv := map ( (x,y)->eval(diff(x,y)), zlist1, v );
+	
+	rsv := subs ( slzlfsaa, eval(dtsubs ( jbrels, fs, rsv )));
+	
+	eqsysaa := [op(eqsysaa), op(zip((x,y)->normal(x-y), lsv, rsv))];
+	
+od;
+
+[eqsysaa, fsaa, zlist1, [pdvstryxt1,pdvstry]];
+
+end;
+
+#
+#
+#
+#
+
+normlAEL := proc ( e )
+
+normal ( e / lcoeff ( e, indets ( ee ) ) );
+
+end;
+
+#
+#
+#
+
+
+findfactorA := proc ( loesaa, fsaa, zlist1, pdvs2l, fs )
+
+local vars, loesaa1, eintl, pdvsxt, pdvs, Wr, Wrn, wrpos, Wraa,
+		wreintl, cflWr, tlWr, coeffbeds, tWr, eqaa, e1, e1eintl,
+		cfle1, tle1, cftl, cfbed, loesaares, cfloes, tlWrbed;
+
+vars := [op(fs[1])];
+
+
+loesaa1 := simpEINT1 ( loesaa );
+
+eintl := select ( type, indets(loesaa1), EINT1 );
+
+
+# get Wronskian
+
+pdvsxt := pdvs2l[1];
+
+pdvs := pdvs2l[2];
+
+Wr := AEL ( pdvs, fs );
+
+Wrn := normlAEL ( Wr );
+
+wrpos := firstpos ((x,y)->x=y, zlist1, Wrn );
+
+# get EINT1's of Wr
+
+Wraa := subs ( loesaa1, fsaa[wrpos] );
+
+wreintl := select ( type, indets ( Wraa ), EINT1 );
+
+
+Wraa := collect ( Wraa, wreintl, distributed );
+
+cflWr := coeffs ( Wraa, wreintl, 'tlWr' );
+
+cflWr := [cflWr];
+
+tlWr := [tlWr];
+
+
+coeffbeds := [];
+
+
+for tWr in tlWr do
+
+	tlWrbed := [];
+
+	for eqaa in loesaa1 do
+	
+		e1 := rhs(eqaa);
+		
+		e1eintl := select ( type, indets ( e1 ), EINT1 );
+		
+		e1 := collect ( e1, e1eintl, distributed );
+		
+		cfle1 := coeffs ( e1, e1eintl, 'tle1' );
+		
+		cfle1 := [cfle1];
+		
+		tle1 := [tle1];
+	
+		cftl := listparallel ( cfle1, tle1 );
+	
+		cftl := remove ((x,y)->x[2]=y, cftl, tWr );
+		
+		cfbed := map ( x->x[1], cftl );
+		
+		cfbed := map ( x->numer(normal(x)), cfbed );
+		
+		cfbed := map ( (x,vs)->coeffs(collect(x,vs,distributed),vs), cfbed, vars );
+				
+		tlWrbed := [op(tlWrbed), op(cfbed)]
+	
+	od;
+	
+	coeffbeds := [op(coeffbeds), tlWrbed];
+		
+od;
+
+loesaares := [];
+
+for cfbed in coeffbeds do
+
+	cfloes := solve ( {op(cfbed)} );
+	
+	if type ( cfloes, set ) then
+	
+		loesaares := [op(loesaares), normal(eval(subs(cfloes, loesaa1)))];
+		
+	fi;
+od;
+
+[loesaares, fsaa, zlist1, pdvs2l];
+
+end;
+
+#
+#
+#
+#
+
+findfactorB := proc ( loesaa, fsaa, zlist1, pdvs2l, fs )
+
+local pdvsxt, pdvs, eqlres, slaeltoaa, dm, eqrow, eqakt, nn;
+
+pdvsxt := pdvs2l[1];
+
+pdvs := pdvs2l[2];
+
+
+eqlres := [];
+
+
+slaeltoaa := zip ((x,y)->x=y, zlist1, fsaa );
+
+for dm in pdvsxt do
+
+	eqrow := [dm, op(pdvs)];
+	
+	nn := nops ( eqrow );
+	
+	eqakt := add ( AEL ( [op(eqrow[1..(i-1)]),op(eqrow[(i+1)..-1])], fs ) * (-1)^(i-1) *
+					eqrow[i],i = 1..nn );
+					
+	eqakt := subs ( slaeltoaa, eqakt );
+	
+	eqakt := normal ( eval ( subs ( loesaa, eqakt )));
+	
+	eqlres := [op(eqlres), eqakt];
+
+od;
+
+csimpJanetBase ( eqlres, fs );
+
+end;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

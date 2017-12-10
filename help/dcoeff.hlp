@@ -1,0 +1,22 @@
+
+FUNCTION: dcoeff - Extract a coefficient in a linear partial differential 
+                   equation ( LPDE )
+      
+CALLING SEQUENCE:
+   dcoeff(e, dm)
+      
+PARAMETERS:
+   e    - an expression
+   dm   - a differential monomial
+      
+SYNOPSIS:   
+- The function dcoeffs considers e as a LPDE and returns the coefficient of
+  the differential monomial dm.
+   
+- The expression e must be in collected form, see dcollect.
+   
+      
+EXAMPLES:   
+      
+SEE ALSO: dcoeffs, dterms
+

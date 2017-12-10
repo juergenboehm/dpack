@@ -1,0 +1,59 @@
+
+remdep ( [xi, eta, e[1]] );
+
+depend ( [xi,eta], [x,y] );
+
+
+####################################################################################
+#
+#   Group g 4, 19
+#
+#
+
+read cat ( DPACKPATH, `cancoorddir/dcancoord-g4-19-c-e-gener` );
+
+
+`KNOWNSOLS_4_19_C_E_-1` := [1, SIGMA]; 
+
+
+`dcancoord_g4_19_ffff_c_e_-1` := proc ( jb, fs )
+
+dcancoord_g4_19_ffff_c_e_gener ( jb, fs, [c=-1], `KNOWNSOLS_4_19_C_E_-1` );
+
+end;
+
+#
+#
+#
+
+
+`dcancoord_g4_19_ftff_c_e_-1` := proc ( jb, fs )
+
+dcancoord_g4_19_ftff_c_e_gener ( jb, fs, [c=-1], `KNOWNSOLS_4_19_C_E_-1`);
+
+end;
+
+
+
+
+
+
+#
+#
+#
+
+
+tempforgetdep ();
+
+
+`cancoordsetup_g4_19_c_e_-1` := proc ( )
+
+cancoordsetup_g4_19_c_e_gener ( [c=-1] );
+
+end;
+
+restoredep();
+
+
+
+

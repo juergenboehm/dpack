@@ -1,0 +1,8 @@
+dagsubs:=proc(tosubs::{name=algebraic,list(name=algebraic)},expr)
+local dosubs,i;
+    dosubs:=proc(expr) option remember;
+        if nops(expr)>1 then map(procname,expr) else expr fi end;
+    if type(tosubs,name=algebraic) then dosubs(op(1,tosubs)):=op(2,tosubs);
+    else for i in tosubs do dosubs(op(1,i)):=op(2,i) od fi;
+    dosubs(expr)
+end:

@@ -1,0 +1,816 @@
+
+#
+#
+#
+#
+#
+#
+#
+
+
+extchangevar := proc ( e, strstr1, strstr2 )
+
+local vidts, 
+		vidts1,
+		sl,
+		res;
+		
+
+vidts := [op(vecindets ( e, strstr1 ))];
+
+vidts1 := map ( (xx,ss1,ss2)->convertextstr ( xx, ss1, ss2), vidts, strstr1, strstr2 );
+
+sl := zip ( (xx,yy)->xx=yy, vidts, vidts1 );
+
+res := subs ( sl, e );
+
+end;
+
+#
+#
+#
+#
+
+deqchangevar := proc ( deq, varLists1, varLists2 )
+
+local deqx,
+		deqres;
+
+
+deqx := deqtoextform ( deq, varLists1 )[1];
+
+deqx := extchangevar ( deqx, varLists1, varLists2 );
+
+deqres := extformtodeq ( deqx, varLists2 );
+
+end;
+
+#
+#
+#
+#
+#
+#
+#
+
+
+getgendeq := proc ( fnname, vBLists, varLists, vfl, ord )
+
+local res,
+		p1, p2,
+		dphilx;
+
+
+res := invariantEquation ( vfl, vBLists, varLists );
+
+p1 := res[1][1];
+
+p2 := res[2][1];
+
+res := geninvlist ( p1, p2, varLists, ord );
+
+dphilx := res[1];
+
+dphilx := map ( x->x[2], dphilx );
+
+
+res := fnname ( op (dphilx) );
+
+res := extformtodeq ( res, varLists );
+
+end;
+
+
+#
+#
+#
+#
+#
+#
+
+getgendeq1 := proc ( typinfo, fnname, varLists, ord)
+
+local res,
+		p1, p2,
+		dphilx;
+
+
+res := getphi1phi2 ( typinfo, varLists );
+
+p1 := res[1][1];
+
+p2 := res[2][1];
+
+res := geninvlist ( p1, p2, varLists, ord );
+
+dphilx := res[1];
+
+dphilx := map ( x->x[2], dphilx );
+
+
+res := fnname ( op (dphilx) );
+
+res := extformtodeq ( res, varLists );
+
+end;
+
+#
+#
+#
+#
+#
+#
+#
+
+symmreduce := proc ( deq, vBLists, varLists, vfl, v1 )
+
+local 	X, Y,
+		res,
+		p1, p2,
+		deqx,
+		orddeq,
+		solveqs,
+		invlist,
+		invnamesl,
+		deqxinv,
+		deqxinv1,
+		invnames,
+		in1, in2,
+		eqs2,
+		ord1,
+		xvl,
+		ls, rs,
+		auxeqs,
+		vsl, vbl,
+		v1a, v1b;
+
+X := varLists[1][1];
+Y := varLists[2][1];
+
+
+if nargs <= 5 then
+
+	res := invariantEquation ( vfl, vBLists, varLists );
+
+	p1 := res[1][1];
+
+	p2 := res[2][1];
+
+else
+
+	p1 := args[6][1];
+	
+	p2 := args[6][2];
+	
+fi;
+
+
+
+deqx := deqtoextform ( deq, varLists )[1];
+
+orddeq := vecorder ( deqx, varLists );
+
+
+res := geninvlist ( p1, p2, varLists, orddeq );
+
+
+solveqs := res[2];
+
+invlist := res[1];
+
+invnamesl := res[3];
+
+
+
+deqxinv := factor ( normevalval( subs ( solveqs, deqx ) ));
+
+deqxinv1 := subs ( invnamesl, deqxinv );
+
+deqxinv1 := extformtodeq ( deqxinv1, varLists );
+
+
+
+invnames := map ( lhs, invnamesl );
+
+in1 := invnames[1];
+
+in2 := invnames[2];
+
+eqs2 := solveqs[1..2];
+
+ord1 := vecorder ( eqs2, varLists );
+
+xvl := makeextvarlist ( varLists, ord1 );
+
+ls := listminus ( xvl, map ( lhs, eqs2 ) ); 
+
+rs := listminus ( xvl, [X,Y[0]] );
+
+
+auxeqs := zip ((x,y)->x=y, ls, rs );
+
+
+eqs2 := subs ( [in1 = X, in2 = Y[0]], subs ( auxeqs, eqs2 ) );
+
+
+
+vsl := [op(eqs2), op( auxeqs ) ];
+
+vsl := zip ((x,y)->x=y, xvl, subs ( vsl, xvl ) );
+
+
+vbl := flatten2 ( makevbaselist ( vBLists, ord1 ) );
+
+
+v1a := dprolong ( v1, vBLists, varLists, ord1 );
+
+v1b := vliesubs ( v1a, vbl, vsl );
+
+v1b := subs ( map ( x->x=0, vbl[3..-1] ), v1b );
+
+v1b := vectoshortform ( v1b, vBLists, varLists );
+
+v1b := dsimplify ( v1b, symbolic );
+
+
+
+res := [invlist, deqxinv, deqxinv1, v1b];
+
+
+end;
+
+#
+#
+#
+
+geninvlist := proc ( phi1a, phi2a, varLists, ord )
+
+local X, Y,
+		phi1, phi2, phiakt,
+		phil,
+		philx,
+		i,
+		INVl,
+		philx1,
+		solveqs,
+		rsl,
+		invnamesl,
+		res;
+
+
+X := varLists[1][1];
+
+Y := varLists[2][1];
+
+
+phi1 := extformtodeq ( phi1a, varLists );
+
+phi2 := extformtodeq ( phi2a, varLists );
+
+
+phiakt := phi2;
+
+
+phil := [phi1, phi2];
+
+
+while deqorder ( phiakt, varLists ) < ord do
+
+	phiakt := diff(phiakt,X)/diff(phi1, X);
+
+	phil := [op(phil), phiakt];
+
+od;
+
+phil := select ( (xx,yy,vv)->deqorder ( xx, vv) <= yy,
+					phil, ord, varLists );
+
+
+philx := map ( xx->xx[1], deqtoextform ( phil, varLists ) ); 
+
+
+
+INVl := [ seq( INV[i], i=1..nops(philx) ) ];
+
+philx1 := zip ( (xx,yy)->[xx,yy], INVl, philx );
+
+
+solveqs := solvinvl ( map ( xx->xx[1]-xx[2], philx1), varLists );
+
+
+rsl := [X, Y[0], seq ( Y[i], i=1..(nops(INVl) - 2) )];
+
+rsl := rsl[1..nops(INVl)];
+
+invnamesl := zip ( (xx,yy) -> xx = yy, INVl, rsl );
+
+
+
+res := [philx1, solveqs, invnamesl];
+
+end;
+
+
+
+#
+#
+#
+#
+#
+
+
+
+
+cancoorddeq := proc ( deq, varLists1, varLists2, phi1, phi2, cco )
+
+local 	X, Y, U, V,
+		orddeq,
+		res,
+		invlpairs,
+		invlpairsuv,
+		invleq,
+		sinvl,
+		deqx,
+		deqxt,
+		i;
+
+
+
+X := varLists1[1][1];
+Y := varLists1[2][1];
+
+
+U := varLists2[1][1];
+V := varLists2[2][1];
+
+
+
+orddeq := deqorder ( deq, varLists1 );
+
+
+if phi2 <> FAIL then
+
+	res := geninvlist ( phi1, phi2, varLists2, orddeq );
+
+	invlpairs := res[1];
+
+else
+
+	invlpairs := [[INV[1],phi1]];
+
+fi;
+
+invlpairsuv := invlpairs;
+
+invlpairs := extchangevar ( invlpairs, varLists2, varLists1 );
+
+
+invlpairs := extformtodeq ( invlpairs, varLists1 );
+
+
+invleq := map ( (xx, trl) ->xx[1] - dtrans ( trl, xx[2], full ), invlpairs,
+							
+				 [X=cco[1], Y=cco[2]] );
+
+
+invleq := map ( (xx,yy)->deqtoextform ( xx, yy)[1], invleq, varLists1 );
+
+
+sinvl := solvinvl ( invleq, varLists1 );
+
+
+deqx := deqtoextform ( deq, varLists1 )[1];
+
+
+deqxt := normevalval ( subs ( sinvl, deqx ) );
+
+
+deqxt := dsimplify ( deqxt, symbolic );
+
+# Eliminiere Faktoren, die nicht ausschliesslich INV[k] enthalten
+
+deqxt := factorl ( deqxt );
+
+deqxt := select ( (xx,yy)->not has ( xx, yy ), deqxt, [X,Y] );
+
+deqxt := mul ( deqxt[i], i=1..nops ( deqxt ) );
+
+
+
+deqxt := extchangevar ( deqxt, varLists1, varLists2 );
+
+
+
+invlpairsuv := map ( x-> x[1]=x[2], invlpairsuv );
+
+[deqxt, invlpairsuv];
+
+
+end;
+
+
+#
+#
+#
+#
+
+solvinvl := proc ( invl, varLists )
+
+local eqs,
+		ee,
+		vidts,
+		vidtmax, res,
+		eqakt;
+
+
+eqs := [];
+
+for ee in invl do
+
+	vidts := vecindetssort ( ee, varLists );
+
+	vidtmax := vidts[-1];
+
+	res := solve ( ee, vidtmax );
+
+	if nops ( [res] ) > 1 then
+
+		res := res[1];
+
+	fi;
+
+	eqakt := vidtmax = res;
+
+	eqakt := subs ( eqs, eqakt );
+
+	eqakt := normevalval ( eqakt );
+
+	eqakt := dsimplify ( eqakt, symbolic );
+
+	eqs := [op(eqs), eqakt];
+
+od;
+
+eqs;
+
+end;
+
+
+
+#
+#
+#
+#
+#
+
+
+symmreductchain := proc ( deq, vBLists, varLists, vfla )
+
+local i, P, Q, vfl,
+		deqakt,
+		res,
+		p1p2,
+		vvakt,
+		vvakt1,
+		ord,
+		deqakt1,
+		tst,
+		invl,
+		erg;
+
+
+vfl := vfla;
+
+
+deqakt := deq;
+
+
+erg := [];
+
+
+
+P:=vBLists[1][1];
+
+Q:=vBLists[2][1];
+
+if {op(vfl[1..2])} = {P,Q} then
+
+	vfl:= [P, Q, op(vfl[3..-1])];
+	
+fi;
+
+
+for i from 1 to nops ( vfl ) do
+
+	if i < 3 or {op(vfl[1..2])} <> {P,Q} then	
+	
+		res := symmreduce ( deq, vBLists, varLists, vfl[1..(i-1)], [vfl[i]] );
+
+	else
+
+		p1p2 := map ( xx->xx[2], invl[-2..-1] );
+
+		res := symmreduce  ( deq, vBLists, varLists, [], [vfl[i]], p1p2 ); 
+
+	fi;
+
+	vvakt := res[4];
+
+
+	print ( vvakt );
+	
+	
+	ord := deqorder ( deqakt, varLists );
+	
+	deqakt1 := deqtoextform ( deqakt, varLists )[1];
+		
+	vvakt1 := dprolong ( vvakt, vBLists, varLists, ord );
+	
+	tst := vecapply ( vvakt1, vBLists, varLists, deqakt1 );
+	
+	tst := simplify ( tst, symbolic );
+	
+
+
+	res := symmreduce ( deqakt, vBLists, varLists, vvakt, [] ); 
+
+
+	# print ( res, tst );
+
+
+	deqakt1 := res[3];
+
+	invl := res[1];
+
+	deqakt := deqakt1;
+
+	erg := [op(erg), [vvakt, invl, deqakt, tst] ];
+
+od;
+
+erg;
+
+end;
+
+
+#
+#
+#
+#
+#
+#
+
+
+knsymmint := proc ( deq, vBLists, varLists, rvecl, rinvl, ci )
+
+local X, Y,
+		P, Q,
+		ord,
+		loes,
+		rveca,
+		rinva,
+		rvecl1,
+		rinvl1,
+		loesl,
+		res,
+		slinv,
+		deqred,
+		deqstep,
+		loesnew,
+		erg;
+
+P := vBLists[1][1];
+
+Q := vBLists[2][1];
+
+
+
+X := varLists[1][1];
+
+Y := varLists[2][1];
+
+ord := deqorder ( deq, varLists );
+
+if (rvecl = []) or (ord = 0) then
+
+	if ord > 0 then
+
+		loes := dsolve ( deq, Y(X) ); 
+
+	else
+
+		loes := deq;
+
+	fi;
+
+	loes := dsimplify ( loes, symbolic );
+
+	loes := listify ( loes );
+
+	loes := eq2expr ( loes );
+
+	RETURN ( loes );
+
+fi;
+	
+
+rveca := rvecl[1];
+
+rinva := rinvl[1];
+
+
+
+rvecl1 := rvecl[2..-1];
+
+rinvl1 := rinvl[2..-1];
+
+
+res := cancoorddeq ( deq, varLists, varLists, rinva[1], rinva[2], [X,Y] );
+
+deqred := res[1];
+
+slinv := zip ((x,y)->lhs(x)=y, res[2], [X, seq (diffX ( Y(X), X $ i ),
+		
+			i=0..nops(res[2]) )] );
+
+deqred := subs ( slinv, deqred );
+
+
+loesl := knsymmint ( deqred, vBLists, varLists, rvecl1, rinvl1, ci + 1 );
+
+loesl := listify ( loesl );
+
+
+erg := [];
+
+for loes in loesl do
+
+	deqstep := subs ( [X = rinva[1], Y(X) = rinva[2]], loes );
+
+	deqstep := dsimplify ( deqstep, symbolic );
+
+	deqstep := extformtodeq ( deqstep, varLists );
+
+	if not has ( deqstep, diff(Y(X),X) ) then
+	
+		loesnew := [deqstep];
+
+	else
+
+		loesnew := dsolve1stord ( deqstep, Y(X),
+
+				[coeff(rveca,P), coeff(rveca,Q)], ci );
+
+	fi;
+
+	erg := [op(erg), op(loesnew)];
+
+od;
+
+erg := [op({op(erg)})];
+
+erg;
+
+end;
+
+
+#
+#
+#
+#
+
+dsolve1stord := proc ( deqa, fn, symvec, ci )
+
+local X, Y, PP, QQ, den, tst1, yval, tst,
+		deq,
+		yx, 
+		RR, RR1,
+		loes,
+		const,
+		i,
+		loesl,
+		eqs,
+		pp, qq;
+
+X := op ( fn );
+
+Y := op (0, fn);
+
+deq := numer ( deqa );
+
+
+if not type ( deq, linear ( diff ( Y(X), X) ) ) then
+
+	yx := solve ( deq, diff( Y(X), X ) );
+
+	yx := dsimplify ( [yx], symbolic );
+
+#	yx := [yx];
+
+
+	QQ := [1 $ nops ( yx )];
+
+	PP := -yx;
+
+else
+
+	QQ := coeff ( deq, diff(Y(X),X) );
+
+	PP := deq - QQ * diff ( Y(X), X );
+
+	QQ := dsimplify ( QQ, symbolic );
+
+	PP := dsimplify ( PP, symbolic );
+
+
+fi;
+
+PP := listify ( PP );
+
+QQ := listify ( QQ );
+
+
+
+const := _D[ci];
+
+loesl := [];
+
+for i from 1 to nops ( PP ) do
+
+	pp := PP[i];
+
+	qq := QQ[i];
+	
+
+	RR1 := symvec[1]*pp+symvec[2]*qq;
+	
+	if RR1 = 0 then 
+	
+		deq := qq * diff ( Y(X),X ) + pp;
+		
+		loes := dsolve ( deq, Y(X) );
+		
+		loes := map ( eq2expr, listify ( loes ) );
+		
+		loes := subs ( _C1 = const, loes );
+		
+		loesl := [op(loesl), op(loes)];
+	
+		next;
+		
+	fi;
+
+	RR := 1/ RR1;
+
+	eqs := [pp*RR, qq*RR];
+
+	eqs := subs ( Y(X)=Y, eqs );
+
+	loes := dgenQuadr ( eqs[1], eqs[2], [X,Y] );
+
+	loes := dsimplify ( loes, symbolic );
+
+	loes := subs ( Y = Y(X), loes );
+
+	loes := loes + const;
+
+	for den in [denom(eqs[1]), denom(eqs[2])] do
+
+		tst1 := solve ( den, Y );
+
+		tst1 := listify (tst1);
+
+		if nops ( tst1 ) > 0 then
+
+			for yval in tst1 do
+
+				tst := dsimplify ( value ( subs (Y(X)=yval, deq)), symbolic );
+
+				if tst = 0 then
+
+					loesl := [op(loesl),Y(X)-yval];
+				fi;
+				
+			od;
+			
+		fi;
+		
+	od;	
+
+#	loes := dsolve ( diff(Y(X),X)*eqs[2]+eqs[1], Y(X) );
+
+#	loes := listify ( loes );
+	
+#	loes := map ( eq2expr, loes );
+	
+#	loes := op(loes);
+
+	loesl := [op(loesl), loes];
+
+od;
+
+loesl;
+
+end;
+
+

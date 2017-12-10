@@ -1,0 +1,157 @@
+
+remdep ( [xi, eta, sigma, rho] );
+
+depend ( [xi, eta, sigma, rho], [x,y] );
+
+
+####################################################################################
+#
+#   Groups g 3, 17
+#
+#
+
+dcancoord_g3_17_generic := proc ( jb, fs, typinfo, knownsols1 )
+
+local 	knownsols,
+		fs1,
+		jb1,
+		sbyxy,
+		xx00v,
+		yy00v,
+		rsys,
+		ff,
+		loes,
+		res;
+
+
+if assigned ( _rcgcnstnts ) then
+
+	knownsols := subs ( _rcgcnstnts, knownsols1 );
+
+else
+
+	knownsols := knownsols1;
+
+fi;
+
+
+# Prolog
+
+fs1 := [xi, eta];
+
+jb1 := dchangefs ( jb, fs, fs1 );
+
+
+# berechene s aus sx, sy
+
+sbyxy := dgetresolve ( typinfo, jb1, fs1, ID_SBYXY );
+
+xx00v := dgenQuadr ( op ( sbyxy ), [x,y] );
+
+
+# berechne r aus einer verallgem. lin. Gl. 4. Ordnung.
+
+
+rsys := dgetsavedexpr ( typinfo, ID_RSYS );
+
+ff := RRX ( x, y );
+
+rsys := dresolve ( typinfo, jb1, fs1, rsys );
+
+loes := xpdesolve ( rsys, [ff], basis );
+
+loes := xpdegensol ( loes, subs ( SIGMA = xx00v, knownsols ) );
+
+yy00v := rhs ( loes[1] );
+
+
+
+
+res := dsimplify ( [ xx00v, yy00v], symbolic );
+	
+
+res :=  [ [], res, [] ];
+
+end;
+
+
+
+
+cancoordsetup_g3_17_generic := proc ( tt )
+
+local 	tt1,
+		sbyxy,
+		uu,
+		res,
+		rxsys1,
+		rxsys2,
+		ryy;
+
+tt1 := subs ( XXXX=ffff, tt );
+
+iginits ( tt1 );
+
+sbyxy := igreduce ( tt1, [sx, sy] );
+
+igsaveexpr ( ID_SBYXY, sbyxy );
+
+uu := igtostdform ( r );
+
+
+res := igcoeffbase ( tt1 );
+
+res := res[3..-1];
+
+res := eq2expr ( res );
+
+res := subs ( rho = RRX ( x, y ), res );
+
+igsaveexpr ( ID_RSYS, res );
+
+
+
+tt1 := subs ( XXXX=tfff, tt);
+
+iginits ( tt1 );
+
+sbyxy := igreduce ( tt1, [sx, sy] );
+
+igsaveexpr ( ID_SBYXY, sbyxy );
+
+uu := igtostdform ( r );
+
+
+res := igcoeffbase ( tt1 );
+
+res := res[3..-1];
+
+res := eq2expr ( res );
+
+res := subs ( rho = RRX ( x, y ), res );
+
+igsaveexpr ( ID_RSYS, res );
+
+
+tt1 := subs ( XXXX=ftff, tt );
+
+iginits ( tt1 );
+
+sbyxy := igreduce ( tt1, [sx, sy] );
+
+igsaveexpr ( ID_SBYXY, sbyxy );
+
+uu := igtostdform ( r );;
+
+
+res := igcoeffbase ( tt1 );
+
+res := res[3..-1];
+
+res := eq2expr ( res );
+
+res := subs ( rho = RRX ( x, y ), res );
+
+igsaveexpr ( ID_RSYS, res );
+
+
+end;

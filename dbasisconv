@@ -1,0 +1,381 @@
+#############################################################################################
+#
+#
+# Konversionsfunktionen
+#
+#
+#
+
+`convert/monomial` := proc ( )
+
+local i;
+
+if nargs = 2 then
+
+	convert ( zip ((x,y)->y^x, args[1], args[2] ), `*` );
+
+else
+
+	convert ( args[1], monomial, [seq( x||i, i=1..nops(args[1]) )] );
+
+fi;
+
+end;
+
+#
+#
+
+mon2ms := proc ( m )
+
+if m = 1 then
+
+	[];
+	
+else
+
+	map ( x->x[1]$x[2], convert( m, multiset ) );
+
+fi;
+
+end;
+
+#
+# vars2J ( [x,x,y,y,y,z], [x,y,z] ) = [2,3,1]
+#
+
+vars2J := proc ( varlist, vars )
+
+local i;
+
+RETURN (
+[seq ( nops ( select ( (x,y)-> member ( x, {y} ), varlist, vars[i] ) ),
+		i = 1..nops(vars) )]
+);
+end;
+
+#
+# J2vars ( [1,2,3], [x,y,z] ) = [x,y,y,z,z,z]
+#
+
+J2vars := proc ( J, vars )
+
+local i;
+
+[seq ( vars[i] $ J[i], i=1..nops ( vars ) )];
+
+end;
+
+#
+# in a nested list structure with atoms and functions the functions are replaced by 
+# the atoms that are their names
+#
+
+fntoatom := proc ( elist )
+
+mapall ( proc ( x ) option operator;
+						if type (x, function) then
+							op ( 0, x);
+						else
+							x;
+						fi; end, elist );
+
+end:
+
+
+##############################################################################
+#
+# Das extstr-System
+#
+
+#
+# extstr = g[1,2], h[3,2] zu strstr = [[x,y],[f,g,h]]
+#
+#
+
+#
+# einige Hilfsfunktionen
+#
+
+flatstrstr := proc ( strstr ) [op(strstr[1]), op(strstr[2])]; end;
+
+vecname := proc ( extstr ) op(0, extstr) end;
+
+indlist := proc ( extstr ) [op(extstr)] end;
+
+vectdeg := proc ( extstr ) convert ( indlist ( extstr ), `+` ); end;
+
+#
+# Umsetzungsfunktion
+#
+# Bsp :
+#
+# convertextstr ( b[2,3], [[u,v],[a,b]], [[x,y],[r,s]]) = s[2,3]
+#
+
+convertextstr := proc ( extstr, strstr1, strstr2 )
+
+local hd,indx,i, sl;
+ 
+if type ( extstr, vecdepindet ( strstr1 )) then
+
+	if type ( extstr, indexed ) then
+
+		hd := op(0,extstr);
+		indx := [op(extstr)];
+
+		for i from 1 to nops ( strstr1[2] ) do
+
+			if hd = strstr1[2][i] then
+
+				RETURN ( strstr2[2][i][op(indx)] );
+
+			fi;
+
+		od;
+
+	else
+	
+		sl := zip ( (xx,yy) -> xx=yy, strstr1[2], strstr2[2] );
+		
+		RETURN ( subs ( sl, extstr ) );
+
+	fi;
+	
+else
+
+	for i from 1 to nops ( strstr1[1] ) do
+	
+		if extstr = strstr1[1][i] then
+		
+			RETURN ( strstr2[1][i] );
+			
+		fi;
+		
+	od;
+	
+fi;
+
+RETURN ( FAIL );
+
+end:
+
+#
+# Bsp :
+#
+# makeextstr ( 2, [[u,v],[f,g,h]], [2,3] ) = g[2,3]
+#
+
+makeextstr := proc ( el, strstrlist, Ii )
+
+local el1, erg;
+
+if type ( el, integer ) then
+
+	el1 := strstrlist[2][el];
+
+else
+
+	el1 := el;
+	
+fi;
+
+erg := el1[op(Ii)];
+
+end:
+
+#
+# Bsp
+#
+# extstrtoind ( g[2,3], [[u,v],[f,g,h]] ) = [2,[2,3]]
+#
+
+extstrtoind := proc ( extstr, strstrlist )
+
+local hd,i,s1;
+
+hd := op ( 0, extstr );
+
+i:= 1;
+
+i := firstpos ( (xx,yy)->xx=yy, strstrlist[2], hd );
+
+eval(condev2 ( i = FAIL, 'FAIL', '[i, [op(extstr)]]' )); 
+
+end:
+
+#
+#
+#
+
+#
+#
+#
+
+dmonomtoextvar := proc ( dm, varLists )
+
+local dfl,fn,vars,varlist,Ii;
+
+dfl := difflist ( dm );
+
+if dfl = FAIL then
+
+	RETURN ( FAIL );
+	
+fi;
+
+fn := dfl[1];
+vars := [op(fn)];
+
+
+if member ( op(0,fn), varLists[2] ) and {op(vars)} = {op(varLists[1])} then
+
+	varlist := [op(dfl[2..nops(dfl)])];
+ # update to V4
+	
+	Ii := vars2J ( varlist, vars );
+	
+	makeextstr ( op(0,fn), varLists, Ii );
+	
+else
+
+	FAIL;
+	
+fi;
+
+end:
+
+#
+#
+#
+
+extvartodmonom := proc ( extstr, varLists )
+
+local fname, il;
+
+if not type ( extstr, vecindet ( varLists ) ) then
+
+	extstr;
+	
+fi;
+
+if type ( extstr, vecindexed ( varLists ) ) then
+
+	fname := op ( 0, extstr );
+	
+	il := indlist ( extstr );
+	
+else
+
+	fname := extstr;
+	
+	il := [ 0 $ nops ( varLists[1] ) ];
+	
+fi;
+
+diffX ( fname(op(varLists[1])), op( J2vars ( il, varLists[1] ) ) );
+
+end;
+
+
+#
+#
+# deqtoextform writes a deq into jet-space coordinates and returns additionally
+# a set of the dependent jet-space variables that appeared in the differential equation
+#
+#
+
+deqtoextform := proc ( deq, varLists )
+
+local res, varLists1,funList,dxidts,dxidts1,sl1,erg,vecidts,extvarsindlist;
+ 
+if type ( deq, list ) then
+
+	res := map ( deqtoextform, deq, varLists );
+	
+	RETURN ( res );
+	
+fi;
+
+varLists1 := fntoatom ( varLists );
+						
+
+funList := map ( (z,w)->z(op(w)), varLists1[2], varLists1[1] );
+
+
+dxidts := [op(indets ( deq ))];
+
+dxidts := select ( x-> type ( x, diffmonom ), dxidts );
+
+dxidts := rawsort ( dxidts );
+
+dxidts1 := map ( (z,w)->[z,dmonomtoextvar(z,w)], dxidts, varLists1 );
+
+dxidts1 := select ( z-> z[2] <> FAIL, dxidts1 );
+
+
+sl1 := map ( z-> z[1]=z[2], dxidts1 );
+
+
+erg := subs ( op (sl1), deq );
+
+
+vecidts := vecindets ( erg, varLists1 );
+
+vecidts := select ( (x,y)->type(x, vecdepindet(y)), vecidts, varLists1 );
+
+extvarsindlist := map ( (w,v)-> extstrtoind (w, v), vecidts, varLists1 );
+
+[erg, extvarsindlist];
+
+end:
+
+#
+#
+#
+#
+
+extformtodeq := proc ( deqext, varLists )
+
+local varLists1,
+		vidts,
+		sl,
+		res;
+
+varLists1 := fntoatom ( varLists );
+
+vidts := vecindets ( deqext, varLists1 );
+
+vidts := select ( (x,y)->type(x,vecdepindet(y)), vidts, varLists );
+
+sl := map ( (x,y) -> x = extvartodmonom ( x, y ), vidts, varLists1 );
+
+res := subs ( sl, deqext );
+
+res;
+
+end;
+
+#
+#
+#
+#
+
+
+#
+#
+#
+#
+
+sortdiffs := proc ( e, fs )
+
+local didts, sl;
+
+didts := dindets ( e, fs );
+
+sl := map ( xx->xx=diffX ( op ( fdifflist ( xx ) ) ), didts );
+
+subs ( sl, e );
+
+### WARNING: `sl` is implicitly declared local
+end;
+

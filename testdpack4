@@ -1,0 +1,188 @@
+
+
+readrecog := proc ( i )
+
+read cat ( MAPLEHOME, `/packages/dpack/recog/rcg`, i );
+
+end;
+
+#
+#
+
+map ( readrecog, [2,3,4,5] );
+
+#
+#
+#
+#
+#
+
+
+#
+#
+#
+#
+
+recogjb := proc ( jba )
+
+local jb, n;
+
+
+jb := csimpJanetBase ( jba, [xi,eta] );
+
+n := determineSize ( jb, [xi,eta] );
+
+cat ( `recog`, n ) ( jb, [xi,eta] );
+
+end;
+
+#
+#
+#
+
+vcancoord := proc ( vf )
+
+local jb;
+
+jb := vectfToJanetBase ( vf, [xi,eta] );
+
+jb := csimpJanetBase ( jb, [xi,eta] );
+
+gn := recogjb ( jb );
+
+print ( gn );
+
+cco := igcancoord ( gn, jb );
+
+cco := cco[2];
+
+res := [cco, [x=cco[1], y=cco[2]]];
+
+end;
+
+#
+#
+#
+
+deqsymms := proc ( deq, varLists, fnlist )
+
+local fs, ds, jb;
+
+fs := fnlist;
+
+ds := makeDeterminingSystem ( deq, varLists, fnlist );
+
+jb := makeJanetBase ( ds, fs );
+
+jb := csimpJanetBase ( jb, fs );
+
+end;
+
+#
+#
+#
+#
+#
+
+
+testdeq := proc ( gn, ord, deqcan, cco )
+
+local varLists,
+		invs,
+		res,
+		invl,
+		idts,
+		sl,
+		deqcan1;
+
+
+varLists := [[x],[y]];
+
+invs := getphi1phi2 ( gn, varLists );
+
+if nargs = 5 then
+
+	invs := subs ( args[5], invs );
+
+fi;
+
+res := geninvlist ( invs[1][1], invs[2][1], varLists, ord );
+
+invl := res[1];
+
+idts := indets ( deqcan );
+
+idts := select ( type, idts, name );
+
+sl := map ( (xx,yy)-> xx = yy[op(xx)][2], idts, invl );
+
+deqcan1 := subs ( sl, deqcan );
+
+deqcan1 := extformtodeq ( deqcan1, varLists );
+
+deqcan1 := dtrans ( [x=cco[1],y=cco[2]], deqcan1 );
+
+deqcan1 := simplify ( deqcan1, symbolic );
+
+end;
+
+
+#
+#
+#
+#
+
+liealgtogroup := proc ( vfl )
+
+local ffakt, i, vfakt;
+
+ffakt := [x1=x, y1 = y];
+
+for i from 1 to nops ( vfl ) do
+
+	vfakt := vfl[i];
+
+	ff := liealgtogroup1 ( vfakt, cat ( E, i) );
+
+	ffakt := subs ( [ x = rhs ( ff[1] ), y = rhs ( ff[2] ) ], ffakt );
+	
+od;
+
+ffakt;
+
+end;
+
+#
+#
+#
+#
+
+liealgtogroup1 := proc ( vf, cns )
+
+local xx, yy, eq1, eq2, loes, res;
+
+xx := coeff ( vf, p );
+
+yy := coeff ( vf, q );
+
+
+eq1 := diff ( XX(t), t ) = subs ( [x = XX(t), y=YY(t)], xx );
+
+eq2 := diff ( YY(t), t ) = subs ( [x = XX(t), y=YY(t)], yy );
+
+loes := ODEtools[odsolve] ( {eq1, eq2, XX(0)=x, YY(0)=y}, {XX(t), YY(t)} );
+
+loes := subs ( t = cns, loes );
+
+res := [x1 = subs ( loes, XX(cns) ), y1 = subs ( loes, YY(cns) )];
+
+end;
+
+#
+#
+#
+
+
+
+
+

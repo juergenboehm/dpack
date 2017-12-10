@@ -1,0 +1,10 @@
+         lambda^5+((2*RCGId[2](x,y)+3)*lambda^4+((3+(3-RCGId[2](x,y))*
+
+        RCGId[2](x,y))*lambda^3+((1+(-4-2*RCGId[2](x,y))*RCGId[2](x,y)
+
+      ^2)*lambda^2+(-1+(-3-2*RCGId[2](x,y))*RCGId[2](x,y))*RCGId[2](x,y)
+
+                        *lambda*t[3])*t[3])*t[3])*t[3]
+
+                                      []
+

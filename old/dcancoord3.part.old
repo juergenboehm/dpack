@@ -1,0 +1,182 @@
+#
+#
+
+dcompinvarexpr := proc ( typinfo, invname, invexpr )
+
+local INVFILENAME, res;
+
+INVFILENAME := makeINVFILENAME ( typinfo );
+
+tempforgetdep();
+
+read INVFILENAME;
+
+restoredep ();
+
+res := eval ( invname );
+
+if type ( res, name ) then
+
+	ERROR ( `identifier of invariant couldn't be resolved` );
+	
+fi;
+
+res;
+
+end;
+
+#
+#
+#
+
+
+
+dgetmatchjbfs := proc ( typinfo )
+
+local MATCHFILENAME, fd, res;
+
+global ID_MATCH;
+
+MATCHFILENAME := makeMATCHFILENAME ( typinfo );
+
+tempforgetdep ();
+
+read MATCHFILENAME;
+
+restoredep ();
+
+eval ( ID_MATCH );
+
+end;
+
+
+
+
+
+#
+#
+#
+
+
+dcompinvar := proc ( jbtest, fs, typinfo, invname, invexpr )
+
+local jbfsm, jb1, fs1,
+	vars, vars1,
+	invar,
+	slfs, slvs,
+	i,
+	mtcheql, ml,
+	res;
+
+jbfsm := dgetmatchjbfs ( typinfo );
+
+jb1 := jbfsm[1];	# canonic base from file
+fs1 := jbfsm[2];	# canonic function names
+
+vars1 := dgetvars ( fs1 );	# canonic vars
+vars := dgetvars ( fs );	# actual vars
+
+
+slfs := zip ( (x,y)->x=y, fs1, fs );	
+	# substitute list canonic functions to actual functions
+
+slvs := zip ( (x,y)->x=y, vars1, vars );
+	# ditto for canonic vars to actual vars
+
+
+jb1 := subs ( [op(slfs), op(slvs)], jb1 );	
+	# do the substitution above
+
+invar := dcompinvarexpr ( typinfo, invname, invexpr );
+
+invar := subs ( slvs, invar );	
+	# Invariant in actual variables
+
+mtcheql := [];
+
+for i from 1 to nops ( jbtest ) do
+
+	ml := dmatch ( jb1[i], jbtest[i], fs );		
+		# match canonic base against actual line by line
+	
+	ASSERT ( ml[1]=(1=1), `headterm in match <> 1 = 1` );
+	
+	mtcheql := [op(mtcheql), op(ml[2..-1])];
+	
+od;
+
+res := subs ( mtcheql, invar );
+	# conpute invariant by substitution of actual expressions 
+	# of coefficients in the janet base for their generic 
+	# names from the canonic base 
+
+res := dnormal ( eval ( value ( res ) ) );
+	# simplify result
+
+end;
+
+#
+#
+#
+# und ein Teil von groupdiscuss der das ueberholte Abspeichern und
+# Zuruecklesen von invarianten Ausdruecken beinhaltet
+#
+#
+#
+
+
+saveinvars := proc ( typinfo, i1::evaln, i2::evaln, i3::evaln, i4::evaln, i5::evaln,
+		i6::evaln, i7::evaln, i8::evaln, i9::evaln, i10::evaln, i11::evaln,
+		i12::evaln, i13::evaln, i14::evaln, i15::evaln, i16::evaln )
+
+local INVFILENAME, fdINV,
+		i, ee;
+
+
+INVFILENAME := makeINVFILENAME ( typinfo );
+
+fdINV := fopen ( INVFILENAME, WRITE, TEXT );
+
+tempforgetdep ();
+
+for i from 2 to nargs do
+
+	ee := touppername ( args[i] );
+
+	ee := cat ( `ID_`, ee );
+
+	fprintf ( fdINV, `%a := %a :\n\n`, ee, eval ( args[i] ) );
+
+od;
+
+fclose ( fdINV );
+
+restoredep();
+		
+end;
+
+#
+#
+#
+
+savematch := proc ( typinfo )
+
+local MATCHFILENAME,
+		jbs,
+		res;
+
+global ID_MATCH;
+
+MATCHFILENAME := makeMATCHFILENAME ( typinfo );
+
+jbs := getGenJanetBase ( typinfo );
+
+res := cAnalyzeEqListX ( jbs, [xi,eta], nolead );
+
+ID_MATCH := [map ( x->x[1], res ), [xi, eta] ];
+
+save ID_MATCH, MATCHFILENAME;
+
+end;
+
+#

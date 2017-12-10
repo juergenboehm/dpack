@@ -1,0 +1,42 @@
+
+FUNCTION: parmElim - computes an implicit representation of a parameterized 
+                     family of functions by a system of differential equations
+      
+CALLING SEQUENCE:
+   parmElim(eqlist, vars, parms)
+      
+PARAMETERS:
+   eqlist   - a list of expressions
+   vars     - a list of variables
+   parms    - a list of variables
+      
+SYNOPSIS:   
+- The function parmElim receives as its first argument a list of expressions of
+  a special kind:
+  
+  These expressions have to be of the form
+  
+        f(x,y,z,...)-g(x,y,z,...,a,b,c,...)
+        
+  where f(x,y,z,...) is a function standing for itself and 
+  g(x,y,z,...,a,b,c,...) stands for any expression involving the argument 
+  variables.
+  
+  x,y,z,... are called the variables and are given in the argument vars.
+  a,b,c,... are called the parameters and are given in the argument parms.
+  
+  What is given in this way is called a family of functions depending on the
+  parameters a,b,c,...
+  
+- parmElim returns a list of differential equations in the f(x,y,z,...) that 
+  have as their general solution exactly the family of functions given in eqlist.
+  
+- The algorithm is guaranteed to terminate when g(x,y,z,...,a,b,c,...) is
+  linear in a,b,c,... , in the other cases it may either not terminate, stop 
+  with error or give erroneous answers.
+
+     
+EXAMPLES:   
+      
+SEE ALSO: vectfToDeq
+

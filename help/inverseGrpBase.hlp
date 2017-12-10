@@ -1,0 +1,52 @@
+
+FUNCTION: inverseGrpBase - computes a Janet-Base or a representation by vectorfields
+                    for the inverse lie algebra ( inverse "group" ) of a lie algebra 
+                    of vectorfields 
+
+CALLING SEQUENCE:
+    inverseGrpBase ( vfl, vars, vB, fs, solve=true )
+    
+PARAMETERS:
+
+    vfl     - a list of expressions
+    vars    - a list of names ( optional )
+    vB      - a list of names ( same length as vars, optional )
+    fs      - a list of functions
+    solve=true  - parameter ( optional )
+
+SYNOPSIS:
+- vfl must be a list of vectorfields forming a lie algebra. They must be given in the
+  notation described e.g. in the help page to 'vliebrack'. vars and vB take the
+  same meaning as described there and have the same default values:
+  
+    vars = [x,y]    vB=[p,q]
+    
+- fs is a mandatory parameter consisting of functions of the variables in vars ( given
+  or default [x,y] ), the number of which has to be equal the number of elements of
+  vars. Each function corresponds the respective element of vars, and can be
+  thought as standing for the respective unknown coordinate function in the 
+  solution. That is if
+  
+    vars = [x,y],   fs = [xi(x,y), eta(x,y)],   vB = [p,q]
+    
+  then xi(x,y)*p+eta(x,y)*q is the assumed form of the vectorfields of the inverse
+  lie algebra.
+
+- The result is a Janet-Base in the functions from fs which has the inverse lie
+  algebra to the given lie algebra as its solution.
+  
+  The term 'inverse lie algebra' of a lie algebra of vectorfields V1,...,Vn is
+  meant to consist of all vectorfields Y with
+  
+  [Y, Vi] = ci1 * V1 + ... + cin * Vn
+  
+  for all i = 1,...,n   
+  
+- If solve=true is included ( alway as the last parameter ) then the equations 
+  of the Janet-Base are solved and a base for the inverse lie algebra is returned.
+  
+  
+EXAMPLES:
+
+SEE ALSO: vliebrack
+

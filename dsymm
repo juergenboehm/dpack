@@ -1,0 +1,1317 @@
+
+
+#
+#
+# computes the determining system
+#
+
+makeDeterminingSystem := proc ( deqs, varLists, fns )
+
+local m,n,
+	deqs1,
+	vBLists,
+	i,
+	varLists1,
+	zeroI,
+	vBLists1,
+	vfini,
+	deqslist,
+	dvarslist,
+    dvars,dvars0,
+    solveddeqs,
+	solveddeqs1,
+    reslist,
+    vectfini,vectfi,
+    resi,
+	resi1,
+    erg,res,res1,
+    resvar,
+    varexpo,
+    res1coeffs,
+    resubs0,
+    collvars,
+    odeflag,
+    idxlist,
+    vars2,
+    xx;
+	
+global _solvevars;
+
+if has ( [args], odetype ) then
+
+	odeflag := true;
+	
+else
+
+	odeflag := false;
+	
+fi;
+
+
+
+m := nops ( varLists[1] );
+n := nops ( varLists[2] );
+
+deqs1 := deqs;
+
+if type ( deqs1, algebraic ) then
+
+	deqs1 := [ deqs1 ];
+	
+fi;	# for convenience of input
+
+
+#
+# put the differential equation into jet-form with respect to the variables in varLists
+#
+
+deqs1 := map ( deqtoextform, deqs1, varLists );
+
+# 
+# the result is a set of pairs of list, each pair has first the deq in jet-form,
+# second a set of elements describing the dependend variables in jet-space
+# appearing in this deq in the form  [varindex,[deg1,...,degn]], e.g. [1,[2]] for 
+# y[2] when varLists is [[x],[y]]
+#
+
+if odeflag then
+
+	idxlist := [op(deqs1[1][2])];
+	idxlist := sort ( idxlist, (x,y)->evalb ( x[2][1] >= y[2][1] ) );
+	
+fi;
+
+vBLists := [[seq ( TTT||i, i = 1..m )],
+			[seq ( XXX||i, i = 1..n )] ];
+			
+varLists1 := fntoatom ( varLists );
+		
+		
+			
+zeroI := [ 0 $ m ];
+
+vBLists1 := [ vBLists[1], [seq ( makeextstr ( i, vBLists, zeroI ), i=1..n )]];			
+
+#
+# vfini is the vector descibing the displacement of the independent variables and
+# the dependent variables of zeroth degree
+#
+
+vfini := convert ( zip ( (x,y)->x*y, flatten2(vBLists), fns ), `+` );
+
+#
+# this call of dprolong initilizes the `prolongation engine` for later calls
+# to `computeEtaVal`
+#
+
+dprolong ( vfini, vBLists, varLists1, 1, noforget );
+
+deqslist := map ( x->x[1], deqs1 );
+
+#
+# follows the computation of the variables appearing in the jet-form of the deqs in
+# deqslist
+#
+
+dvarslist := map ( x->x[2], deqs1 );
+
+dvars := `union` ( op ( dvarslist ) );
+
+dvars0 := select ( x->tdeg(x[2]) > 0, dvars );
+
+dvars0 := map ( (x,y)-> makeextstr ( x[1], y, x[2] ), dvars0, varLists1 );
+
+#
+# dvars0 contains the dependend variables which appear in the
+# jet-form of the deqs in deqslist excluding those of the form y[0,0,...,0]
+#
+# dvars contains these too
+#
+
+dvars := map ( (x,y)-> makeextstr ( x[1], y, x[2] ), dvars, varLists1 );
+
+#
+# now try to put the deqs in deqslist into solved form with respect to a suitably
+# chosen subset of the vars in dvars0
+#
+
+if not odeflag then
+
+	if not assigned ( _solvevars ) then
+
+		# notice that using dvars0 instead of dvars prevents a base depvar u[0,..,0]
+		# from accidentally been substituted for below
+		# where it would cause problems with diff ( xi (...), ..., u[0,..,0],... ) in resi
+
+		solveddeqs := solveeqsys ( deqslist, dvars0, [] );
+		solveddeqs1 := extformtodeq ( solveddeqs, varLists1 );
+
+	else
+	
+		solveddeqs := solveeqsys ( deqslist, _solvevars, [] );
+		solveddeqs1 := extformtodeq ( solveddeqs, varLists1 );
+	
+	fi;		
+
+
+else
+
+	resvar := makeextstr ( idxlist[1][1], varLists1, idxlist[1][2] );
+
+	solveddeqs := deqs1[1][1];
+	solveddeqs := expand ( solveddeqs );
+	solveddeqs := collect ( solveddeqs, resvar );
+	varexpo := degree ( solveddeqs, resvar );
+	
+	solveddeqs := resvar^varexpo = frontend ( solve , [solveddeqs, resvar^varexpo] );
+		
+fi;
+		
+
+#
+# this will later be used to express the condition for the infinitesimal displacement
+# to be 0 on the submanifold in jet-space described by the solutions of the deq
+# ( at other points the displacement may be arbitrary )
+#
+
+
+if solveddeqs = FAIL then
+
+	ERROR ( `makeDeterminingSystem failed: can't put deqs in solved form` );
+	
+fi;
+
+
+reslist := [];
+
+#
+# attention : vectfini is redefined to contain only displacement with respect to the
+# independent variables
+#
+#
+
+vectfini := convert ( zip ( (x,y)->x*y, vBLists[1], [op(fns[1..m])] ), `+` );
+ # update to V4
+
+for i from 1 to nops ( deqslist ) do
+
+	# now a vector decribing the infinitesimal movement is constructed with
+	# respect to only those variables that actually appear in the
+	# deq just considered
+
+	vectfi := convert (
+				map ( (x,y)->makeextstr ( x[1], y, x[2] ) * 
+								computeEtaVal (x[1],x[2]), dvarslist[i], vBLists ),
+								`+` );
+	#
+	# now it is applied ( vectfini is added for displacement of the independent
+	# variables )
+	#
+								
+	resi := vecapply ( vectfini+vectfi, vBLists, varLists1, deqslist[i] );
+	
+	#
+	# now the solved form of the deqs is substituted into the expression of
+	# the displacement, to express the fact that the displacement has to be 0 only
+	# on the solution-submanifold in jet-space
+	#
+	
+	if not odeflag then
+
+#       This was the old approach with solveddeqs
+
+		resi := normal ( eval ( value ( subs ( solveddeqs, resi ) ) ) );
+
+		resi := normal ( numer ( resi ) );
+
+#		deqlxform := map ( x->x[1], deqs1 );
+
+#		resi := simplify ( resi, deqlxform );
+
+#		resi := normal ( numer ( resi ));
+	
+	else
+	
+		resi := dsimplify ( resi, [solveddeqs], [resvar]  );
+
+		resi := normal ( numer ( resi ) );
+				
+	fi;
+	
+	reslist := [op(reslist), resi ];
+	
+od;
+
+erg := [];
+
+#
+# in the next loop the actual conditions are obtained by considering the expressions
+# as polynomials in the jet-space variables and pulling out their coefficients
+# which are the linear DEs describing the symmetries
+#
+
+for res in reslist do
+
+	dvars0 := indets ( res );
+	
+#	dvars0 := select ( (x,xx)->type(x, indexed ) and member ( op(0,x),xx ) 
+#							and type ( [op(x)], list(integer) ) and
+#							convert ( [op(x)], `+` ) <> 0,
+#					dvars0, varLists1[2] );
+
+	dvars0 := select ( (x,xx)->type(x, vecnobaseindet(xx) ),
+					dvars0, varLists1 );
+
+	# collvars := dvars0;
+
+	# res := numer ( normal ( res ));
+
+	vars2 := [op(varLists1[1]), seq ( makeextstr ( i, varLists1, zeroI ), i=1..n )];
+	
+	# print ( vars2 );
+
+	xx := makeratform ( res, dvars0, vars2 );
+	
+	res := xx[1];
+	
+	collvars := xx[2];
+
+
+	# res := numer ( normal ( res ));
+
+	res1 := collect (res, collvars, distributed );
+	
+	res1coeffs := [coeffs ( res1, collvars ) ];
+	
+	erg := [op(erg), op(res1coeffs) ];
+	
+od;
+
+#
+# the dependent variables of 0-th order are freed of their index, so that the
+# result is in a nice form
+#
+
+resubs0 := [seq ( makeextstr ( i, varLists1, zeroI ) = varLists1[2][i], i=1..n )];
+erg := subs ( resubs0, erg );
+
+forget ( makeDoperat );
+forget ( computeEtaVal );
+
+erg;
+
+end:
+
+
+#
+# to put a general system of equations into a solved `triangular` form by successively
+# solving for variables, preferring those in which equations are linear and doing
+# some backtracking if necessary.
+#
+#
+
+
+solveeqsys := proc ( eqs, solvevars, solved_eqs )
+
+local i,eq1,tryvars,tvar,seq1,seqs,eqss,res,rs1;
+
+global _radicalallowed;
+
+if not assigned ( _radicalallowed ) then
+
+	_radicalallowed := false;
+	
+fi;
+
+if nops ( eqs ) = 0 then
+
+	RETURN ( solved_eqs );
+	
+fi;
+
+for i from 1 to nops ( eqs ) do
+
+	eq1 := eqs[i];
+	
+	tryvars := indets ( eq1 ) intersect {op(solvevars)};
+	
+	for tvar in tryvars do
+	
+		# try linear form first
+
+		if type ( eq1, linear ( tvar ) ) and member( tvar, solvevars ) then
+		
+			seq1 := tvar = solve ( eq1, tvar );
+			
+			seqs := [op(solved_eqs), seq1];
+			
+			eqss := dsimplify ( subs ( seq1, [op(eqs[1..i-1]),op(eqs[i+1..nops(eqs)])] ));
+
+			res := solveeqsys ( eqss, solvevars, seqs );
+			
+			if res <> FAIL then
+			
+				RETURN ( res );
+				
+			fi;
+			
+		# if that fails try general
+			
+		elif member ( tvar, solvevars ) then
+		
+			rs1 := solve ( eq1, tvar );
+			
+		# but don't accept RootOf-Expressions, we want to stay rational
+		
+			if nops ( [rs1] ) = 0 then next; fi;
+			if nops ( [rs1] ) > 1 then
+				if not _radicalallowed then 
+					next;
+				else
+					rs1 := op(1,[rs1]);
+				fi;
+			fi;
+						
+			if has ( [rs1], RootOf ) then
+### WARNING: note that `I` is no longer of type `radical`
+				rs1 := convert ( rs1, radical );
+			fi;	
+			
+			if has ( [rs1], RootOf ) then next; fi;
+			if hastype ( [rs1], radfunext ) and not _radicalallowed then next; fi;
+			if not type ( rs1, ratpoly ) and not _radicalallowed then next; fi; 
+			
+			if  true then
+				
+				seq1 := tvar = rs1;
+
+				seqs := [op(solved_eqs), seq1];
+
+				eqss := dsimplify ( subs ( seq1, [op(eqs[1..i-1]),op(eqs[i+1..nops(eqs)])] ));
+
+				res := solveeqsys ( eqss, solvevars, seqs );
+
+				if res <> FAIL then
+
+					RETURN ( res );
+
+				fi;
+			
+			fi;
+			
+		fi;					
+				
+	od;
+
+od;
+
+RETURN ( FAIL );
+
+end:
+
+
+#
+#
+#
+
+ 
+makeratform := proc ( e, vars1, vars2 )
+
+local e1,
+		vars,
+		idts,
+		idtsfun, idtsexp, idtslog,
+		idtsfun1, idtsexplog1, idtsexplog2,
+		expsl,
+		logsl,
+		i,
+		newvars,
+		e11;
+
+global _ratformRESULT;
+
+e1 := convert ( e, expln );
+
+if not has ( e1, [exp, ln ] ) then
+
+	RETURN ( [e, vars1] );
+	
+else
+
+	vars := [op(vars1), op(vars2)];
+
+	e1 := dsimplify( e1, symbolic );
+
+	idts := indets ( e1 );
+
+
+	idtsfun1 := select ( type, idts, function ( anything ) );
+	
+	idtsfun1 := select ( has, idtsfun1, vars1 );
+	
+	idtsexplog1 := select ( x->member(op(0,x),[exp,ln]), idtsfun1 );
+	
+
+	idtsfun := select ( type, idts, function ( ratpoly ( anything, vars ) ) );
+
+	idtsexp := select ( x->op(0,x)=exp, idtsfun );
+
+	idtslog := select ( x->op(0,x)=ln, idtsfun );
+	
+	idtsexp := select ( has, idtsexp, vars1 );
+	
+	idtslog := select ( has, idtslog, vars1 );
+	
+	
+	idtsexplog2 := idtsexp union idtslog;
+
+	if idtsexplog1 union idtsexplog2 <> idtsexplog2 then
+
+		print ( `Warning: ratform FAILED` );
+	
+		_ratformRESULT := FAIL;
+
+	fi;
+	
+	logsl := [ seq ( idtslog[i]=LLLXXX||i, i = 1..nops (idtslog) ) ];
+	expsl := [ seq ( idtsexp[i]=EEEXXX||i, i = 1..nops (idtsexp) ) ];
+	
+	newvars := [op ( map ( rhs, logsl )), op(map(rhs, expsl)) ];
+	
+	e11 := subs ( [op(logsl),op(expsl)], e1 );
+	
+	RETURN ( [normal(e11), [op(vars1), op(newvars)]] );
+	
+fi;
+	
+end;
+
+
+#
+#
+#
+#
+#
+
+deqorder := proc ( deq, varLists );
+
+vecorder ( deqtoextform ( deq, varLists )[1], varLists );
+
+end;
+
+
+#########################################################################################
+#
+#	makeDefiningSystem
+#
+# 
+#########################################################################################
+
+
+#
+#
+
+ordzerofn := proc ( varLists )
+
+map ( (x,y)->x(op(y)), varLists[2], varLists[1] );
+
+end;
+
+#
+#
+
+makeDefiningSystem := proc ( deq, varLists, fname )
+
+local deq1,
+		ord,
+		vv,
+		fn0,
+		indetfnl,
+		indetcns,
+		indetfnl1,
+		indetcns1,
+		eq1, eq2,
+		slfnl, slcns,
+		ff, deqx,
+		deql,
+		ffs, jb;
+		
+
+
+deq1 := deqtoextform ( deq, varLists )[1];
+
+ord := vecorder ( deq1, varLists );
+
+vv := makeextvarlist ( varLists, ord );
+
+fn0 := ordzerofn ( varLists );
+
+
+indetfnl := getindetfnl ( deq1, vv );
+
+indetfnl := remove ( member, indetfnl, fn0 );
+
+indetcns := getindetcns ( deq1, vv );
+
+
+indetfnl1 := completeargs ( indetfnl, vv );
+
+indetcns1 := completeargs ( indetcns, vv );
+
+eq1 := getdeqs ( indetfnl, indetfnl1, vv );
+
+eq2 := getdeqs ( indetcns, indetcns1, vv );
+
+
+slfnl := zip ( (x,y) -> x = y, indetfnl, indetfnl1 );
+
+slcns := zip ( (x,y) -> x = y, indetcns, indetcns1 );
+
+deq1 := subs ( slfnl, deq1 );
+
+deq1 := subs ( slcns, deq1 );
+
+
+ff := fname ( op( vv ) );
+
+deqx := ff - deq1;
+
+
+deql := [deqx, op(eq1), op(eq2)];
+
+ffs := [ff, op(indetfnl1), op(indetcns1)];
+
+
+setcotes ( ffs, elimOrder2 ( ffs, nops ( ffs ) - 1 ) );
+
+
+if type ( deql, list ( dlinear ( ffs ) ) ) then
+
+	jb := makeJanetBase ( deql, ffs );
+	
+	jb := csimpJanetBase ( jb, ffs );
+	
+	jb := dselfun ( jb, ffs, [ff] );
+	
+else
+
+	RETURN ( FAIL );
+
+fi;
+	
+end;
+
+#
+#
+
+getdeqs := proc ( indetl, indetl1, vv )
+
+local l,
+		el, la, res;
+
+l := listparallel ( indetl, indetl1 );	
+
+res := [];
+
+for el in l do
+
+	la := outer ( [vv, l], (x,y)-> [diff(y[1], x), diff(y[2], x )] );
+
+	la := select ( x -> x[1] = 0, la );
+	
+	la := map ( x->x[2], la );
+
+	res := [op(res), op(la)];
+
+od;
+
+res;
+
+end;
+
+#
+#
+
+completeargs := proc ( el, vv )
+
+local e, vv1, res;
+
+vv1 := op( vv );
+
+res := [];
+
+for e in el do
+
+	if type ( e, functionx (name) ) then
+	
+		res := [op(res), op(0,e)(vv1)];
+	
+	elif type (e, name ) then
+	
+		res := [op(res), e(vv1)];
+
+	else
+	
+		RETURN ( FAIL );
+		
+	fi;
+
+od;
+
+res;
+
+end;
+
+#
+
+getindetfnl := proc ( e, vv )
+
+local idts, res;
+
+idts := [op(indets ( e ))];
+
+res := select ( type, idts, functionx (name) );
+
+
+res := select ( (x, y) -> issubset ( {op ( x )}, y) , res, vv );
+
+if nops ( [res] ) = 0 then 
+
+	RETURN ( [] );
+	
+else
+
+	RETURN ( res );
+	
+fi;
+
+end;
+
+#
+#
+
+issubset := proc ( A, B )
+
+local a1, b1;
+
+a1 := {op(A)};
+
+b1 := {op(B)};
+
+evalb ( (a1 union b1) = b1 );
+
+end;
+
+#
+#
+
+getindetcns := proc ( e, vv )
+
+local idts, res;
+
+idts := [op(indets ( e ))];
+
+res := select ( type, idts, name );
+
+res := select ( (x,y) -> not member ( x, y ), res, vv );
+
+if nops ( [res] ) = 0 then 
+
+	RETURN ( [] );
+	
+else
+
+	RETURN ( res );
+	
+fi;
+
+end;
+
+
+##########################################################################################
+#
+#
+#
+##########################################################################################
+
+
+
+
+#
+#
+#
+#
+#
+# makeStructureGroup
+#
+#
+
+makeStructureGroup := proc ( defeql, vBLists, varLists, flist , extv, extfn, extvb )
+
+# defeql is a list of differential equations which are calculated by
+# makeDefiningSystem.
+#
+# they are LPDE in F ( vars ) where vars are extvars from varLists up to the
+# highest order that occurs in the defeql.
+#
+#
+
+# vBLists and varLists belong to defeql
+#
+
+# flist is a list of infinitesimal displacement functions which correspond with
+# vBLists and varLists. The arguments of these functions are 0-th order from
+# varLists
+#
+
+#
+# extv, extfn, extvb are the new vars, functions, vblists.
+#
+#
+
+
+
+local fn,
+		ord,
+		vl,
+		vb,
+		flist1,
+		i,
+		vf1,
+		vf2,
+		vv,
+		extfn1,
+		vf3,
+		fullvb,
+		fullvl,
+		fnl,
+		ds,
+		sl,
+		fs,
+		fsa,
+		dsa,
+		jb,
+		jb1,
+		res;
+
+
+
+fn := op ( dgetfun ( defeql ) );
+
+ord := vecorder ( fn, varLists );
+
+# vecorder gets the order of the highest order variable in fn
+
+
+vl := makeextvarlist ( varLists, ord );
+
+vb := makevbaselist ( vBLists, ord );
+
+vb := flatstrstr ( vb );
+
+#
+#
+
+flist1 := vectostdform ( flist, vBLists, varLists );
+
+#
+# flist1 is flist put into vec-standardform, e.g. y becomes y[0]
+#
+# attention - flist is a list of functionx (name)
+#
+
+vf1 := add ( flatstrstr(vBLists)[i] * flist[i], i = 1..nops (flist) );
+
+# 
+# vf1 is the base vectorfield in the old vB and with functions
+# from flist. 
+#
+
+vf2 := dprolong ( vf1, vBLists, varLists, ord );
+
+#
+# it gets prolonged up the order ord
+#
+
+#
+# add the new extv variables to the old vl. this gives a list
+# of the new variables
+#
+
+vv := [op(vl), op(extv)];
+
+#
+# gives all the functions in extfn a complete list of arguments vv  
+#
+
+extfn1 := map ( (x,y)-> x(op(y)), extfn, vv );
+
+
+# proceed now with the vectorfield vf2 
+
+
+vf3 := add ( extvb[i] * extfn1[i], i=1..nops ( extvb ) );
+
+vf2 := vf2 + vf3;
+
+# vf2 is the full vectorfield, made from old vBLists and extv
+
+
+
+
+fullvb := [vb, extvb];
+
+# full old vB indeterminates of order ord, followed by the new vB indeterminates
+#
+# fullvb is a vBLists
+#
+
+fullvl := [vl, extv];
+
+# same for variables 
+#
+# fullvl is a varLists made from old prolonged vl and the given new extv
+#
+
+
+fnl := coeffslin ( vf2, flatstrstr ( fullvb ) );
+
+# fnl is the list of coefficients of the vectorfield vf taken
+# at the flattened vblist fullvb
+
+
+
+
+ds := makeDeterminingSystem ( defeql, fullvl, fnl );
+
+#
+# symmetries of the defeql argument are determined
+# with respect to fullvl and fnl
+# note that the functions in fnl are not necessarily
+# of the form functionx (name)
+#
+
+
+sl := [ seq ( flist1[i] = op ( 0, flist1[i] ) ( op(vv) ), i=1..nops (flist1) )];
+
+#
+# substitution which gives old flist members the full argument list vv
+# 
+
+fs := [op(flist1), op(extfn1)];
+
+#
+# make the new fs by the old flist1, which is flist in vec-standardform,
+# and the new extfn1 functions, which stem from extfn
+#
+
+fs := subs ( sl, fs );
+
+#
+# now do the substitution to give the functions in flist1 a full list vv of
+# arguments
+#
+
+setcotes ( fs, lexOrder ( fs ) );
+
+#
+# asssign to fs an order in which flist1 is lower than extfn1
+#
+
+
+
+
+
+#
+# apply sl to the determining system ds
+# 
+
+ds := subs ( sl, ds );
+
+
+dsa := outer ( [sl, flatstrstr(fullvl)],(x,y)->[diff(lhs(x),y),diff(rhs(x),y)] );
+
+dsa := select ( x->x[1] = 0, dsa );
+
+dsa := map ( x->x[2], dsa );
+
+#
+# dsa contains the differential equations that express the independence 
+# of the flist1 from variables in vv
+#
+
+ds := [op(ds), op(dsa)];
+
+#
+# now ds contains all the necessary lpde.
+# ds are from makeDeterminingSystem, dsa see above
+#
+
+
+jb := makeJanetBase ( ds, fs );
+
+jb := csimpJanetBase ( jb, fs );
+
+
+#
+# now we have computed a Janetbase of the full ds with respect to fs
+#
+
+
+#
+# now do a backsubstitution from the longform flist1 to
+# the shortform flist
+# 
+
+
+jb1 := normevalval ( subs ( swapeqs ( sl ), jb ) );
+
+jb1 := remove ( x->x=0, jb1 );
+
+#
+# remove zeros from jb1
+#
+
+res := [jb, fs, jb1, flist1, vf2, fullvb, fullvl];
+
+remcotes ( fs );
+
+
+res;
+
+end;
+
+#
+#
+#
+#
+#
+
+makeInvariants := proc ( dfs, ds, ord, relord )
+
+local deqs,
+		fs,
+		flist1,
+		fs1,
+		vf1,
+		fullvb,
+		fullvl,
+		loes, loes1,
+		deqs1,
+		sl, slr,
+		deqs1a, deqs1b,
+		fsdfs,
+		varsom,
+		vars0,
+		indl,
+		vf2, vf3,
+		cfs,
+		fargs, fargs1,
+		vv, 
+		dop, 
+		eqa,
+		relsds,
+		relsdfs, relsdfs0, relsdfsv,
+		eql, eqladd,
+		inv, time0;
+		
+		
+		
+
+global _prolongrels, _prolongrelsv, _xxxbuffer;
+
+
+deqs := ds[1];				  # the defining equations for the structure group
+							
+fs := ds[2];				  # the long argument functions in deqs	
+
+flist1 := ds[4];			  # flist1 are functions with short argument list
+
+fs1 := fs[1..nops(flist1)];   # fs1 are functions with long argument list
+
+vf1 := ds[5];				  # xi * p + eta * q0 + eta1 * q1 + h * t
+
+fullvb := ds[6];			  # [[p,q0,q1],[t]]
+
+fullvl := ds[7];			  # [[x,y0,y1],[F]]
+
+#
+#
+#
+
+print ( `solve equations for structure group` );
+
+loes := xpdesolve ( deqs, fs );
+
+
+
+print ( `reducing solutions` );
+
+loes1 := reduceSolution ( loes, fs1 );
+
+# now we have thrown out all the vectorfields that move F and leave x, y0, y1 
+# fixed
+#
+# only those vectorfields are left where F undergoes a displacement because
+# x, y0, y1 are moved
+#
+
+print ( `reconstructing new equations` );
+
+deqs1 := parmElimX ( eq2expr ( loes1 ), fs );
+
+# deqs1 result from deqs by removing
+# unnecessary freedom in h(x,y0,y1,F) 
+
+#
+
+print ( `forming reduction relations` );
+
+
+#
+#
+#
+
+sl := zip ( (x,y) -> x = y, fs1, flist1 );  
+
+# fs1 long to flist1 short
+
+# e.g. subs ( sl, xi ( x, y0, y1, F ) ) = xi ( x, y0 )
+
+slr := swapeqs ( sl );
+
+#
+# substitute reverse, short to long
+#
+
+#
+#
+
+setcotes ( fs, lexOrder ( fs ));	# lexOrder in fs was used to compute
+									# the structure equation
+
+relsds := janbasToeqsys ( deqs1, fs );
+
+
+print ( `relsds = `, relsds );
+
+#
+#
+
+print ( `forming reduction relations for F` );
+
+fsdfs := map ( (x,y) -> x ( op(y) ), fullvl[2], fullvl[1] );
+
+setcotes ( fsdfs, totDegOrder ( fsdfs ));
+
+relsdfs := janbasToeqsys ( dfs, fsdfs ); # dfs is from argumentlist
+										 # it contains the defining equations
+										 # for the class of dequation choosen 
+
+relsdfs0 := map ( x->lhs(x) = 0, relsdfs ); # set leading terms to zero
+
+relsdfsv := makerelsv ( fullvl, relsdfs, ord );	# extend relation list
+												# up to order ord, by
+												# first extending fullvl to
+												# order ord and then using
+												# reduction relations relsdfs
+												#
+												# the result is a list of 
+												# substitutions 
+												#
+													
+
+print ( `relsdfs = `, relsdfs );
+
+#
+#
+
+print ( `preparing argument list of invariant function` );
+
+# varsom means 'vars omega'
+
+vars0 := dgetvars ( flist1 );
+
+
+varsom := makeextvarlist ( fullvl, ord ); # ord is the order of the prolongation
+										  # of the structure group
+										  # which is given e.g by
+										  # [[x,y0,y1],[F]] and [[p,q0,q1],[t]]
+										  # 
+
+varsom := remove ( member, varsom, vars0 );
+
+
+varsom := extformtodeq ( varsom, fullvl );	# extformtodeq translates F[1,2,3]
+											# into diff ( F[x,y0,y1], x$1, y0$2, y1$3 )
+
+varsom := tdsubs ( relsdfs0, varsom );	# now we throw out those diffmonoms, which
+										# are reducible by relsdfs. For this task
+										# only the leading terms have to be known,
+										# so that we can use our special relsdfs0.
+										#  
+
+varsom := remove ( x->x=0, varsom );	# clean from zeros
+
+varsom := map ( x->x[1], deqtoextform ( varsom, fullvl ));
+												# back into extform, that is
+												# diff(F(x,y0,y1),x,y0,y1) to
+												# F[1,1,1]
+
+
+print ( nops ( varsom ), ` variables` );
+
+#
+#
+
+print ( `extending displacement vector` );
+
+# replace h(x,y0,y1,F) by its expression in the xi(x,y0) and eta(x,y0)
+
+vf1 := subs ( subs ( sl, relsds ), vf1 );
+
+
+# _prolongrels := relsds;
+
+# _prolongrelsv := relsdfsv;
+
+
+indl := map ( extstrtoind, remove (member, varsom, fullvl[1]), fullvl );
+
+
+time0 := time ();
+
+# vf2 := dprolong ( vf1, fullvb, fullvl, ord, indl );
+
+vf2 := dprolong1 ( vf1, fullvb, fullvl, ord, indl );
+
+
+print ( `time needed for extending : `, time () - time0 );
+
+print ( `displacement vector extended ` );
+
+unassign ( '_prolongrels' );
+
+unassign ( '_prolongrelsv' );
+
+#
+#
+
+print ( `starting reduction of extended vector` );
+
+# first reduce the F[ijk] mod relsdfs
+
+vf2 := subs ( slr, vf2 );
+
+vf2 := subs ( diff = diffQQQ, vf2 );
+
+vf2 := extformtodeq ( vf2, fullvl );
+
+vf2 := tdsubs ( relsdfs, vf2 );
+
+vf2 := deqtoextform ( vf2, fullvl )[1];
+
+vf2 := subs ( diffQQQ = diff, vf2 );
+
+# then reduce modulo relsds (implicit Janetbase representation
+# of the structure group)
+
+vf2 := vectoshortform ( vf2, fullvb, fullvl );
+
+vf2 := tdsubs ( relsds, vf2 );
+
+print ( `reduction done` );
+
+#
+#
+
+print ( `forming equations for invariant` );
+
+
+vf2 := dcollect ( vf2, fs );
+
+vf3 := dselect ( vf2, fs, subs ( RELORD = relord, x->ddeg(x) > RELORD ) );
+
+
+cfs := [ dcoeffs ( vf3, fs ) ];
+
+print ( nops ( cfs ));
+
+cfs := map ( vectostdform, cfs, fullvb, fullvl );
+
+print ( nops ( cfs ));
+
+
+inv := omega ( op(varsom) );
+
+eql := vecapply ( cfs, fullvb, fullvl, inv );
+
+eql := select ( x->x<>0, eql );
+
+
+
+eqladd := [];
+
+fargs := remove ( member, varsom, fullvl[1] );
+
+fargs1 := map ( extvartodmonom, fargs, fullvl );
+
+for vv in fullvl[1] do
+
+	dop := unapply ( Diff (UU,vv) + add ( Diff ( fargs1[i], vv ) * Diff ( UU, fargs[i] ),
+												i = 1..nops ( fargs ) ), UU );
+												
+	eqa := dop ( inv );
+	
+	eqa := normevalval ( subs ( Diff = diff, eqa ) );
+	
+	eqa := tdsubs ( relsdfs, eqa );
+	
+	eqa := deqtoextform ( eqa, fullvl )[1];
+	
+	eqladd := [op(eqladd), eqa];
+
+od;
+
+print ( `equations formed` );
+
+#
+#
+
+print ( nops ( eql ) );
+
+[eql, eqladd, inv];
+
+### WARNING: `time0` is implicitly declared local
+end;
+
+
+#
+#
+#
+#
+#
+#
+
+makerelsv := proc ( vl, rels, ord )
+
+local evl,
+		evl1,
+		sl;
+
+evl := makeextvarlist ( vl, ord );
+
+evl := remove ( member, evl, vl[1] );
+
+
+evl1 := extformtodeq ( evl, vl );
+
+evl1 := tdsubs ( rels, evl1 );
+
+evl1 := map ( x->x[1], deqtoextform ( evl1, vl ) );
+
+
+sl := zip ((x,y)->x=y, evl, evl1 );
+
+
+end;

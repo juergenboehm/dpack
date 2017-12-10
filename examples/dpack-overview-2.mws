@@ -1,0 +1,752 @@
+{VERSION 5 0 "IBM INTEL LINUX" "5.0" }
+{USTYLETAB {CSTYLE "Maple Input" -1 0 "Courier" 0 1 255 0 0 1 0 1 0 0 
+1 0 0 0 0 1 }{CSTYLE "2D Math" -1 2 "Times" 0 1 0 0 0 0 0 0 2 0 0 0 0 
+0 0 1 }{CSTYLE "2D Output" 2 20 "" 0 1 0 0 255 1 0 0 0 0 0 0 0 0 0 1 }
+{CSTYLE "" -1 256 "" 1 14 0 0 0 0 0 0 0 0 0 0 0 0 0 0 }{CSTYLE "" -1 
+257 "" 1 14 0 0 0 0 0 0 0 0 0 0 0 0 0 0 }{CSTYLE "" -1 258 "" 1 14 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 }{CSTYLE "" -1 259 "" 1 14 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 }{CSTYLE "" -1 260 "" 1 14 0 0 0 0 0 0 0 0 0 0 0 0 0 0 }
+{CSTYLE "" -1 261 "" 1 14 0 0 0 0 0 0 0 0 0 0 0 0 0 0 }{CSTYLE "" -1 
+262 "" 1 14 0 0 0 0 0 0 0 0 0 0 0 0 0 0 }{CSTYLE "" -1 263 "" 1 14 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 }{CSTYLE "" -1 264 "" 1 14 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 }{CSTYLE "" -1 265 "" 1 14 0 0 0 0 0 0 0 0 0 0 0 0 0 0 }
+{CSTYLE "" -1 266 "" 1 14 0 0 0 0 0 0 0 0 0 0 0 0 0 0 }{CSTYLE "" -1 
+267 "" 1 14 0 0 0 0 0 0 0 0 0 0 0 0 0 0 }{CSTYLE "" -1 268 "" 1 14 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 }{CSTYLE "" -1 269 "" 1 14 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 }{CSTYLE "" -1 270 "" 1 14 0 0 0 0 0 0 0 0 0 0 0 0 0 0 }
+{CSTYLE "" -1 271 "" 1 14 0 0 0 0 0 0 0 0 0 0 0 0 0 0 }{CSTYLE "" -1 
+272 "" 1 14 0 0 0 0 0 0 0 0 0 0 0 0 0 0 }{CSTYLE "" -1 273 "" 1 14 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 }{CSTYLE "" -1 274 "" 1 14 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 }{CSTYLE "" -1 275 "" 1 14 0 0 0 0 0 0 0 0 0 0 0 0 0 0 }
+{CSTYLE "" -1 276 "" 1 14 0 0 0 0 0 0 0 0 0 0 0 0 0 0 }{CSTYLE "" -1 
+277 "" 1 14 0 0 0 0 0 0 0 0 0 0 0 0 0 0 }{CSTYLE "" -1 278 "" 1 14 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 }{CSTYLE "" -1 279 "" 1 14 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 }{CSTYLE "" -1 280 "" 1 14 0 0 0 0 0 0 0 0 0 0 0 0 0 0 }
+{CSTYLE "" -1 281 "" 1 14 0 0 0 0 0 0 0 0 0 0 0 0 0 0 }{CSTYLE "" -1 
+282 "" 1 14 0 0 0 0 0 0 0 0 0 0 0 0 0 0 }{CSTYLE "" -1 283 "" 1 14 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 }{CSTYLE "" -1 284 "" 1 14 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 }{CSTYLE "" -1 285 "" 1 14 0 0 0 0 0 0 0 0 0 0 0 0 0 0 }
+{CSTYLE "" -1 286 "" 1 14 0 0 0 0 0 0 0 0 0 0 0 0 0 0 }{CSTYLE "" -1 
+287 "" 1 14 0 0 0 0 0 0 0 0 0 0 0 0 0 0 }{CSTYLE "" -1 288 "" 1 14 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 }{PSTYLE "Normal" -1 0 1 {CSTYLE "" -1 -1 "
+" 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 }0 0 0 -1 -1 -1 0 0 0 0 0 0 -1 0 }
+{PSTYLE "Text Output" -1 2 1 {CSTYLE "" -1 -1 "Courier" 1 10 0 0 255 
+1 0 0 0 0 0 1 3 0 3 0 }1 0 0 -1 -1 -1 0 0 0 0 0 0 -1 0 }{PSTYLE "" 2 
+6 1 {CSTYLE "" -1 -1 "" 0 1 0 0 0 0 0 0 0 0 0 0 2 0 0 0 }0 0 0 -1 -1 
+-1 0 0 0 0 0 0 -1 0 }{PSTYLE "Maple Output" 0 11 1 {CSTYLE "" -1 -1 "
+" 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 }3 3 0 -1 -1 -1 0 0 0 0 0 0 -1 0 }
+{PSTYLE "" 11 12 1 {CSTYLE "" -1 -1 "" 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 }1 0 0 -1 -1 -1 0 0 0 0 0 0 -1 0 }{PSTYLE "" 0 256 1 {CSTYLE "" -1 
+-1 "" 1 14 0 0 0 0 0 0 0 0 0 0 0 0 0 0 }0 0 0 -1 -1 -1 0 0 0 0 0 0 -1 
+0 }{PSTYLE "" 0 257 1 {CSTYLE "" -1 -1 "" 1 14 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 }0 0 0 -1 -1 -1 0 0 0 0 0 0 -1 0 }{PSTYLE "" 0 258 1 {CSTYLE "" 
+-1 -1 "" 1 14 0 0 0 0 0 0 0 0 0 0 0 0 0 0 }0 0 0 -1 -1 -1 0 0 0 0 0 0 
+-1 0 }}
+{SECT 0 {EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "
+> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 
+"" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> \+
+" 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "" 0 "" {TEXT -1 0 "" }}
+{PARA 0 "" 0 "" {TEXT -1 0 "" }{TEXT 256 146 "This worksheet demonstra
+tes the Eigenring method of factorizing a system of LPDE with finite d
+eterminacy (finitely many\nconstants in the solution)" }{TEXT -1 0 "" 
+}}{PARA 0 "" 0 "" {TEXT -1 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 
+1 0 8 "restart;" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}
+{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 34 "read `packages/dpack8/readdp
+ack8`;" }}{PARA 6 "" 1 "" {TEXT -1 0 "" }}{PARA 6 "" 1 "" {TEXT -1 22 
+"   dpack version 0.1.0" }}{PARA 6 "" 1 "" {TEXT -1 40 "   a package f
+or differential equations " }}{PARA 6 "" 1 "" {TEXT -1 0 "" }}{PARA 6 
+"" 1 "" {TEXT -1 64 "+        vsubs ++      dtdsubs ++       dpackc ++
+       dcotes +" }}{PARA 6 "" 1 "" {TEXT -1 64 "+      ddepend ++     \+
+ dorders ++        dsort ++        dextd +" }}{PARA 6 "" 1 "" {TEXT 
+-1 64 "+   djanetbase ++         dlie ++    dprolong1 ++       dxpack \+
++" }}{PARA 6 "" 1 "" {TEXT -1 64 "+        dsymm ++        class ++   \+
+   dexperi ++    dlieclass +" }}{PARA 6 "" 1 "" {TEXT -1 64 "+   dsolv
+expde ++  dsolvelpde1 ++  dsolvexpdeX ++     driccati +" }}{PARA 6 "" 
+1 "" {TEXT -1 64 "+   dintegrate ++    dcancoord ++ groupdiscuss ++ dg
+enjanetbas +" }}{PARA 6 "" 1 "" {TEXT -1 64 "+     dtypinfo ++    dfil
+ecomm ++   dbasisprog ++   dbasislist +" }}{PARA 6 "" 1 "" {TEXT -1 
+64 "+   dbasismath ++   dbasisconv ++     dmakejac ++        dmisc +" 
+}}{PARA 6 "" 1 "" {TEXT -1 48 "+      dintrat ++   ejanetbase ++      \+
+efactor +" }}{PARA 6 "" 1 "" {TEXT -1 0 "" }}}{EXCHG {PARA 0 "> " 0 "
+" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}
+{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "" 0 "" 
+{TEXT -1 0 "" }}{PARA 0 "" 0 "" {TEXT -1 0 "" }{TEXT 258 199 "First we
+ define two vectorfields (p=d/dx, q=d/dy) which shall give rise to two
+ systems of LPDE in xi, eta, Ansatz xi * p + eta * q,\nwhich have as t
+heir solution spaces exactly those two vectorfields." }}{PARA 0 "" 0 "
+" {TEXT -1 0 "" }{TEXT 257 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 
+1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 17 "vf1:=[y*p,x^2*q]
+;" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#>%$vf1G7$*&%\"yG\"\"\"%\"pGF(*&)%
+\"xG\"\"#F(%\"qGF(" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}
+{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 27 "vf2:=[x*p+y*q,x^2*p+y^2*q];
+" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#>%$vf2G7$,&*&%\"xG\"\"\"%\"pGF)F)*
+&%\"yGF)%\"qGF)F),&*&)F(\"\"#F)F*F)F)*&)F,F1F)F-F)F)" }}}{EXCHG {PARA 
+0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 
+0 0 "" }}}{EXCHG {PARA 0 "" 0 "" {TEXT -1 1 "\n" }{TEXT 259 59 "The sw
+itch _xvers:=true improves the speed of makeJanetBase" }{TEXT -1 1 "\n
+" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> \+
+" 0 "" {MPLTEXT 1 0 13 "_xvers:=true;" }}{PARA 11 "" 1 "" {XPPMATH 20 
+"6#>%'_xversG%%trueG" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}
+}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 13 "fs:=[xi,eta];" }}{PARA 11 "
+" 1 "" {XPPMATH 20 "6#>%#fsG7$%#xiG%$etaG" }}}{EXCHG {PARA 0 "> " 0 "
+" {MPLTEXT 1 0 0 "" }}}{EXCHG }{EXCHG }{EXCHG {PARA 0 "> " 0 "" 
+{MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}
+{EXCHG {PARA 0 "" 0 "" {TEXT -1 0 "" }}{PARA 0 "" 0 "" {TEXT -1 0 "" }
+{TEXT 261 106 "vectfToJanetBase does the trick of turning the explicit
+ form of the vf1, vf2 in the implicit form jb1, jb2" }}{PARA 0 "" 0 "
+" {TEXT -1 0 "" }{TEXT 260 0 "" }}{PARA 0 "" 0 "" {TEXT -1 0 "" }}
+{PARA 0 "" 0 "" {TEXT -1 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 
+0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 
+0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 
+0 49 "jb1:=csimpJanetBase(vectfToJanetBase(vf1,fs),fs);" }}{PARA 11 "
+" 1 "" {XPPMATH 20 "6#>%$jb1G7&-%%diffG6$%$etaG%\"yG,&-F'6$F)%\"xG\"\"
+\"*(\"\"#F/F.!\"\"F)F/F2,&-F'6$%#xiGF*F/*&F*F2F6F/F2-F'6$F6F." }}}
+{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "
+" {MPLTEXT 1 0 49 "jb2:=csimpJanetBase(vectfToJanetBase(vf2,fs),fs);" 
+}}{PARA 11 "" 1 "" {XPPMATH 20 "6#>%$jb2G7&,(-%%diffG6$%$etaG%\"yG\"\"
+\"**,&%\"xGF,*&\"\"#F,F+F,!\"\"F,F+F2,&F/F,F+F2F2F*F,F2**F+F,F/F2F3F2%
+#xiGF,F2-F(6$F*F/-F(6$F5F+,(-F(6$F5F/F,**F/F,F+F2F3F2F*F,F,**,&*&F1F,F
+/F,F,F+F2F,F/F2F3F2F5F,F2" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 
+"" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "" 
+0 "" {TEXT -1 0 "" }}{PARA 0 "" 0 "" {TEXT -1 0 "" }{TEXT 262 241 "The
+ heart of vectfToJanetBase is the function below, which converts from \+
+an explicitly given solution set\nto a system of LPDE. The jb1, jb2 th
+ere are *not* used any further, instead the following computations pro
+ceed\nwith the jb1, jb2 above." }}{PARA 0 "" 0 "" {TEXT -1 0 "" }}
+{PARA 0 "" 0 "" {TEXT -1 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 
+0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 
+0 "> " 0 "" {MPLTEXT 1 0 53 "jb1:=parmElimX([xi-c1*x-c2*y^2,eta-c2*x^2
+],[xi,eta]);" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#>%$jb1G7&-%%diffG6$%$e
+taG%\"yG,&-F'6$F)%\"xG\"\"\"*(\"\"#F/F.!\"\"F)F/F2,&-F'6$%#xiGF*F/**F1
+F/F*F/F.!\"#F)F/F2,(-F'6$F6F.F/*(F*F1F.!\"$F)F/F/*&F.F2F6F/F2" }}}
+{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "
+" {MPLTEXT 1 0 49 "jb2:=parmElimX([xi-c1*x-c2*y,eta-c1*y],[xi,eta]);" 
+}}{PARA 11 "" 1 "" {XPPMATH 20 "6#>%$jb2G7&,&-%%diffG6$%$etaG%\"yG\"\"
+\"*&F+!\"\"F*F,F.-F(6$F*%\"xG,(-F(6$%#xiGF+F,*(F1F,F+!\"#F*F,F,*&F+F.F
+5F,F.,&-F(6$F5F1F,F-F." }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" 
+}}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "" 0 "
+" {TEXT -1 1 "\n" }{TEXT 263 191 "Now we compute the Janetbase jb3 whi
+ch has as its solutions the sum of the vectorspaces of the\nsolutions \+
+of jb1 and jb2. It has, as seen immediately, four parametric derivativ
+es, as expected." }{TEXT -1 1 "\n" }}}{EXCHG {PARA 0 "> " 0 "" 
+{MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}
+{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "
+" {MPLTEXT 1 0 37 "jb3:=janetBaseAdd2(jb1,jb2,[xi,eta]);" }}{PARA 12 "
+" 1 "" {XPPMATH 20 "6#>%$jb3G7',**&,&*&\"\"#\"\"\"%\"xGF+!\"\"*&F*F+%
+\"yGF+F+F+%#xiGF+F+*&-%%diffG6$%$etaGF/F+)F,F*F+F+**F*F+F/F+,&F,F+F/F-
+F+-F36$F0F/F+F+*(,&F,F+*&F*F+F/F+F-F+F,F+-F36$F0F,F+F+,**&F*F+F0F+F+*(
+F*F+F9F+F/F+F-*(F*F+F>F+F,F+F-*&F6F+-F36$F0-%\"$G6$F,F*F+F+-F36$F0-FH6
+$F/F*-F36%F0F,F/,,**F*F+,&*&F*F+F,F+F+F/F-F+F/F+F0F+F+*(F*F+F5F+F6F+F-
+*&-F36$F5F,F+)F,\"\"$F+F+**F*F+FRF+)F/F*F+F9F+F-*,F*F+F,F+F/F+F8F+F>F+
+F-" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 28 "jb3:=csimpJanetBase(j
+b3,fs);" }}{PARA 12 "" 1 "" {XPPMATH 20 "6#>%$jb3G7'-%%diffG6$%#xiG-%
+\"$G6$%\"yG\"\"#-F'6%F)%\"xGF-,*-F'6$F)-F+6$F1F.\"\"\"**F.F7F-F7F1!\"#
+-F'6$F)F-F7!\"\"*(F.F7F1F<-F'6$F)F1F7F<*(F.F7F1F9F)F7F7,*-F'6$%$etaGF-
+F7*,F.F7F-F7,&F1F7F-F<F7F1F9F:F7F7*(,&F1F7*&F.F7F-F7F<F7F1F<F>F7F7**F.
+F7FFF7F1F9F)F7F<,,-F'6$FDF1F7*,F.F7,&*&F.F7F1F7F7F-F<F7F-F.F1!\"$F:F7F
+<*,F.F7F-F7FFF7F1F9F>F7F<*(F.F7F1F<FDF7F<*,F.F7FOF7F-F7F1FQF)F7F7" }}}
+{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "
+" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}
+{EXCHG {PARA 0 "" 0 "" {TEXT -1 1 "\n" }{TEXT 264 257 "Now we compute \+
+the determining equations for the eigenring of jb3: res[1] is the endo
+morphism itself with undetermined\ncoefficients aaibj(x,y), res[2] is \+
+the system of LPDE for the aaibj(x,y) and res[3] the list of aaibj(x,y
+) occuring in res[1] resp. res[2]" }{TEXT -1 2 "\n\n" }}}{EXCHG {PARA 
+0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 
+0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 29 "res:=EpsilonD(jb3,
+jb3,fs,fs);" }}{PARA 12 "" 1 "" {XPPMATH 20 "6#>%$resG7%7$,**&-%&aa1b1
+G6$%\"xG%\"yG\"\"\"-%%diffG6$%#xiGF-F.F.*&-%&aa1b2GF+F.-F06$F2F,F.F.*&
+-%&aa1b3GF+F.F2F.F.*&-%&aa1b4GF+F.%$etaGF.F.,**&-%&aa2b1GF+F.F/F.F.*&-
+%&aa2b2GF+F.F6F.F.*&-%&aa2b3GF+F.F2F.F.*&-%&aa2b4GF+F.F>F.F.76*&,**&\"
+\"#F.F<F.!\"\"*(\"\"%F.-F06$F<F-F.F,F.F.*&-F06$F9-%\"$G6$F-FPF.)F,FPF.
+F.*(FSF.FTF.F-F.FQF.F,!\"#-F06$F<FY*&,,*(FPF.-F06$F9F-F.FfnF.F.**FSF.F
+TF.F-F.F,F.FQ*(FPF.F<F.F-F.F.*&-F06$F)FYF.FfnF.F.*(FSF.FTF.)F-FPF.F.F.
+F,Fhn*&,**(FSF.FTF.F-F.F.*(FPF.FTF.F,F.FQ*&FPF.F<F.F.*&-F06$F4FYF.F,F.
+F.F.F,FQ*&,.*(FPF.-F06$F<F,F.FfnF.F.**FPF.FbpF.F,F.F-F.FQ**FSF.FTF.F-F
+.F,F.FQ*(FPF.-F06$F4F-F.F,F.FQ*&-F06%F9F,F-F.)F,\"\"$F.F.*(FPF.FTF.Ffo
+F.F.F.F,!\"$*&,&*&FPF.FTF.F.*&-F06%F<F,F-F.F,F.F.F.F,FQ*&,0**FPF.FgpF.
+F,F.F-F.F.*(FPF.FTF.)F-F]qF.FQ**FPF.FbpF.F,F.FfoF.F.**FSF.FTF.FfoF.F,F
+.F.**FPF.FbpF.FfnF.F-F.FQ*&-F06$F9F,F.F\\qF.F.*&-F06%F)F,F-F.F\\qF.F.F
+.F,F_q*&,0**FPF.FbpF.F,F.F-F.F.*&-F06%F4F,F-F.FfnF.F.*(FPF.FgpF.F,F.F.
+*(FPF.FTF.FfoF.FQ*&FbpF.FfnF.FQ*&F^oF.FfnF.F.**FPF.FTF.F-F.F,F.F.F.F,F
+hn*&,2**FSF.FbpF.F,F.FfoF.F.*(FPF.FfoF.F<F.F.*(FSF.-F06$F4F,F.FfnF.FQ*
+(FSF.F,F.F4F.F.**FPF.F-F.F^oF.FfnF.FQ**\"\")F.FbpF.FfnF.F-F.FQ*(FPF.F_
+rF.F\\qF.FQ*&-F06$F9-FZ6$F,FPF.)F,FSF.F.F.F,!\"%*&,(*(FPF.FbpF.F,F.F.*
+&-F06$F<F^tF.FfnF.F.*(FPF.FTF.F-F.FQF.F,Fhn*&,4*(FPF.F\\qF.-F06$F)F,F.
+FQ**FisF.FbpF.FfnF.FfoF.F.*(FPF.FjqF.F<F.FQ*(FPF.F)F.FfnF.F.**FSF.FdsF
+.FfnF.F-F.F.**FSF.F,F.F4F.F-F.FQ**FPF.F-F.-F06$F)F-F.FfnF.FQ**FSF.FbpF
+.F,F.FjqF.FQ*&-F06$F)F^tF.F`tF.F.F.F,Fat*&,2*(FPF.F,F.F4F.FQ*(FPF.FdsF
+.FfnF.F.*(FPF.FfoF.F<F.FQ**FPF.FgpF.F,F.F-F.FQ*(FPF.F_rF.F\\qF.F.*&-F0
+6$F4F^tF.F\\qF.F.**FSF.FbpF.F,F.FfoF.FQ**FSF.FbpF.FfnF.F-F.F.F.F,F_q*&
+,:*(FPF.F,F.F4F.FQ**FPF.F-F.F^oF.FfnF.F.*&-F06$FGF-F.F\\qF.F.**FPF.Ffo
+F.F,F.F^oF.FQ*(FPF.FJF.FfnF.F.**FPF.FJF.F,F.F-F.FQ**FPF.F-F.F,F.F9F.F.
+F^rF.*(FSF.F-F.F4F.F.*(FPF.F9F.FfnF.FQ*(FPF.FfoF.F<F.F.**FPF.FfnF.F-F.
+F_rF.FQF.F,F_q*&,.*&-F06$FJF-F.FfnF.F.*(FPF.F<F.F-F.FQ*(FPF.FTF.FfoF.F
+QF\\sF.**FPF.FbpF.F,F.F-F.FQ**FPF.FTF.F-F.F,F.F.F.F,Fhn*&,@**FPF.FfoF.
+F,F.F9F.FQ**FPF.F-F.FduF.FfnF.F.*&FGF.F\\qF.F.**FPF.F-F.F,F.F)F.F.**FP
+F.FfnF.F-F.F9F.F.**FPF.FfoF.F,F.FduF.FQ*(FPF.FjqF.F<F.FQ**FPF.FJF.FfnF
+.F-F.FQ**FPF.F,F.F4F.F-F.F.*(FSF.FfoF.F4F.FQ**FPF.FfnF.F-F.F\\uF.FQ**F
+PF.FJF.F,F.FfoF.F.*&-F06$FAF-F.F\\qF.F.*(FPF.F)F.FfnF.FQ*&F\\qF.F\\uF.
+F.F.F,F_q*&,6*(FPF.FfoF.FgpF.FQ*&FdsF.FfnF.F.*&F9F.FfnF.F.**FPF.FJF.F,
+F.F-F.F.**FPF.FgpF.F,F.F-F.F.**FPF.FdsF.F-F.F,F.FQ**FPF.F-F.F,F.F9F.FQ
+*&-F06$FDF-F.FfnF.F.*(FPF.F-F.F4F.FQ*&FJF.FfnF.FQF.F,Fhn*&,<*(FPF.FGF.
+F\\qF.FQ*(FPF.FDF.FfnF.FQ**FPF.FjqF.F^oF.F,F.F.**FSF.FfoF.F^oF.FfnF.FQ
+*(FSF.FfoF.F4F.FQ**FSF.FfnF.F-F.F9F.F.**FSF.FJF.FfnF.F-F.FQ*&-F06$FGF,
+F.F`tF.F.**FPF.FfoF.F,F.F9F.FQ**FPF.F\\qF.F-F.F_rF.FQ**FPF.FfnF.FfoF.F
+_rF.F.**FSF.F,F.F4F.F-F.F.**FPF.FJF.F,F.FfoF.F.F.F,Fat*&,.**FPF.FbpF.F
+,F.FfoF.F.*&-F06$FJF,F.F\\qF.F.**FSF.FTF.FfoF.F,F.FQ**FPF.FbpF.FfnF.F-
+F.FQ*(FPF.FTF.FjqF.F.*(FPF.FfoF.F<F.F.F.F,F_q*&,@**FSF.F-F.F)F.FfnF.F.
+**FSF.FJF.FfnF.FfoF.F.**FPF.FDF.FfnF.F-F.F.*&-F06$FAF,F.F`tF.F.*(FSF.F
+jqF.F4F.F.**FPF.F\\qF.F-F.F\\uF.FQ**FPF.FJF.F,F.FjqF.FQ**FSF.FfoF.FduF
+.FfnF.FQ**FPF.FjqF.F9F.F,F.F.**FSF.FfoF.F9F.FfnF.FQ*(FPF.F\\qF.FAF.FQ*
+*FPF.FfoF.F)F.F,F.FQ**FPF.FjqF.FduF.F,F.F.**FSF.F,F.FfoF.F4F.FQ**FPF.F
+fnF.FfoF.F\\uF.F.F.F,Fat*&,:**FSF.FfoF.F,F.FgpF.FQ**FPF.FfnF.F-F.F9F.F
+Q*(FPF.FjqF.FgpF.F.*(FPF.FfoF.F4F.F.FbxF.**FPF.FdsF.FfnF.F-F.FQ*&-F06$
+FDF,F.F\\qF.F.**FPF.FJF.F,F.FfoF.FQ**FPF.FfoF.F,F.F9F.F.**FPF.FfoF.Fds
+F.F,F.F.*(FPF.FjqF.F<F.FQ**FPF.FJF.FfnF.F-F.F.F.F,F_q7*F)F4F9F<FAFDFGF
+J" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> \+
+" 0 "" {MPLTEXT 1 0 16 "_verbose:=false;" }}{PARA 11 "" 1 "" {XPPMATH 
+20 "6#>%)_verboseG%&falseG" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 
+13 "_xvers:=true;" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#>%'_xversG%%trueG
+" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> \+
+" 0 "" {MPLTEXT 1 0 20 "debug(pdesolvesysX);" }}{PARA 11 "" 1 "" 
+{XPPMATH 20 "6#%-pdesolvesysXG" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 
+1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG 
+{PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "" 0 "" {TEXT 
+-1 0 "" }{TEXT 265 154 "\nNow we solve the determining equations for t
+he coefficients of the endomorphism with xpdesolve, our master tool\nf
+or solving all kinds of systems of LPDE\n" }}}{EXCHG {PARA 0 "> " 0 "
+" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}
+{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "
+" {MPLTEXT 1 0 31 "loes:=xpdesolve(res[2],res[3]);" }}{PARA 11 "" 1 "
+" {XPPMATH 20 "6#7*-%&aa1b1G6$%\"xG%\"yG-%&aa1b2GF&-%&aa1b3GF&-%&aa1b4
+GF&-%&aa2b1GF&-%&aa2b2GF&-%&aa2b3GF&-%&aa2b4GF&" }}{PARA 11 "" 1 "" 
+{XPPMATH 20 "6#7,-%&aa1b1G6$%\"xG%\"yG-%&aa1b2GF&-%&aa1b3GF&-%&aa1b4GF
+&-%&aa2b1GF&-%&aa2b2GF&-%&aa2b3GF&-%(aa2b4_1GF&-%(aa2b4_2GF&-%(aa2b4_3
+GF&" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#7+-%&aa1b1G6$%\"xG%\"yG-%&aa1b2
+GF&-%&aa1b3GF&-%&aa1b4GF&-%&aa2b1GF&-%&aa2b2GF&-%&aa2b3GF&-%(aa2b4_1GF
+&-%(aa2b4_2GF&" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#7+-%&aa1b1G6$%\"xG%
+\"yG-%&aa1b2GF&-%&aa1b3GF&-%&aa1b4GF&-%&aa2b1GF&-%&aa2b2GF&-%&aa2b3GF&
+-%(aa2b4_2GF&-%*aa2b4_1_1GF&" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#7*-%&a
+a1b1G6$%\"xG%\"yG-%&aa1b2GF&-%&aa1b3GF&-%&aa1b4GF&-%&aa2b1GF&-%&aa2b2G
+F&-%&aa2b3GF&-%(aa2b4_2GF&" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#7*-%&aa1
+b1G6$%\"xG%\"yG-%&aa1b2GF&-%&aa1b3GF&-%&aa1b4GF&-%&aa2b1GF&-%&aa2b2GF&
+-%&aa2b3GF&-%*aa2b4_2_1GF&" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#7)-%&aa1
+b1G6$%\"xG%\"yG-%&aa1b2GF&-%&aa1b3GF&-%&aa1b4GF&-%&aa2b1GF&-%&aa2b2GF&
+-%&aa2b3GF&" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#7)-%&aa1b1G6$%\"xG%\"yG
+-%&aa1b2GF&-%&aa1b3GF&-%&aa2b1GF&-%&aa2b2GF&-%&aa2b3GF&-%(aa1b4_1GF&" 
+}}{PARA 11 "" 1 "" {XPPMATH 20 "6#7)-%&aa1b1G6$%\"xG%\"yG-%&aa1b2GF&-%
+&aa1b3GF&-%&aa2b1GF&-%&aa2b2GF&-%&aa2b3GF&-%*aa1b4_1_1GF&" }}{PARA 11 
+"" 1 "" {XPPMATH 20 "6#7(-%&aa1b1G6$%\"xG%\"yG-%&aa1b2GF&-%&aa1b3GF&-%
+&aa2b1GF&-%&aa2b2GF&-%&aa2b3GF&" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#7*-
+%&aa1b1G6$%\"xG%\"yG-%&aa1b2GF&-%&aa1b3GF&-%&aa2b1GF&-%&aa2b2GF&-%(aa2
+b3_1GF&-%(aa2b3_2GF&-%(aa2b3_3GF&" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#7
++-%&aa1b1G6$%\"xG%\"yG-%&aa1b3GF&-%&aa2b1GF&-%&aa2b2GF&-%(aa2b3_1GF&-%
+(aa2b3_2GF&-%(aa2b3_3GF&-%(aa1b2_1GF&-%(aa1b2_2GF&" }}{PARA 12 "" 1 "
+" {XPPMATH 20 "6#7--%&aa1b1G6$%\"xG%\"yG-%&aa1b3GF&-%&aa2b1GF&-%&aa2b2
+GF&-%(aa2b3_1GF&-%(aa2b3_2GF&-%(aa2b3_3GF&-%(aa1b2_1GF&-%*aa1b2_2_1GF&
+-%*aa1b2_2_2GF&-%*aa1b2_2_3GF&" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#7,-%
+&aa1b1G6$%\"xG%\"yG-%&aa1b3GF&-%&aa2b1GF&-%&aa2b2GF&-%(aa2b3_1GF&-%(aa
+2b3_2GF&-%(aa2b3_3GF&-%(aa1b2_1GF&-%*aa1b2_2_1GF&-%*aa1b2_2_2GF&" }}
+{PARA 11 "" 1 "" {XPPMATH 20 "6#7+-%&aa1b1G6$%\"xG%\"yG-%&aa1b3GF&-%&a
+a2b1GF&-%&aa2b2GF&-%(aa2b3_1GF&-%(aa2b3_2GF&-%(aa2b3_3GF&-%(aa1b2_1GF&
+-%*aa1b2_2_1GF&" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#7*-%&aa1b1G6$%\"xG%
+\"yG-%&aa1b3GF&-%&aa2b1GF&-%&aa2b2GF&-%(aa2b3_1GF&-%(aa2b3_2GF&-%(aa2b
+3_3GF&-%(aa1b2_1GF&" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#7+-%&aa1b1G6$%
+\"xG%\"yG-%&aa1b3GF&-%&aa2b1GF&-%&aa2b2GF&-%(aa2b3_1GF&-%(aa2b3_2GF&-%
+(aa2b3_3GF&-%*aa1b2_1_1GF&-%*aa1b2_1_2GF&" }}{PARA 11 "" 1 "" 
+{XPPMATH 20 "6#7*-%&aa1b1G6$%\"xG%\"yG-%&aa1b3GF&-%&aa2b1GF&-%&aa2b2GF
+&-%(aa2b3_1GF&-%(aa2b3_2GF&-%(aa2b3_3GF&-%*aa1b2_1_1GF&" }}{PARA 11 "
+" 1 "" {XPPMATH 20 "6#7)-%&aa1b1G6$%\"xG%\"yG-%&aa1b3GF&-%&aa2b1GF&-%&
+aa2b2GF&-%(aa2b3_1GF&-%(aa2b3_2GF&-%(aa2b3_3GF&" }}{PARA 11 "" 1 "" 
+{XPPMATH 20 "6#7)-%&aa1b1G6$%\"xG%\"yG-%&aa2b1GF&-%&aa2b2GF&-%(aa2b3_1
+GF&-%(aa2b3_2GF&-%(aa2b3_3GF&-%(aa1b3_1GF&" }}{PARA 11 "" 1 "" 
+{XPPMATH 20 "6#7(-%&aa1b1G6$%\"xG%\"yG-%&aa2b1GF&-%&aa2b2GF&-%(aa2b3_1
+GF&-%(aa2b3_2GF&-%(aa2b3_3GF&" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#7&-%&
+aa1b1G6$%\"xG%\"yG-%&aa2b1GF&-%&aa2b2GF&-%(aa2b3_3GF&" }}{PARA 11 "" 
+1 "" {XPPMATH 20 "6#7'-%&aa2b1G6$%\"xG%\"yG-%&aa2b2GF&-%(aa2b3_3GF&-%(
+aa1b1_1GF&-%(aa1b1_2GF&" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#7'-%&aa2b1G
+6$%\"xG%\"yG-%&aa2b2GF&-%(aa2b3_3GF&-%(aa1b1_2GF&-%*aa1b1_1_1GF&" }}
+{PARA 11 "" 1 "" {XPPMATH 20 "6#7&-%&aa2b1G6$%\"xG%\"yG-%&aa2b2GF&-%(a
+a2b3_3GF&-%(aa1b1_2GF&" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#7&-%&aa2b1G6
+$%\"xG%\"yG-%(aa2b3_3GF&-%(aa1b1_2GF&-%(aa2b2_1GF&" }}{PARA 11 "" 1 "
+" {XPPMATH 20 "6#7'-%&aa2b1G6$%\"xG%\"yG-%(aa2b3_3GF&-%(aa1b1_2GF&-%*a
+a2b2_1_1GF&-%*aa2b2_1_2GF&" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#7&-%&aa2
+b1G6$%\"xG%\"yG-%(aa2b3_3GF&-%(aa1b1_2GF&-%*aa2b2_1_1GF&" }}{PARA 11 "
+" 1 "" {XPPMATH 20 "6#7%-%&aa2b1G6$%\"xG%\"yG-%(aa2b3_3GF&-%(aa1b1_2GF
+&" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#7$-%&aa2b1G6$%\"xG%\"yG-%(aa1b1_2
+GF&" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#7%-%&aa2b1G6$%\"xG%\"yG-%*aa1b1
+_2_1GF&-%*aa1b1_2_2GF&" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#7$-%&aa2b1G6
+$%\"xG%\"yG-%*aa1b1_2_1GF&" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#7#-%&aa2
+b1G6$%\"xG%\"yG" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#7#-%(aa2b1_1G6$%\"x
+G%\"yG" }}{PARA 12 "" 1 "" {XPPMATH 20 "6#>%%loesG7*/-%&aa2b4G6$%\"xG%
+\"yG,(*&#\"\"\"\"\"#F/*(F*!\"#F+F0&%$_CCG6#\"\")F/F/F/*(F+F/F*F2&F46#
+\"#8F/F/&F46#\"#9F//-%&aa1b4GF),(*&F*!\"\"F8F/F/*&F.F/F3F/F/*(F*F2F+F/
+&F46#\"#7F/F//-%&aa2b3GF),0*(F*!\"$F+\"\"$F3F/FC*&F.F/*(F*!\"%F+\"\"%F
+3F/F/F/*(F*FRF+FOF8F/F/*(F+F0,,*&F0F/F8F/F/*&&F46#FSF/F*F/F/*&F;F/F*F/
+FC*&)F*F0F/&F46#\"\"&F/F/*(F0F/&F46#\"\"*F/F*F/F/F/F*FNFC*(,**(F0F/F\\
+oF/F*F/F/*(F0F/FYF/F*F/F/*(F0F/F;F/F*F/FC&F46#F0FCF/F*F2F+F/F/&F46#FOF
+C*(F0F/F*F/&F46#\"\"(F/FC/-%&aa1b2GF),2*&#F/F0F/*(F*FCF+F0F3F/F/FC*(F*
+F2F+F0FFF/F/*(F*F2F+F0F8F/FC*(F*FNF+FOFFF/FC*&,&&F46#F/F/*&F*FC&F46#\"
+#6F/F/F/F+F/F/*&F.F/FfnF/F/*&F\\oF/F*F/F/FdoF//-%&aa1b3GF),.*&FhnF/F*F
+/FC*&F.F/*(F+F/,(*&F0F/F8F/FC*&F+F/F3F/F/*&F0F/F[qF/FCF/F*F2F/F/*&,&*(
+F0F/F+F/FhpF/FCFdoFCF/F*FCF/*(F*FRF+FOFFF/F/*(F+F0,&*&F0F/FFF/F/F8FCF/
+F*FNFCFYF//-%&aa1b1GF),6**F0F/F*FNF+FOFFF/F/**F0F/F*FCF+F0FhpF/F/*(F*F
+NF+FOF8F/FC*(F*FRF+FSFFF/FC*&#F/F0F/*(F*F2F+FOF3F/F/FC*(F*F2F+F0F[qF/F
+/FdpF/*&,(FdqF/*&F*FCFdoF/F/&F46#\"\"'F/F/F+F/F/*&&F46#\"#5F/F*F/F/*&&
+F46#\"#;F/FgnF/F//-%&aa2b2GF),>*&#F/F0F/*(F*FNF+FSF3F/F/FCFhrFC*&F\\oF
+/F+F/FC*&FYF/F+F/FC*(F*FCF+F0FYF/F/*&F.F/*&)F+F0F/FhnF/F/F/*(F*FCF+F/F
+doF/F/*&F;F/F+F/F/*(F*FCF+F0F;F/FC**F0F/F*FCF+F0F\\oF/F/*&F.F/F\\sF/F/
+FdpF/*&FfoF/F*F/F/*&FioF/FgnF/F//-%&aa2b1GF)*&,&*&F+F/,.*(F+F0,&FiqF/*
+&F0F/F8F/F/F/F*!\"&FC*&#F/F0F/*&,(*&F0F/FesF/F/*&F0F/FfoF/F/*(F0F/F+F/
+FisF/F/F/F*F2F/FC*&F.F/*(F+FOFhuF/F*!\"'F/F/*(F+F/,*FdtF/FdoF/*(F0F/F
+\\oF/F+F/F/FjtFCF/F*FRFC*(F0F/FioF/F*FCFC*(F+F/,**&F0F/F;F/F/*&F0F/F\\
+oF/FC*&F0F/FYF/FC*&F+F/FhnF/F/F/F*FNFCF/FC&F46#\"#:F/F/FgnF/" }}}
+{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "
+" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}
+{EXCHG {PARA 0 "" 0 "" {TEXT -1 0 "" }{TEXT 266 191 "\nThe solution ha
+s 16 coefficients, as seen by inspection. We can verify that we have f
+ound all solutions by computing the number\nof parametric derivatives \+
+of an arbitrary Janetbase of res[2]\n" }}}{EXCHG {PARA 0 "> " 0 "" 
+{MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}
+{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "
+" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "" 0 "" {TEXT -1 0 "" }{TEXT 
+267 291 "\nPrerequisite for every Janetbase-calculation is the fixing \+
+of a term order, which is internally connected to\na list of functions
+ given as second argument to makeJanetBase. Here we use a total degree
+ order, as\nit gives usually a very fast computation compared for exam
+ple to lexical orders.\n" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "
+" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> \+
+" 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 37 "
+setcotes(res[3],totDegOrder(res[3]));" }}{PARA 11 "" 1 "" {XPPMATH 20 
+"6#7\"" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 
+0 "> " 0 "" {MPLTEXT 1 0 62 "jbres:=csimpJanetBase(makeJanetBase ( res
+[2],res[3] ),res[3]);" }}{PARA 12 "" 1 "" {XPPMATH 20 "6#>%&jbresG76-%
+%diffG6$-%&aa1b4G6$%\"xG%\"yG-%\"$G6$F-\"\"#,&-F'6%F)F,F-\"\"\"*(F1F5F
+,!\"\"-F'6$F)F-F5F5,(-F'6$F)-F/6$F,F1F5**F1F5F-F5F,!\"#F8F5F7*(F1F5F,F
+7-F'6$F)F,F5F5,(-F'6$-%&aa1b3GF+F.F5**\"\"%F5,&F,F5F-F7F5F,F@F8F5F5*(F
+1F5F,F@F)F5F7,*-F'6%FGF,F-F5*,F1F5F-F5,&*&F1F5F,F5F5F-F7F5F,!\"$F8F5F7
+**F1F5FKF5F,F@FBF5F5*(F1F5F,F@-F'6$-%&aa1b2GF+F-F5F7,0-F'6$FGF=F5*,FJF
+5F-F5FQF5F,FSFBF5F7**F1F5F-F5F,F@-F'6$FGF-F5F7*(F1F5F,F7-F'6$FGF,F5F7*
+(FJF5F,F@-F'6$FXF,F5F7**F1F5F-F1F,!\"%F)F5F5*(FJF5F,FSFXF5F5,(-F'6$FXF
+.F5**F1F5,&F,F5*&F1F5F-F5F7F5F,F7F8F5F7*(F1F5F,F7F)F5F5,,-F'6%FXF,F-F5
+*,F1F5F-F5FKF5F,F@F8F5F5*(FhoF5F,F7FBF5F7FinF5*(F1F5F,F7FVF5F5,0-F'6$F
+XF=F5*,FJF5F-F5FKF5F,F@FBF5F5*&F1F5F\\oF5F5**F1F5F-F5F,F@FVF5F7*(F1F5F
+,F7F_oF5F5**F1F5F-F1F,FSF)F5F7*(F1F5F,F@FXF5F7,*-F'6$-%&aa1b1GF+F.F5*,
+FJF5F-F5FKF5F,F@F8F5F7*&F1F5FinF5F5**F1F5F-F5F,F@F)F5F5,,-F'6%F]qF,F-F
+5*,F1F5F-F1FQF5F,FSF8F5F5*,F1F5F-F5FKF5F,F@FBF5F7F\\oF5**F1F5F-F5F,F@F
+VF5F5,2-F'6$F]qF=F5*,FJF5F-F1FQF5F,FSFBF5F5**FJF5F-F5F,F@F_oF5F5**F1F5
+F-F5F,F@-F'6$F]qF-F5F7*(F1F5F,F7-F'6$F]qF,F5F7**F1F5F-\"\"$F,FboF)F5F7
+**FJF5F,FSF-F5FXF5F7*(F1F5F,F@F]qF5F5,*-F'6$-%&aa2b4GF+F-F5*,F1F5F-F5F
+KF5F,F@F8F5F5F_pF5**F1F5F-F5F,F@F)F5F7,*-F'6$FjrF,F5*,F1F5F-F1FQF5F,FS
+F8F5F7*,F1F5F-F5FKF5F,F@FBF5F7**F1F5F-F1F,FSF)F5F5,0-F'6$-%&aa2b3GF+F-
+F5*,F1F5F-F5FKF5F,F@FinF5F5*(FhoF5F,F7F\\oF5F5**F1F5FKF5F,F@FjrF5F5**F
+1F5F-F1F,FSF)F5F5**F1F5FKF5F,F@FGF5F7**F1F5FhoF5F,FSFXF5F7,2-F'6$FgsF,
+F5*,F1F5F-F1FQF5F,FSFinF5F7*,F1F5F-F5FKF5F,F@F\\oF5F7*,F1F5F-F5FQF5F,F
+SFjrF5F7*(F1F5F,F7FgsF5F7*(F1F5F,F@-%&aa2b2GF+F5F7*,F1F5F-F5FQF5F,FSFG
+F5F5*,FJF5F-F5FKF5F,FboFXF5F5,.-F'6$FgtF-F5*,F1F5F-F5FKF5F,F@FVF5F5*(F
+hoF5F,F7F_oF5F5*(FhoF5F,F7FjrF5F7*(FhoF5F,F7FGF5F5**F1F5F-F5F,F@FXF5F7
+,2-F'6$FgtF,F5*,F1F5F-F1FQF5F,FSFVF5F7*,F1F5F-F5FKF5F,F@F_oF5F7*,F1F5F
+-F5FKF5F,F@FjrF5F5FgsF5**F1F5F-FdrF,FSF)F5F7*,F1F5F-F5FKF5F,F@FGF5F7**
+F1F5F-F1F,FSFXF5F5,4-F'6$-%&aa2b1GF+F-F5*,F1F5F-F5FKF5F,F@F^rF5F5*(Fho
+F5F,F7FarF5F5*,F1F5F-F5FKF5F,F@FjrF5F7FgsF5**F1F5F-FdrF,FSF)F5F7*,F1F5
+F-F5FKF5F,F@FGF5F5*,F1F5F-F5FhoF5F,FSFXF5F5**F1F5FKF5F,F@F]qF5F7,4-F'6
+$F_vF,F5*,F1F5F-F1FQF5F,FSF^rF5F7*,F1F5F-F5FKF5F,F@FarF5F7*,F1F5F-F1FQ
+F5F,FSFjrF5F5**F1F5F-F5F,F@FgtF5F5*(F1F5F,F7F_vF5F7*,F1F5F-F1FQF5F,FSF
+GF5F7*,FJF5F-F1FKF5F,FboFXF5F7*,F1F5F-F5FQF5F,FSF]qF5F5" }}}{EXCHG 
+{PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "" 0 "" {TEXT 
+-1 0 "" }{TEXT 268 113 "\ndetermineSize counts the parametric derivati
+ves in jbres. We are fortunate: They are 16, as was to be expected.\n
+" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> \+
+" 0 "" {MPLTEXT 1 0 28 "determineSize(jbres,res[3]);" }}{PARA 11 "" 1 
+"" {XPPMATH 20 "6#\"#;" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" 
+}}}{EXCHG {PARA 0 "" 0 "" {TEXT -1 0 "" }{TEXT 269 90 "\nAdditionally \+
+we can secure that we really found a solution of res[2]: It is ok, all
+ zero\n" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG 
+{PARA 0 "> " 0 "" {MPLTEXT 1 0 34 "simplify(eval(subs(loes,res[2])));
+" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#76\"\"!F$F$F$F$F$F$F$F$F$F$F$F$F$F
+$F$F$F$F$F$" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG 
+{PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" 
+{MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}
+{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "" 0 "" 
+{TEXT -1 0 "" }{TEXT 270 44 "\nrr is our endomorphism in full generali
+ty.\n" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 
+0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 
+0 22 "rr:=subs(loes,res[1]);" }}{PARA 12 "" 1 "" {XPPMATH 20 "6#>%#rrG
+7$,**&,6**\"\"#\"\"\"%\"xG!\"$%\"yG\"\"$&%$_CCG6#\"#7F+F+**F*F+F,!\"\"
+F.F*&F16#F+F+F+*(F,F-F.F/&F16#\"#8F+F5*(F,!\"%F.\"\"%F0F+F5*&#F+F*F+*(
+F,!\"#F.F/&F16#\"\")F+F+F5*(F,FBF.F*&F16#\"#6F+F+*(F,FBF.F*F9F+F+*&,(*
+&&F16#\"\"&F+F,F+F+*&F,F5&F16#F*F+F+&F16#\"\"'F+F+F.F+F+*&&F16#\"#5F+F
+,F+F+*&&F16#\"#;F+)F,F*F+F+F+-%%diffG6$%#xiGF.F+F+*&,2*&#F+F*F+*(F,F5F
+.F*FCF+F+F5*(F,FBF.F*F0F+F+FJF5*(F,F-F.F/F0F+F5*&,&F6F+*&F,F5FGF+F+F+F
+.F+F+*&#F+F*F+*&FinF+FNF+F+F+*&&F16#\"\"*F+F,F+F+FRF+F+-F[o6$F]oF,F+F+
+*&,.FMF5*&FioF+*(F.F+,(*&F*F+F9F+F5*&F.F+FCF+F+*&F*F+FGF+F5F+F,FBF+F+*
+&,&*(F*F+F.F+F6F+F5FRF5F+F,F5F+*(F,F=F.F/F0F+F+*(F.F*,&*&F*F+F0F+F+F9F
+5F+F,F-F5&F16#F>F+F+F]oF+F+*&,(*&F,F5F9F+F+*&FioF+FCF+F+*(F,FBF.F+F0F+
+F+F+%$etaGF+F+,**(,&*&F.F+,.*(F.F*,&FgpF+*&F*F+F9F+F+F+F,!\"&F5*&#F+F*
+F+*&,(*&F*F+FXF+F+*&F*F+&F16#F/F+F+*(F*F+F.F+FfnF+F+F+F,FBF+F5*&FioF+*
+(F.F/F^rF+F,!\"'F+F+*(F.F+,**&F`qF+F.F+F+FRF+*(F*F+F\\pF+F.F+F+*&&F16#
+\"#9F+F.F+F5F+F,F=F5*(F*F+&F16#\"\"(F+F,F5F5*(F.F+,**&F*F+FbsF+F+*&F*F
++F\\pF+F5*&F*F+F`qF+F5*&F.F+FNF+F+F+F,F-F5F+F5&F16#\"#:F+F+FinF+FjnF+F
++*&,>*&#F+F*F+*(F,F-F.F>FCF+F+F5F8F5*&F\\pF+F.F+F5F_sF5*(F,F5F.F*F`qF+
+F+*&FioF+*&)F.F*F+FNF+F+F+*(F,F5F.F+FRF+F+FasF+*(F,F5F.F*FbsF+F5**F*F+
+F,F5F.F*F\\pF+F+*&FioF+FAF+F+FJF+*&FgrF+F,F+F+*&FfsF+FinF+F+F+F_pF+F+*
+&,0*(F,F-F.F/FCF+F5*&FioF+*(F,F=F.F>FCF+F+F+*(F,F=F.F/F9F+F+*(F.F*,,*&
+F*F+F9F+F+*&F`qF+F,F+F+*&FbsF+F,F+F5FjoF+*(F*F+F\\pF+F,F+F+F+F,F-F5*(,
+**(F*F+F\\pF+F,F+F+*(F*F+F`qF+F,F+F+*(F*F+FbsF+F,F+F5FRF5F+F,FBF.F+F+F
+grF5*(F*F+F,F+FfsF+F5F+F]oF+F+*&,(*&FioF+*(F,FBF.F*FCF+F+F+*(F.F+F,FBF
+9F+F+FbsF+F+FgqF+F+" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}
+{EXCHG {PARA 0 "" 0 "" {TEXT -1 0 "" }{TEXT 271 436 "\nWe specialize t
+he constants, to get a more manageable specialized endomorphism rr1. H
+ere and in the following\ncomputation of an eigenvalue of rr1 there is
+ an element of trial and error in the algorithm. We must choose the\nc
+onstants so that rr1 is not constant and afterwards, the eigenvalues o
+f rr1 on the solution space of L (which is what we\nwill call jb3 in t
+he following alternatively) are of simple form to ease the calculation
+s.\n" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 
+"> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 
+27 "select(has,indets(rr),_CC);" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#<2&
+%$_CCG6#\"\"*&F%6#\"#5&F%6#\"\"&&F%6#\"\"'&F%6#\"#7&F%6#\"#8&F%6#\"#9&
+F%6#\"#6&F%6#\"\")&F%6#\"\"$&F%6#\"\"#&F%6#\"\"\"&F%6#\"\"(&F%6#\"#:&F
+%6#\"#;&F%6#\"\"%" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 55 "sl:=[o
+p(map(x->x=1,%[1..2])),op(map(x->x=0,%[3..-1]))];" }}{PARA 12 "" 1 "" 
+{XPPMATH 20 "6#>%#slG72/&%$_CCG6#\"\"*\"\"\"/&F(6#\"#5F+/&F(6#\"\"&\"
+\"!/&F(6#\"\"'F4/&F(6#\"#7F4/&F(6#\"#8F4/&F(6#\"#9F4/&F(6#\"#6F4/&F(6#
+\"\")F4/&F(6#\"\"$F4/&F(6#\"\"#F4/&F(6#F+F4/&F(6#\"\"(F4/&F(6#\"#:F4/&
+F(6#\"#;F4/&F(6#\"\"%F4" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 35 "
+simplify(eval(value(subs(sl,rr))));" }}{PARA 11 "" 1 "" {XPPMATH 20 "6
+#7$*&%\"xG\"\"\",&-%%diffG6$%#xiG%\"yGF&-F)6$F+F%F&F&*(F,F&,0*&F(F&)F%
+\"\"#F&F&*(F3F&)F,F3F&F(F&F&**F3F&F,F&F(F&F%F&!\"\"*&F-F&F2F&F7**F3F&F
+-F&F%F&F,F&F&*(F3F&F+F&F%F&F&*(F3F&F+F&F,F&F7F&F%!\"#" }}}{EXCHG 
+{PARA 0 "> " 0 "" {MPLTEXT 1 0 7 "rr1:=%;" }}{PARA 11 "" 1 "" 
+{XPPMATH 20 "6#>%$rr1G7$*&%\"xG\"\"\",&-%%diffG6$%#xiG%\"yGF(-F+6$F-F'
+F(F(*(F.F(,0*&F*F()F'\"\"#F(F(*(F5F()F.F5F(F*F(F(**F5F(F.F(F*F(F'F(!\"
+\"*&F/F(F4F(F9**F5F(F/F(F'F(F.F(F(*(F5F(F-F(F'F(F(*(F5F(F-F(F.F(F9F(F'
+!\"#" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 
+"" 0 "" {TEXT -1 0 "" }{TEXT 272 164 "\napplyD applies rr1 to the set \+
+of parametric derivatives of jb3 (aka L) and computes a matrix represe
+ntation for rr1 as a\npreparation for computing the eigenvalues\n" }}}
+{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "
+" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 22 "A:=ap
+plyD(rr1,jb3,fs);" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#>%\"AG-%'matrixG6
+#7&7&\"\"!F*F*F*7&,&\"\"\"F-*(\"\"#F-%\"yGF-%\"xG!\"\"F-\"\"$,$*&F/F-F
+1F2F2F*7&F1F1F*F*7&,(F0F-*(F/F-F0F3F1!\"#F-*(F/F-F0F/F1F2F2,&F0F2*(F/F
+-F0F/F1F2F-,&*(F/F-F0F-F1F2F-*(F/F-F0F/F1F:F2F*" }}}{EXCHG {PARA 0 "> \+
+" 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "" 0 "" {TEXT -1 1 "\n" }
+{TEXT 273 202 "Now we specialize x and y to x0 and y0 and compute eige
+nvalues. The usual wronskian argument, applied analogously to\nthe set
+ of parametric derivatives of jb3 (aka L) ensures that we get the eige
+nvalues." }{TEXT -1 1 "\n" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 
+"" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> \+
+" 0 "" {MPLTEXT 1 0 27 "A1:=subs(x=1,y=0,evalm(A));" }}{PARA 11 "" 1 "
+" {XPPMATH 20 "6#>%#A1G-%'matrixG6#7&7&\"\"!F*F*F*7&\"\"\"\"\"$!\"#F*7
+&F,F,F*F*F)" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 33 "eigvals:=lin
+alg[eigenvalues](A1);" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#>%(eigvalsG6&
+\"\"!F&\"\"#\"\"\"" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}
+{EXCHG {PARA 0 "" 0 "" {TEXT -1 0 "" }{TEXT 274 125 "\nWe choose the e
+igenvalue 2 to construct the endomorphism newr with nonvanishing kerne
+l in the solution space of jb3 (aka L)\n" }}}{EXCHG {PARA 0 "> " 0 "" 
+{MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 41 "newr :=
+ zip ( (x,y)->x-2*y,rr1,[xi,eta]);" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#
+>%%newrG7$,&*&%\"xG\"\"\",&-%%diffG6$%#xiG%\"yGF)-F,6$F.F(F)F)F)*&\"\"
+#F)F.F)!\"\",&*(F/F),0*&F+F))F(F3F)F)*(F3F))F/F3F)F+F)F)**F3F)F/F)F+F)
+F(F)F4*&F0F)F9F)F4**F3F)F0F)F(F)F/F)F)*(F3F)F.F)F(F)F)*(F3F)F.F)F/F)F4
+F)F(!\"#F)*&F3F)%$etaGF)F4" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 
+0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "
+" 0 "" {TEXT -1 0 "" }{TEXT 275 196 "\nNow follows the usual gcd compu
+tation, which for Janetbases means just: Unite the two set of equation
+s and compute a\nJanetbase. We call it jb4. Conceptually it is a right
+ factor R of jb3 (aka L)\n" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 
+0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 43 "makeJanetBase([op(jb
+3),op(newr)],[xi,eta]);" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#7%,&*&%#xiG
+\"\"\")%\"yG\"\"#F'F'*&%$etaGF')%\"xGF*F'!\"\"-%%diffG6$F&F),&*&-F16$F
+&F.F'F.F'F/*&F*F'F&F'F'" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 32 "
+jb4:=csimpJanetBase(%,[xi,eta]);" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#>%
+$jb4G7%-%%diffG6$%#xiG%\"yG,&-F'6$F)%\"xG\"\"\"*(\"\"#F/F.!\"\"F)F/F2,
+&%$etaGF/*(F*F1F.!\"#F)F/F2" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 
+0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "
+" 0 "" {TEXT -1 0 "" }{TEXT 276 126 "\nThe following calculation just \+
+ensures that jb4 reduces jb3 to zero as is equivalent to say that it i
+s a right factor of jb3\n" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 
+"" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 28 "rels:=janbasToeqsys(jb
+4,fs);" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#>%%relsG7%/-%%diffG6$%#xiG%
+\"yG\"\"!/-F(6$F*%\"xG,$*(\"\"#\"\"\"F0!\"\"F*F4F4/%$etaG*(F+F3F0!\"#F
+*F4" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 20 "dtsubs(rels,fs,jb3);
+" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#7'\"\"!F$F$F$F$" }}}{EXCHG {PARA 
+0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 
+0 0 "" }}}{EXCHG {PARA 0 "" 0 "" {TEXT -1 0 "" }{TEXT 277 80 "\nAltern
+atively, we can check that the solutions of jb4 are part of those of j
+b3\n" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 
+"> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG }{EXCHG {PARA 0 "> " 0 "" 
+{MPLTEXT 1 0 18 "xpdesolve(jb4,fs);" }}{PARA 11 "" 1 "" {XPPMATH 20 "6
+#7$%#xiG%$etaG" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#7$%#xiG-%&eta_1G6$%
+\"xG%\"yG" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#7#%#xiG" }}{PARA 11 "" 1 
+"" {XPPMATH 20 "6#7$/%$etaG*&&%$_CCG6#\"\"\"F*)%\"yG\"\"#F*/%#xiG*&)%
+\"xGF-F*F'F*" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 26 "normal(eval
+(subs(%,jb3)));" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#7'\"\"!F$F$F$F$" }}
+}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 12 "jb1;jb2;jb4;" }}{PARA 11 "
+" 1 "" {XPPMATH 20 "6#7&-%%diffG6$%$etaG%\"yG,&-F%6$F'%\"xG\"\"\"*(\"
+\"#F-F,!\"\"F'F-F0,&-F%6$%#xiGF(F-*&F(F0F4F-F0-F%6$F4F," }}{PARA 11 "
+" 1 "" {XPPMATH 20 "6#7&,(-%%diffG6$%$etaG%\"yG\"\"\"**,&%\"xGF**&\"\"
+#F*F)F*!\"\"F*F)F0,&F-F*F)F0F0F(F*F0**F)F*F-F0F1F0%#xiGF*F0-F&6$F(F--F
+&6$F3F),(-F&6$F3F-F***F-F*F)F0F1F0F(F*F***,&*&F/F*F-F*F*F)F0F*F-F0F1F0
+F3F*F0" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#7%-%%diffG6$%#xiG%\"yG,&-F%6
+$F'%\"xG\"\"\"*(\"\"#F-F,!\"\"F'F-F0,&%$etaGF-*(F(F/F,!\"#F'F-F0" }}}
+{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "
+" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "" 0 "" {TEXT -1 0 "" }{TEXT 
+278 872 "\nNow we approach the problem of finding a cospace for the so
+lution space of jb4 (aka R) which together with that\nsolution space s
+hall span the solution space of jb3 (aka L).\n\nWe use for this van Ho
+eijs approach of computing the solutions r of the mixed equation\n\n(*
+) R r + l L1 = 1\n\nwhere L = L1 R\nL1 can be computed by straightforw
+ard differential elimination (example below) and (*) is solved with an
+\nAnsatz for r with undetermined coefficients aaibj(x,y). They have to
+ fulfill a system of LPDE which is\ncreated with the command makemixed
+Equation1 (jb3,jb4,fs).\n\nMore precisely erg[1] is r, erg[2] is the s
+ystem of equations for aaibj(x,y), erg[3] is the list of functions aai
+bj(x,y).\nAs makemixedEquation1 computes L1 too, it returns L1 as erg[
+5] and the functions occuring in erg[5] as erg[4].\nThese functions of
+ course correspond 1-1 to the equations in jb4 (aka R).\n" }}}{EXCHG 
+{PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" 
+{MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 36 "erg:=ma
+kemixedEquation1(jb3,jb4,fs);" }}{PARA 12 "" 1 "" {XPPMATH 20 "6#>%$er
+gG7'7$,(*&-%&aa1b1G6$%\"xG%\"yG\"\"\"-%&UUUQ1GF+F.F.*&-%&aa1b2GF+F.-%&
+UUUQ2GF+F.F.*&-%&aa1b3GF+F.-%&UUUQ3GF+F.F.,(*&-%&aa2b1GF+F.F/F.F.*&-%&
+aa2b2GF+F.F4F.F.*&-%&aa2b3GF+F.F9F.F.7+*&,,*&-%%diffG6$F)F-F.)F,\"\"#F
+.F.**FMF.F7F.F,F.F-F.!\"\"*(FMF.F2F.F,F.FO*&F7F.)F-FMF.F.*$FLF.FOF.F,!
+\"#*&,(*(FMF.F7F.F-F.F.*&-FJ6$F2F-F.F,F.F.*&F7F.F,F.FOF.F,FO-FJ6$F7F-*
+&,,*&)F,\"\"$F.-FJ6$F)F,F.F.**FMF.F2F.F,F.F-F.F.*(FMF.F7F.)F-F\\oF.FO*
+(FMF.F)F.FLF.FO**\"\"%F.FRF.F,F.F7F.F.F.F,!\"$*&,,*&-FJ6$F2F,F.FLF.F.*
+(F\\oF.F7F.FRF.FO**FMF.F7F.F,F.F-F.F.*(FMF.F2F.F,F.FOFSFOF.F,FT-FJ6$F7
+F,*&,&*&F=F.FLF.F.*&FRF.F)F.FOF.F,FT*&,&*&F@F.FLF.F.*&F2F.FRF.FOF.F,FT
+*&,(*&FCF.FLF.F.FQFOFSFOF.F,FT7(F)F2F7F=F@FC7%F/F4F97(,(-FJ6$F9F-F.*(F
+,FO,&F,F.*&FMF.F-F.FOF.F4F.F.**F-F.,&*&FMF.F,F.F.F-FOF.F,FTF/F.F.,*-FJ
+6$F9F,F.*(FMF.F,FOF9F.FO**F-F.F,FT,&*&FMF.F,F.F.*&F\\oF.F-F.FOF.F4F.FO
+*,FMF.F-FMFeqF.F,FeoF/F.FO,&-FJ6$F4F-F.*(FMF.F,FOF/F.F.,&-FJ6$F4F,F.**
+FMF.F-F.F,FTF/F.FO-FJ6$F/F--FJ6$F/F," }}}{EXCHG {PARA 0 "> " 0 "" 
+{MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}
+{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 34 "loesaaa:=xpdesolve(erg[2],er
+g[3]);" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#7(-%&aa1b1G6$%\"xG%\"yG-%&aa
+1b2GF&-%&aa1b3GF&-%&aa2b1GF&-%&aa2b2GF&-%&aa2b3GF&" }}{PARA 11 "" 1 "
+" {XPPMATH 20 "6#7(-%&aa1b1G6$%\"xG%\"yG-%&aa1b2GF&-%&aa1b3GF&-%&aa2b1
+GF&-%&aa2b2GF&-%(aa2b3_1GF&" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#7(-%&aa
+1b1G6$%\"xG%\"yG-%&aa1b2GF&-%&aa1b3GF&-%&aa2b1GF&-%&aa2b2GF&-%*aa2b3_1
+_1GF&" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#7'-%&aa1b1G6$%\"xG%\"yG-%&aa1
+b2GF&-%&aa1b3GF&-%&aa2b1GF&-%&aa2b2GF&" }}{PARA 11 "" 1 "" {XPPMATH 
+20 "6#7&-%&aa1b1G6$%\"xG%\"yG-%&aa1b2GF&-%&aa2b1GF&-%&aa2b2GF&" }}
+{PARA 11 "" 1 "" {XPPMATH 20 "6#7&-%&aa1b1G6$%\"xG%\"yG-%&aa1b2GF&-%&a
+a2b1GF&-%(aa2b2_1GF&" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#7&-%&aa1b1G6$%
+\"xG%\"yG-%&aa1b2GF&-%&aa2b1GF&-%*aa2b2_1_1GF&" }}{PARA 11 "" 1 "" 
+{XPPMATH 20 "6#7%-%&aa1b1G6$%\"xG%\"yG-%&aa1b2GF&-%&aa2b1GF&" }}{PARA 
+11 "" 1 "" {XPPMATH 20 "6#7$-%&aa1b1G6$%\"xG%\"yG-%&aa2b1GF&" }}{PARA 
+11 "" 1 "" {XPPMATH 20 "6#7$-%&aa1b1G6$%\"xG%\"yG-%(aa2b1_1GF&" }}
+{PARA 11 "" 1 "" {XPPMATH 20 "6#7$-%&aa1b1G6$%\"xG%\"yG-%*aa2b1_1_1GF&
+" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#7#-%&aa1b1G6$%\"xG%\"yG" }}{PARA 
+12 "" 1 "" {XPPMATH 20 "6#>%(loesaaaG7(/-%&aa2b3G6$%\"xG%\"yG,&\"\"\"F
+-*(F+\"\"#&%$_CCG6#\"\"$F-F*!\"#F-/-%&aa1b3GF)F0/-%&aa2b2GF),**(F+F3F0
+F-F*F4F-*&F+F/F*!\"\"F>*(F+\"\"%F0F-F*!\"$F>*&&F16#F/F-)F+F/F-F-/-%&aa
+1b2GF)*&,**&FEF-F0F-F>*&)F*F3F-FCF-F-*(F+F-F0F-F*F-F-*$)F*F/F-F>F-F*F>
+/-%&aa2b1GF),,*&F+F3F*F4F>**F/F-F+F3FCF-F*F>F-*(F+\"\"&F0F-F*!\"%F>**F
+/F-F+F@F0F-F*FAF-*&&F16#F-F-FEF-F-/-%&aa1b1GF)*&,,**F/F-FMF-F+F-FCF-F-
+*&)F*F@F-FfnF-F-**F/F-FEF-F0F-F*F-F-*&F+F-FPF-F>*&)F+F3F-F0F-F>F-F*F4
+" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> \+
+" 0 "" {MPLTEXT 1 0 47 "loesaaa1:=subs([seq(_CC[i]=1,i=1..3)],loesaaa)
+;" }}{PARA 12 "" 1 "" {XPPMATH 20 "6#>%)loesaaa1G7(/-%&aa2b3G6$%\"xG%
+\"yG,&\"\"\"F-*&F+\"\"#F*!\"#F-/-%&aa1b3GF)F-/-%&aa2b2GF),**&F+\"\"$F*
+F0F-*&F+F/F*!\"\"F;*&F+\"\"%F*!\"$F;*$)F+F/F-F-/-%&aa1b2GF)*&,*F?F;*$)
+F*F9F-F-*&F*F-F+F-F-*$)F*F/F-F;F-F*F;/-%&aa2b1GF),,F8F;*(F/F-F+F9F*F;F
+-*&F+\"\"&F*!\"%F;*(F/F-F+F=F*F>F-F?F-/-%&aa1b1GF)*&,,*(F/F-F+F-FGF-F-
+*$)F*F=F-F-*(F/F-F*F-F@F-F-*&F+F-FJF-F;*$)F+F9F-F;F-F*F0" }}}{EXCHG 
+{PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" 
+{MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "" 0 "" {TEXT -1 0 "" }{TEXT 279 
+62 "\nsmallr is our r in the mixed equation (*) of the text above.\n" 
+}}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 
+0 "" {MPLTEXT 1 0 30 "smallr:=subs(loesaaa1,erg[1]);" }}{PARA 12 "" 1 
+"" {XPPMATH 20 "6#>%'smallrG7$,(*(,,*(\"\"#\"\"\"%\"yGF+)%\"xG\"\"$F+F
++*$)F.\"\"%F+F+*(F*F+F.F+)F,F*F+F+*&F,F+)F.F*F+!\"\"*$)F,F/F+F7F+F.!\"
+#-%&UUUQ1G6$F.F,F+F+*(,**$F4F+F7*$F-F+F+*&F.F+F,F+F+*$F6F+F7F+F.F7-%&U
+UUQ2GF=F+F+-%&UUUQ3GF=F+,(*&,,*&F,F/F.F:F7*(F*F+F,F/F.F7F+*&F,\"\"&F.!
+\"%F7*(F*F+F,F2F.!\"$F+F@F+F+F;F+F+*&,*FKF+*&F,F*F.F7F7*&F,F2F.FQF7F@F
++F+FDF+F+*&,&F+F+*&F,F*F.F:F+F+FFF+F+" }}}{EXCHG {PARA 0 "> " 0 "" 
+{MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}
+{EXCHG {PARA 0 "" 0 "" {TEXT -1 0 "" }{TEXT 280 71 "\nNow we prove as \+
+an interlude that L1 R really is equal to L (aka jb3)\n" }}}{EXCHG 
+{PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" 
+{MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 31 "sl:=zip
+((x,y)->x=y,erg[4],jb4);" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#>%#slG7%/-
+%&UUUQ1G6$%\"xG%\"yG-%%diffG6$%#xiGF+/-%&UUUQ2GF),&-F-6$F/F*\"\"\"*(\"
+\"#F6F*!\"\"F/F6F9/-%&UUUQ3GF),&%$etaGF6*(F+F8F*!\"#F/F6F9" }}}{EXCHG 
+{PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" 
+{MPLTEXT 1 0 73 "csimpJanetBase(makeJanetBase(simplify(eval(subs(sl,er
+g[5]))),fs),fs);jb3;" }}{PARA 12 "" 1 "" {XPPMATH 20 "6#7'-%%diffG6$%#
+xiG-%\"$G6$%\"yG\"\"#-F%6%F'%\"xGF+,*-F%6$F'-F)6$F/F,\"\"\"**F,F5F+F5F
+/!\"#-F%6$F'F+F5!\"\"*(F,F5F/F:-F%6$F'F/F5F:*(F,F5F/F7F'F5F5,*-F%6$%$e
+taGF+F5*,F,F5F+F5,&F/F5F+F:F5F/F7F8F5F5*(,&F/F5*&F,F5F+F5F:F5F/F:F<F5F
+5**F,F5FDF5F/F7F'F5F:,,-F%6$FBF/F5*,F,F5,&*&F,F5F/F5F5F+F:F5F+F,F/!\"$
+F8F5F:*,F,F5F+F5FDF5F/F7F<F5F:*(F,F5F/F:FBF5F:*,F,F5FMF5F+F5F/FOF'F5F5
+" }}{PARA 12 "" 1 "" {XPPMATH 20 "6#7'-%%diffG6$%#xiG-%\"$G6$%\"yG\"\"
+#-F%6%F'%\"xGF+,*-F%6$F'-F)6$F/F,\"\"\"**F,F5F+F5F/!\"#-F%6$F'F+F5!\"
+\"*(F,F5F/F:-F%6$F'F/F5F:*(F,F5F/F7F'F5F5,*-F%6$%$etaGF+F5*,F,F5F+F5,&
+F/F5F+F:F5F/F7F8F5F5*(,&F/F5*&F,F5F+F5F:F5F/F:F<F5F5**F,F5FDF5F/F7F'F5
+F:,,-F%6$FBF/F5*,F,F5,&*&F,F5F/F5F5F+F:F5F+F,F/!\"$F8F5F:*,F,F5F+F5FDF
+5F/F7F<F5F:*(F,F5F/F:FBF5F:*,F,F5FMF5F+F5F/FOF'F5F5" }}}{EXCHG {PARA 
+0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "" 0 "" {TEXT -1 0 "" 
+}{TEXT 281 122 "\nThe calculation above concludes our interlude and pr
+oves the desired assertion (remember erg[5] is L1, sl stands for R)\n
+\n" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 ">
+ " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "
+" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "" 
+0 "" {TEXT -1 0 "" }}{PARA 0 "" 0 "" {TEXT -1 0 "" }{TEXT 282 137 "We \+
+know from (*) that the cospace we search is the image under r R of the
+ solution space of L (aka jb3). So we proceed\nto calculate r R:\n" }
+{TEXT -1 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG 
+{PARA 0 "> " 0 "" {MPLTEXT 1 0 36 "rR:=simplify(eval(subs(sl,smallr)))
+;" }}{PARA 12 "" 1 "" {XPPMATH 20 "6#>%#rRG7$*&,>**\"\"#\"\"\")%\"xG\"
+\"$F*%\"yGF*-%%diffG6$%#xiGF.F*F**&F/F*)F,\"\"%F*F***F)F*)F.F)F*F/F*F,
+F*F**(F/F*F.F*)F,F)F*!\"\"*&)F.F-F*F/F*F:*(F7F*-F06$F2F,F*F,F*F:*&F2F*
+F7F*F**&F4F*F>F*F**(F)F*F+F*F2F*F:*(F.F*F>F*F9F*F***F)F*F2F*F,F*F.F*F:
+*&F+F*F>F*F:*(F)F*F2F*F9F*F**&%$etaGF*F9F*F*F*F,!\"#*&,@**F)F*F<F*F/F*
+F+F*F**(F7F*F/F*F4F*F***F)F*)F.F5F*F/F*F,F*F**(F<F*F/F*F9F*F:*&)F.\"\"
+&F*F/F*F:*(FOF*F>F*F,F*F:*&FOF*F2F*F**(F7F*F4F*F>F*F***F)F*F7F*F+F*F2F
+*F:*(F<F*F9F*F>F*F***F)F*F<F*F2F*F,F*F:*(F7F*F+F*F>F*F:*(F7F*F2F*F9F*F
+**&F4F*FHF*F**(F7F*FHF*F9F*F*F*F,!\"%" }}}{EXCHG {PARA 0 "> " 0 "" 
+{MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}
+{EXCHG {PARA 0 "" 0 "" {TEXT -1 0 "" }}{PARA 256 "" 0 "" {TEXT -1 110 
+"now compute R2, the operator whose solution space is the desired cosp
+ace by using that V(R2) = im (rR) on V(L)" }}{PARA 257 "" 0 "" {TEXT 
+-1 0 "" }}{PARA 258 "" 0 "" {TEXT -1 61 "the concrete computation is d
+one via differential elimination" }}{PARA 0 "" 0 "" {TEXT -1 0 "" }}
+{PARA 0 "" 0 "" {TEXT -1 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 
+0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 26 "fs1:=[xi1(x,y),eta
+1(x,y)];" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#>%$fs1G7$-%$xi1G6$%\"xG%\"
+yG-%%eta1GF(" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 29 "eqs1:=zip((
+x,y)->x-y,fs1,rR);" }}{PARA 12 "" 1 "" {XPPMATH 20 "6#>%%eqs1G7$,&-%$x
+i1G6$%\"xG%\"yG\"\"\"*&,>**\"\"#F,)F*\"\"$F,F+F,-%%diffG6$%#xiGF+F,F,*
+&F3F,)F*\"\"%F,F,**F0F,)F+F0F,F3F,F*F,F,*(F3F,F+F,)F*F0F,!\"\"*&)F+F2F
+,F3F,F>*(F;F,-F46$F6F*F,F*F,F>*&F6F,F;F,F,*&F8F,FBF,F,*(F0F,F1F,F6F,F>
+*(F+F,FBF,F=F,F,**F0F,F6F,F*F,F+F,F>*&F1F,FBF,F>*(F0F,F6F,F=F,F,*&%$et
+aGF,F=F,F,F,F*!\"#F>,&-%%eta1GF)F,*&,@**F0F,F@F,F3F,F1F,F,*(F;F,F3F,F8
+F,F,**F0F,)F+F9F,F3F,F*F,F,*(F@F,F3F,F=F,F>*&)F+\"\"&F,F3F,F>*(FVF,FBF
+,F*F,F>*&FVF,F6F,F,*(F;F,F8F,FBF,F,**F0F,F;F,F1F,F6F,F>*(F@F,F=F,FBF,F
+,**F0F,F@F,F6F,F*F,F>*(F;F,F1F,FBF,F>*(F;F,F6F,F=F,F,*&F8F,FLF,F,*(F;F
+,FLF,F=F,F,F,F*!\"%F>" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }
+}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 25 "eqs2:=[op(eqs1),op(jb3)];
+" }}{PARA 12 "" 1 "" {XPPMATH 20 "6#>%%eqs2G7),&-%$xi1G6$%\"xG%\"yG\"
+\"\"*&,>**\"\"#F,)F*\"\"$F,F+F,-%%diffG6$%#xiGF+F,F,*&F3F,)F*\"\"%F,F,
+**F0F,)F+F0F,F3F,F*F,F,*(F3F,F+F,)F*F0F,!\"\"*&)F+F2F,F3F,F>*(F;F,-F46
+$F6F*F,F*F,F>*&F6F,F;F,F,*&F8F,FBF,F,*(F0F,F1F,F6F,F>*(F+F,FBF,F=F,F,*
+*F0F,F6F,F*F,F+F,F>*&F1F,FBF,F>*(F0F,F6F,F=F,F,*&%$etaGF,F=F,F,F,F*!\"
+#F>,&-%%eta1GF)F,*&,@**F0F,F@F,F3F,F1F,F,*(F;F,F3F,F8F,F,**F0F,)F+F9F,
+F3F,F*F,F,*(F@F,F3F,F=F,F>*&)F+\"\"&F,F3F,F>*(FVF,FBF,F*F,F>*&FVF,F6F,
+F,*(F;F,F8F,FBF,F,**F0F,F;F,F1F,F6F,F>*(F@F,F=F,FBF,F,**F0F,F@F,F6F,F*
+F,F>*(F;F,F1F,FBF,F>*(F;F,F6F,F=F,F,*&F8F,FLF,F,*(F;F,FLF,F=F,F,F,F*!
+\"%F>-F46$F6-%\"$G6$F+F0-F46%F6F*F+,*-F46$F6-Fco6$F*F0F,**F0F,F+F,F*FM
+F3F,F>*(F0F,F*F>FBF,F>*(F0F,F*FMF6F,F,,*-F46$FLF+F,*,F0F,F+F,,&F*F,F+F
+>F,F*FMF3F,F,*(,&F*F,*&F0F,F+F,F>F,F*F>FBF,F,**F0F,FcpF,F*FMF6F,F>,,-F
+46$FLF*F,*,F0F,,&*&F0F,F*F,F,F+F>F,F+F0F*!\"$F3F,F>*,F0F,F+F,FcpF,F*FM
+FBF,F>*(F0F,F*F>FLF,F>*,F0F,F\\qF,F+F,F*F^qF6F,F," }}}{EXCHG {PARA 0 "
+> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 
+22 "fs2:=[op(fs1),op(fs)];" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#>%$fs2G7
+&-%$xi1G6$%\"xG%\"yG-%%eta1GF(%#xiG%$etaG" }}}{EXCHG {PARA 0 "> " 0 "
+" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}
+{EXCHG {PARA 0 "" 0 "" {TEXT -1 0 "" }{TEXT 283 81 "\nIn elimOrder2(fs
+2,2) the first two functions in fs2 always precede the last two\n" }}}
+{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "
+" {MPLTEXT 1 0 32 "setcotes(fs2,elimOrder2(fs2,2));" }}{PARA 11 "" 1 "
+" {XPPMATH 20 "6#7(7(-%$xi1G6$%\"xG%\"yG-%%eta1GF'%#xiG%$etaGF(F)7(\"
+\"!F/\"\"\"F0F/F/7(F/F/F/F/F0F07(F0\"\"#\"\"$\"\"%F/F/7(F/F/F/F/F/F07(
+F/F/F/F/F0F/" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG 
+{PARA 0 "" 0 "" {TEXT -1 1 "\n" }{TEXT 284 96 "We compute the desired \+
+Janetbase in xi1(x,y), eta1(x,y). This is our desired cofactor (aka R2
+).\n" }{TEXT -1 1 "\n" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }
+}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 
+"" {MPLTEXT 1 0 66 "jb5:=dselfun(csimpJanetBase(makeJanetBase(eqs2,fs2
+),fs2),fs2,fs1);" }}{PARA 12 "" 1 "" {XPPMATH 20 "6#>%$jb5G7&,*-%%diff
+G6$-%$xi1G6$%\"xG%\"yG-%\"$G6$F-\"\"#\"\"\"**F2F3,(*$)F-\"\"$F3F3*&F.F
+3)F-F2F3F3*$)F.F2F3F3F3,,*(F2F3F.F3F7F3F3*$)F-\"\"%F3F3*(F2F3F-F3F<F3F
+3F9!\"\"*$)F.F8F3FCFC-F(6$F*F-F3FC**F2F3F.F3F=FC-%%eta1GF,F3F3**F2F3F-
+F2F=FCF*F3F3,*-F(6$FIF.F3*(,,F?F3*(F2F3F.F3F7F3FC*(F2F3F:F3F<F3FCF9F3F
+DFCF3F=FCFFF3F3*,F2F3,&F-F3F.FCF3F.F3F=FCFIF3FC*,F2F3FTF3F-F2F=FCF*F3F
+C,*-F(6$FIF-F3*.F2F3,**$F:F3F3*&F-F3F.F3FCF;FCF.F3F3F-F3F.F3F=FCFFF3FC
+*,F2F3F-F3,(*(F2F3F-F3F.F3F3F.FCFenF3F3F=FCFIF3FC*.F2F3,&*&F2F3F-F3F3F
+.FCF3F-F3F.F3F=FCF*F3F3,*-F(6$F*F.F3**,*F;FCF6F3FfnF3FenFCF3F-F3F=FCFF
+F3F3*(F-F2F=FCFIF3F3*(,**&F2F3F7F3F3FenFC*(F2F3F-F3F.F3F3F;FCF3F=FCF*F
+3FC" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "
+" 0 "" {TEXT -1 0 "" }{TEXT 285 68 "\nWe rename the xi1(x,y), eta1(x,y
+) back to xi, eta for consistency:\n" }}}{EXCHG {PARA 0 "> " 0 "" 
+{MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}
+{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 41 "jb5:=subs(xi1(x,y)=xi,eta1(x
+,y)=eta,jb5);" }}{PARA 12 "" 1 "" {XPPMATH 20 "6#>%$jb5G7&,*-%%diffG6$
+%#xiG-%\"$G6$%\"xG\"\"#\"\"\"**F/F0,(*$)F.\"\"$F0F0*&%\"yGF0)F.F/F0F0*
+$)F7F/F0F0F0,,*(F/F0F7F0F4F0F0*$)F.\"\"%F0F0*(F/F0F.F0F:F0F0F6!\"\"*$)
+F7F5F0FAFA-F(6$F*F.F0FA**F/F0F7F0F;FA%$etaGF0F0**F/F0F.F/F;FAF*F0F0,*-
+F(6$FGF7F0*(,,F=F0*(F/F0F7F0F4F0FA*(F/F0F8F0F:F0FAF6F0FBFAF0F;FAFDF0F0
+*,F/F0,&F.F0F7FAF0F7F0F;FAFGF0FA*,F/F0FQF0F.F/F;FAF*F0FA,*-F(6$FGF.F0*
+.F/F0,**$F8F0F0*&F.F0F7F0FAF9FAF7F0F0F.F0F7F0F;FAFDF0FA*,F/F0F.F0,(*(F
+/F0F.F0F7F0F0F7FAFXF0F0F;FAFGF0FA*.F/F0,&*&F/F0F.F0F0F7FAF0F.F0F7F0F;F
+AF*F0F0,*-F(6$F*F7F0**,*F9FAF3F0FYF0FXFAF0F.F0F;FAFDF0F0*(F.F/F;FAFGF0
+F0*(,**&F/F0F4F0F0FXFA*(F/F0F.F0F7F0F0F9FAF0F;FAF*F0FA" }}}{EXCHG 
+{PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" 
+{MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}
+{EXCHG {PARA 0 "" 0 "" {TEXT -1 0 "" }{TEXT 286 85 "\nA little check: \+
+the solutions of jb5 (aka R2) are indeed contained in those of jb3:\n
+" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> \+
+" 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 18 "
+xpdesolve(jb5,fs);" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#7$%#xiG%$etaG" }
+}{PARA 11 "" 1 "" {XPPMATH 20 "6#7&%#xiG-%&eta_1G6$%\"xG%\"yG-%&eta_2G
+F'-%&eta_3GF'" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#7&%#xiG-%&eta_1G6$%\"
+xG%\"yG-%&eta_2GF'-%(eta_3_1GF'" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#7%%
+#xiG-%&eta_1G6$%\"xG%\"yG-%&eta_2GF'" }}{PARA 11 "" 1 "" {XPPMATH 20 "
+6#7$%#xiG-%&eta_1G6$%\"xG%\"yG" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#7#%#
+xiG" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#7$/%$etaG,(*&#\"\"\"\"\"#F)*&)%
+\"yGF*F)&%$_CCG6#\"\"$F)F)F)*&&F/6#F*F)F-F)F)*&)%\"xGF*F)&F/6#F)F)F)/%
+#xiG,,*&F3F)F7F)F)*&F(F)*&F.F)F6F)F)F)*&F(F)*&F.F)F-F)F)F)*&F-F)F8F)!
+\"\"F2F)" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 28 "simplify(eval(s
+ubs(%,jb3)));" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#7'\"\"!F$F$F$F$" }}}
+{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "" 0 "" 
+{TEXT -1 0 "" }{TEXT 287 288 "\nNow we could proceed to factorize jb5 \+
+further with the above method. For a completely reducible L we would f
+ind a complete\nfactorization in this way. (Of course we would have to
+ give jb4 also a try for further breakdown in factors which is here\nu
+nnecessary because it has dimension 1).\n\n" }}}{EXCHG {PARA 0 "> " 0 
+"" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}
+{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "" 0 "" 
+{TEXT -1 0 "" }{TEXT 288 149 "\nFinally we show the application of the
+ function janbasdiv which is used in the body of makemixedEquation1 to
+ find\nthe left factor L1 with L1 R = L:\n" }}}{EXCHG {PARA 0 "> " 0 "
+" {MPLTEXT 1 0 0 "" }}}{EXCHG }{EXCHG }{EXCHG }{EXCHG }{EXCHG }{EXCHG 
+}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "
+" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 26 "LF:=j
+anbasdiv(jb3,jb4,fs);" }}{PARA 12 "" 1 "" {XPPMATH 20 "6#>%#LFG7$7(-%%
+diffG6$-%#U1G6$%\"xG%\"yGF.,&*&-F(6$-%#U2GF,F.\"\"\"F-F5F5*&\"\"#F5F*F
+5F5,&*&-F(6$F3F-F5)F-F7F5F5*(F7F5F*F5F.F5!\"\",(*&-F(6$-%#U3GF,F.F5F<F
+5F5*&,&*$)F.F7F5F>*(F7F5F-F5F.F5F5F5F*F5F5*&,&*$F<F5F5*(F7F5F-F5F.F5F>
+F5F3F5F5,**&,&*(\"\"$F5F-F5FHF5F5*(F7F5F.F5F<F5F>F5F3F5F5*(F7F5FCF5F<F
+5F>*&,&*(\"\"%F5F-F5FHF5F>*&F7F5)F.FRF5F5F5F*F5F5*&-F(6$FCF-F5)F-FRF5F
+5,$-F(6$F*F-F>7%F*F3FC" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 45 "j
+btst:=subs(zip((x,y)->x=y,LF[2],jb4),LF[1]);" }}{PARA 12 "" 1 "" 
+{XPPMATH 20 "6#>%&jbtstG7(-%%diffG6$%#xiG-%\"$G6$%\"yG\"\"#,&*&-F'6$,&
+-F'6$F)%\"xG\"\"\"*(F.F7F6!\"\"F)F7F9F-F7F6F7F7*&F.F7-F'6$F)F-F7F7,&*&
+-F'6$F3F6F7)F6F.F7F7*(F.F7F;F7F-F7F9,(*&-F'6$,&%$etaGF7*(F-F.F6!\"#F)F
+7F9F-F7FAF7F7*&,&*$)F-F.F7F9*(F.F7F6F7F-F7F7F7F;F7F7*&,&*$FAF7F7*(F.F7
+F6F7F-F7F9F7F3F7F7,**&,&*(\"\"$F7F6F7FNF7F7*(F.F7F-F7FAF7F9F7F3F7F7*(F
+.F7FGF7FAF7F9*&,&*(\"\"%F7F6F7FNF7F9*&F.F7)F-FXF7F7F7F;F7F7*&-F'6$FGF6
+F7)F6FXF7F7,$-F'6%F)F-F6F9" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 
+29 "jbtst:=simplify(eval(jbtst)):" }}}{EXCHG {PARA 0 "> " 0 "" 
+{MPLTEXT 1 0 50 "jbtst:=csimpJanetBase(makeJanetBase(jbtst,fs),fs);" }
+}{PARA 12 "" 1 "" {XPPMATH 20 "6#>%&jbtstG7'-%%diffG6$%#xiG-%\"$G6$%\"
+yG\"\"#-F'6%F)%\"xGF-,*-F'6$F)-F+6$F1F.\"\"\"**F.F7F-F7F1!\"#-F'6$F)F-
+F7!\"\"*(F.F7F1F<-F'6$F)F1F7F<*(F.F7F1F9F)F7F7,*-F'6$%$etaGF-F7*,F.F7F
+-F7,&F1F7F-F<F7F1F9F:F7F7*(,&F1F7*&F.F7F-F7F<F7F1F<F>F7F7**F.F7FFF7F1F
+9F)F7F<,,-F'6$FDF1F7*,F.F7,&*&F.F7F1F7F7F-F<F7F-F.F1!\"$F:F7F<*,F.F7F-
+F7FFF7F1F9F>F7F<*(F.F7F1F<FDF7F<*,F.F7FOF7F-F7F1FQF)F7F7" }}}{EXCHG 
+{PARA 0 "> " 0 "" {MPLTEXT 1 0 4 "jb3;" }}{PARA 12 "" 1 "" {XPPMATH 
+20 "6#7'-%%diffG6$%#xiG-%\"$G6$%\"yG\"\"#-F%6%F'%\"xGF+,*-F%6$F'-F)6$F
+/F,\"\"\"**F,F5F+F5F/!\"#-F%6$F'F+F5!\"\"*(F,F5F/F:-F%6$F'F/F5F:*(F,F5
+F/F7F'F5F5,*-F%6$%$etaGF+F5*,F,F5F+F5,&F/F5F+F:F5F/F7F8F5F5*(,&F/F5*&F
+,F5F+F5F:F5F/F:F<F5F5**F,F5FDF5F/F7F'F5F:,,-F%6$FBF/F5*,F,F5,&*&F,F5F/
+F5F5F+F:F5F+F,F/!\"$F8F5F:*,F,F5F+F5FDF5F/F7F<F5F:*(F,F5F/F:FBF5F:*,F,
+F5FMF5F+F5F/FOF'F5F5" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}
+}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "
+" {MPLTEXT 1 0 0 "" }}}}{MARK "215 0 1" 284 }{VIEWOPTS 1 1 0 1 1 1803 
+1 1 1 1 }{PAGENUMBERS 0 1 2 33 1 1 }

@@ -1,0 +1,58 @@
+remdep ( [xi, eta, sigma, rho] );
+
+depend ( [xi, eta, sigma, rho], [x,y] );
+
+
+####################################################################################
+#
+#   Group g 3, 17, 3
+#
+#
+
+
+read cat ( DPACKPATH, `cancoorddir/dcancoord-g3-17-gener` ):
+
+
+
+
+KNOWNSOLS_3_17_3 := [ SIGMA, exp(SIGMA), 1];
+
+
+
+dcancoord_g3_17_3_ffff := proc ( jb, fs )
+
+dcancoord_g3_17_generic ( jb, fs, [3,17,3,ffff], KNOWNSOLS_3_17_3 );
+
+end;
+
+#
+#
+#
+
+dcancoord_g3_17_3_tfff := proc ( jb, fs )
+
+dcancoord_g3_17_generic ( jb, fs, [3,17,3,tfff], KNOWNSOLS_3_17_3 );
+
+end;
+
+#
+#
+#
+
+dcancoord_g3_17_3_ftff := proc ( jb, fs )
+
+dcancoord_g3_17_generic ( jb, fs, [3,17,3,ftff], KNOWNSOLS_3_17_3 );
+
+end;
+
+
+#
+#
+#
+
+
+cancoordsetup_g3_17_3 := proc ()
+
+cancoordsetup_g3_17_generic ( [3,17,3,XXXX] );
+
+end;

@@ -1,0 +1,45 @@
+
+FUNCTION: makeDeterminingSystem - Compute the differential equations that have
+                                  as their solutions the infinitesimal
+                                  symmetries of a propounded system of
+                                  differential equations
+      
+CALLING SEQUENCE:
+   makeDeterminingSystem(deqs, varLists, fns)
+      
+PARAMETERS:
+   deqs     - a list of differential equations
+   varLists - a list of two lists of variables
+   fns      - a list of functions
+      
+SYNOPSIS:   
+- The function makeDeterminingSystem computes a system of linear partial
+  differential equations in the functions given in fns.
+  
+- The solutions to these DEs are the infinitesimal symmetries of the DEs given
+  in deqs.
+  
+- The parameter varLists contains the relevant variables for the propounded
+  problem in form of a list of two sublists.
+  The first sublist contains the independent variables of the problem, the 
+  second the dependent ones ( compare the explanation at the dprolong help page ).
+  
+- For ease of input it is allowed that the members of the list of dependent
+  variables in varLists are actually functions ( of the independent variables ).
+
+- The functions in fns correspond to the variables in varLists according to
+  the order in which they are written.
+  Each function stands for the infinitesimal movement, that the corresponding
+  variable is undergoing.
+ 
+  That is if varLists = [[x],[y]] and fns = [xi(x,y), eta(x,y)], then the
+  infinitesimal symmetries that the function tries to determine are sought under
+  the form of
+  
+     xi * d/dx + eta * d/dy   ( read d-partial for d )
+     
+    
+EXAMPLES:   
+      
+SEE ALSO:
+

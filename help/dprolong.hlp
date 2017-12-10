@@ -1,0 +1,38 @@
+
+FUNCTION: dprolong - compute the prolongation of a vectorfield
+   
+CALLING SEQUENCE:
+   dprolong ( vec, vBLists, varLists, order )
+      
+PARAMETERS:
+   vec          - a list of expressions
+   vBLists      - a list of two lists of indeterminates
+   varLists     - a list of two lists of variables 
+   order        - an integer
+     
+SYNOPSIS:   
+- The parameter vec contains a vectorfield of order zero in the notation described in
+  the help pages for vliebrack etc.
+  vBLists and varLists are the accompanying systems of indeterminates and variables,
+  written in a notation which reflects the distinction between variables that are
+  thought as independent and those that are thought as dependent, e.g. for a 
+  vectorfield in the plane
+  
+  vec = x*p+y*q
+  vBLists = [[p],[q]]
+  varLists = [[x],[y]]
+  
+  The second list contains the variables thought as dependent, the first those
+  that are thought as independent.
+  
+- The function computes the prolongation of the vectorfield up to the order given
+  in the parameter order.
+  
+- CAUTION : dprolong accepts only vectorfields of zeroth order ( unprolonged vector-
+    fields )
+  
+  
+EXAMPLES:   
+      
+SEE ALSO: 
+

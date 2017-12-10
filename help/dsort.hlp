@@ -1,0 +1,36 @@
+
+FUNCTION: dsort     - sorts the terms of a linear partial differential equation
+                      (LPDE ) according to an order specified by a matrix of
+                      cotes
+   
+          dsortraw  - sorts the terms of a linear partial differential equation
+                      (LPDE ) according to total degree order
+      
+          dsortlist - sorts a list of LPDE according to a cote order
+      
+      
+CALLING SEQUENCE:
+   dsort(e, fs)
+   dsortraw(e, fs)
+   dsortlist(le, fs)
+      
+PARAMETERS:
+   e     - an expression
+   le    - a list of expressions
+   fs    - a list of functions of the same independent variables
+      
+SYNOPSIS:   
+- dsort and dsortraw consider e as an LPDE with respect to the functions given
+  in fs.   
+     
+- dsortlist first sorts every equation in the list le by applying dsort, and 
+  then sorts the list by the leading differential monomials of its equations.
+     
+- To use dsort or dsortlist it is necessary to have a cote order associated
+  with fs by using the function setcotes. The function dsortraw on the opposite
+  works on every LPDE.
+   
+EXAMPLES:   
+      
+SEE ALSO: setcotes
+

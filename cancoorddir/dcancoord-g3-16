@@ -1,0 +1,433 @@
+
+remdep ( [xi, eta, d[1]] );
+
+depend ( [xi,eta], [x,y] );
+
+
+####################################################################################
+#
+#   Group g 3, 16
+#
+#
+
+KNOWNSOLS_3_16 := [1, SIGMA];
+
+
+dcancoord_g3_16_ffff := proc ( jb, fs )
+
+local	fs1,
+		jb1,
+		d1v,
+		uu,
+		eql,
+		eq1,
+		eq2,
+		erg,
+		cnstnts,
+		usl,
+		phii, phii1, phii2,
+		xx10v, xx00v,
+		xx00v1,
+		sl,
+		yy00v,
+		ff,
+		rsys,
+		loes,
+		res;
+
+
+fs1 := [xi, eta];
+
+jb1 := dchangefs ( jb, fs, fs1 );
+
+d1v := dresolve ( [3, 16, ffff], jb1, fs1, d[1](x,y) );
+
+if d1v = 0 then
+
+	RETURN ( dcancoord_g3_16_tfff ( jb, fs ) );
+	
+fi;
+
+# berechne sigma
+
+uu := UU(x, y);
+
+eql := dgetresolve ( [3, 16, ffff], jb1, fs1, [ID_EQ1, ID_EQ2] );
+
+eq1 := eql[1];
+eq2 := eql[2];
+
+
+erg := dRiccatiSys ( eq1, eq2, uu );
+
+cnstnts := erg[3];
+
+usl := subs ( uu=UU, erg[1] );
+
+phii := subs ( uu=UU, rhs ( erg[2] ) );
+
+phii1 := dnormal ( 2*diff(phii,UU)*xx10 );
+
+phii2 := dnormal ( 4*xx10*(xx00*diff(phii,UU)+diff(diff(phii,UU),UU)*xx10)  );
+				 
+				 
+xx10v := solve ( phii1= _K1, xx10 );
+xx00v := solve ( phii2= _K2, xx00 );
+
+xx00v := subs ( usl, subs ( xx10 = xx10v, xx00v ) );
+
+xx00v := simplify ( xx00v, symbolic );
+
+cnstnts := { _K1, _K2 } union cnstnts;
+
+sl := selectDefined ( [xx00v], [op(cnstnts)],[(-15..15) $ 3], [ 0 $ 3 ] );
+
+if sl <> FAIL then
+
+	xx00v1 := dnormal ( subs ( sl, xx00v ) );
+	
+else
+
+	xx00v1 := FAIL;
+	
+fi;
+
+
+# berechne rho, rsys ist homogen, von 3 Loesungen sind 1 und sigma schon bekannt.
+
+
+ff := RRX ( x, y );
+
+rsys := dgetresolve ( [3, 16, ffff], jb1, fs1, ID_RSYS );
+
+rsys := subs ( SIGMA (x, y) = xx00v1, rsys );
+
+rsys := normevalval ( rsys );
+
+loes := xpdesolve ( rsys, [ff], basis );
+
+yy00v := xpdegensol ( loes, subs ( SIGMA = xx00v1, KNOWNSOLS_3_16 ) );
+
+yy00v := subs ( yy00v, ff );
+
+
+
+res := dnormal ( [xx00v1, yy00v] );
+
+
+res := [ [], res, [] ];
+
+end;
+
+#
+#
+#
+#
+
+
+dcancoord_g3_16_tfff := proc ( jb, fs )
+
+local	fs1,
+		jb1,
+		uu,
+		eql,
+		eq1,
+		eq2,
+		erg,
+		cnstnts,
+		usl,
+		phii, phii1, phii2,
+		xx01v, xx00v,
+		xx00v1,
+		sl,
+		yy00v,
+		ff,
+		rsys,
+		loes,
+		res;
+
+
+fs1 := [xi, eta];
+
+jb1 := dchangefs ( jb, fs, fs1 );
+
+
+# berechne sigma
+
+uu := UU(x, y);
+
+eql := dgetresolve ( [3, 16, tfff], jb1, fs1, [ID_EQ1, ID_EQ2] );
+
+eq1 := eql[1];
+eq2 := eql[2];
+
+
+erg := dRiccatiSys ( eq1, eq2, uu );
+
+cnstnts := erg[3];
+
+usl := subs ( uu=UU, erg[1] );
+
+phii := subs ( uu=UU, rhs ( erg[2] ) );
+
+phii1 := dnormal ( 2*diff(phii,UU)*xx01 );
+
+phii2 := dnormal ( 4*xx01*(xx00*diff(phii,UU)+diff(diff(phii,UU),UU)*xx01)  );
+				 
+				 
+xx01v := solve ( phii1= _K1, xx01 );
+xx00v := solve ( phii2= _K2, xx00 );
+
+xx00v := subs ( usl, subs ( xx01 = xx01v, xx00v ) );
+
+xx00v := simplify ( xx00v, symbolic );
+
+cnstnts := { _K1, _K2 } union cnstnts;
+
+sl := selectDefined ( [xx00v], [op(cnstnts)],[(-15..15) $ 3], [ 0 $ 3 ] );
+
+if sl <> FAIL then
+
+	xx00v1 := dnormal ( subs ( sl, xx00v ) );
+	
+else
+
+	xx00v1 := FAIL;
+	
+fi;
+
+
+# berechne rho, rsys ist homogen, von 3 Loesungen sind 1 und sigma schon bekannt.
+
+
+ff := RRX ( x, y );
+
+rsys := dgetresolve ( [3, 16, tfff], jb1, fs1, ID_RSYS );
+
+rsys := subs ( SIGMA (x, y) = xx00v1, rsys );
+
+rsys := normevalval ( rsys );
+
+loes := xpdesolve ( rsys, [ff], basis );
+
+yy00v := xpdegensol ( loes, subs ( SIGMA = xx00v1, KNOWNSOLS_3_16 ) );
+
+yy00v := subs ( yy00v, ff );
+
+
+
+res := dnormal ( [xx00v1, yy00v] );
+
+
+res := [ [], res, [] ];
+
+end;
+
+#
+#
+#
+#
+
+dcancoord_g3_16_ftff := proc ( jb, fs )
+
+local	fs1,
+		jb1,
+		uu,
+		eql,
+		eq1,
+		eq2,
+		erg,
+		cnstnts,
+		usl,
+		phii, phii1, phii2,
+		xx10v, xx00v,
+		xx00v1,
+		sl,
+		yy00v,
+		ff,
+		rsys,
+		loes,
+		res;
+
+fs1 := [xi, eta];
+
+jb1 := dchangefs ( jb, fs, fs1 );
+
+
+
+
+# berechne sigma
+
+uu := UU(x, y);
+
+eql := dgetresolve ( [3, 16, ftff], jb1, fs1, [ID_EQ1, ID_EQ2] );
+
+eq1 := eql[1];
+eq2 := eql[2];
+
+
+erg := dRiccatiSys ( eq1, eq2, uu );
+
+cnstnts := erg[3];
+
+usl := subs ( uu=UU, erg[1] );
+
+phii := subs ( uu=UU, rhs ( erg[2] ) );
+
+phii1 := dnormal ( 2*diff(phii,UU)*xx10 );
+
+phii2 := dnormal (  4*xx10*(xx00*diff(phii,UU)+diff(diff(phii,UU),UU)*xx10) );
+				 
+				 
+xx10v := solve ( phii1= _K1, xx10 );
+xx00v := solve ( phii2= _K2, xx00 );
+
+xx00v := subs ( usl, subs ( xx10 = xx10v, xx00v ) );
+
+xx00v := simplify ( xx00v, symbolic );
+
+cnstnts := { _K1, _K2 } union cnstnts;
+
+sl := selectDefined ( [xx00v], [op(cnstnts)],[(-15..15) $ 3], [ 0 $ 3 ] );
+
+if sl <> FAIL then
+
+	xx00v1 := dnormal ( subs ( sl, xx00v ) );
+	
+else
+
+	xx00v1 := FAIL;
+	
+fi;
+
+
+# berechne rho, rsys ist homogen, von 3 Loesungen sind 1 und sigma schon bekannt.
+
+
+ff := RRX ( x, y );
+
+rsys := dgetresolve ( [3, 16, ftff], jb1, fs1, ID_RSYS );
+
+rsys := subs ( SIGMA (x, y) = xx00v1, rsys );
+
+rsys := normevalval ( rsys );
+
+loes := xpdesolve ( rsys, [ff], basis );
+
+yy00v := xpdegensol ( loes, subs ( SIGMA = xx00v1, KNOWNSOLS_3_16 ) );
+
+yy00v := subs ( yy00v, ff );
+
+
+
+res := dnormal ( [xx00v1, yy00v] );
+
+
+res := [ [], res, [] ];
+
+end;
+
+
+#
+#
+#
+
+
+tempforgetdep ();
+
+
+cancoordsetup_g3_16 := proc ()
+
+local rivs,
+		vf,
+		uu,
+		res;
+
+
+# Fall ffff
+
+
+iginit ( [3,16,ffff] );
+
+igdefgrp ( G1, igiv ( [1,2,3,4,5] ) );
+
+rivs := igrelinvars ( G0, G1, 2 );
+
+vf := rivs[1][1];
+
+uu := xx[1,1]/xx[0,1];
+
+igrelinvdiscuss1 ( uu, vf, ID_EQ1, ID_EQ2 );
+
+
+res := igcoeffbase ( [3,16,ffff] );
+
+res := res[2..4];
+
+res := eq2expr ( res );
+
+res := subs ( sigma (x,y) = SIGMA (x, y), rho (x,y) = RRX (x, y), res );
+
+igsaveexpr ( ID_RSYS, res );
+
+
+
+# Unterfall tfff
+
+iginit ( [3, 16, tfff] );
+
+igdefgrp ( G1, igiv ( [1,2,3,4,5] ) );
+
+rivs := igrelinvars ( G0, G1, 2 );
+
+vf := rivs[1][1];
+
+uu := xx[0,2]/xx[0,1];
+
+igrelinvdiscuss1 ( uu, vf, ID_EQ1, ID_EQ2 );
+
+
+res := igcoeffbase ( [3,16,tfff] );
+
+res := res[2..4];
+
+res := eq2expr ( res );
+
+res := subs ( sigma (x,y) = SIGMA (x, y), rho (x,y) = RRX (x, y), res );
+
+igsaveexpr ( ID_RSYS, res );
+
+
+# Unterfall ftff
+
+iginit ( [3, 16, ftff] );
+
+igdefgrp ( G1, igiv ( [1,2,3,4,5] ) );
+
+rivs := igrelinvars ( G0, G1, 2 );
+
+vf := rivs[1][1];
+
+uu := xx[2,0]/xx[1,0];
+
+igrelinvdiscuss1 ( uu, vf, ID_EQ1, ID_EQ2 );
+
+
+res := igcoeffbase ( [3,16,ftff] );
+
+res := res[2..4];
+
+res := eq2expr ( res );
+
+res := subs ( sigma (x,y) = SIGMA (x, y), rho (x,y) = RRX (x, y), res );
+
+igsaveexpr ( ID_RSYS, res );
+
+
+end;
+
+restoredep();
+
+
+
+

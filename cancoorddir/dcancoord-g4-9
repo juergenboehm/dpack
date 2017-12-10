@@ -1,0 +1,849 @@
+
+remdep ( [xi, eta, c[1], d[1], b[1]] );
+
+depend ( [xi,eta], [x,y] );
+
+
+####################################################################################
+#
+#   Group g 4, 9
+#
+#
+
+
+dcancoord_g4_9_ffff := proc ( jb, fs )
+
+local uu,
+		fs1,
+		jb1,
+		c1v,
+		d1v,
+		eq1, eq2,
+		erg,
+		cnstnts,
+		usl,
+		phii,
+		phii1,
+		phii2,
+		yy01v, yy00v,
+		yy00v1,
+		sl,
+		ff,
+		xx00v;
+
+
+# berechne rho
+
+
+fs1 := [xi, eta];
+
+jb1 := dchangefs ( jb, fs, fs1 );
+
+c1v := dresolve ( [4,9,ffff], jb1, fs1, c[1](x,y) ); # sx/sy
+
+d1v := dresolve ( [4,9,ffff], jb1, fs1, d[1](x,y) ); # ry/rx
+
+if c1v = 0 then
+
+	if d1v = 0 then
+	
+		RETURN ( dcancoord_g4_9_tfft ( jb, fs ) );
+		
+	else
+	
+		RETURN ( dcancoord_g4_9_tfff ( jb, fs ) );
+		
+	fi;
+	
+elif d1v = 0 then
+
+	RETURN ( dcancoord_g4_9_ffft ( jb, fs ) );
+	
+fi;
+
+uu := UU(x, y);
+
+eq1 := dgetsavedexpr ( [4,9,ffff], ID_EQ1 );
+eq2 := dgetsavedexpr ( [4,9,ffff], ID_EQ2 );
+
+eq1 := dresolve ( [4, 9, ffff], jb1, fs1, eq1 );
+
+eq2 := dresolve ( [4, 9, ffff], jb1, fs1, eq2 );
+
+
+erg := dRiccatiSys ( eq1, eq2, uu );
+
+cnstnts := erg[3];
+
+usl := subs ( uu=UU, erg[1] );
+
+phii := subs ( uu=UU, rhs ( erg[2] ) );
+
+phii1 := dnormal ( 2 * diff ( phii, UU ) * yy01 );
+
+phii2 := dnormal ( 4*yy01*(diff(diff(phii,UU),UU)*yy01+yy00*diff(phii,UU)) );
+				 
+				 
+yy01v := solve ( phii1= _K1, yy01 );
+yy00v := solve ( phii2= _K2, yy00 );
+
+yy00v := subs ( usl, subs ( yy01 = yy01v, yy00v ) );
+
+yy00v := dnormal ( yy00v );
+
+cnstnts := { _K1, _K2 } union cnstnts;
+
+sl := selectDefined ( [yy00v], [op(cnstnts)],[(-15..15) $ 3], [ 0 $ 3 ] );
+
+if sl <> FAIL then
+
+	yy00v1 := dnormal ( subs ( sl, yy00v ) );
+	
+else
+
+	yy00v1 := FAIL;
+	
+fi;
+
+# berechne sigma
+
+ff := dgetsavedexpr ( [4,9,ffff], ID_EQ3 );
+
+ff := dresolve ( [4, 9, ffff], jb1, fs1, ff );
+
+xx00v := dincomplQuadr ( ff, [x, y] );
+
+xx00v := dsimplify ( xx00v );
+
+
+# Ergebnis:
+
+RETURN ( [[xx00v, yy00v], [xx00v, yy00v1], cnstnts] );
+
+end;
+
+#
+#
+#
+
+dcancoord_g4_9_tfff := proc ( jb, fs )
+
+local uu,
+		fs1,
+		jb1,
+		c1v,
+		d1v,
+		eq1, eq2,
+		erg,
+		cnstnts,
+		usl,
+		phii,
+		phii1,
+		phii2,
+		yy01v, yy00v,
+		yy00v1,
+		sl,
+		sbyy,
+		xx00v;
+
+
+# berechne rho
+
+
+fs1 := [xi, eta];
+
+jb1 := dchangefs ( jb, fs, fs1 );
+
+
+uu := UU(x, y);
+
+eq1 := dgetsavedexpr ( [4,9,tfff], ID_EQ1 );
+eq2 := dgetsavedexpr ( [4,9,tfff], ID_EQ2 );
+
+eq1 := dresolve ( [4, 9, tfff], jb1, fs1, eq1 );
+
+eq2 := dresolve ( [4, 9, tfff], jb1, fs1, eq2 );
+
+
+erg := dRiccatiSys ( eq1, eq2, uu );
+
+cnstnts := erg[3];
+
+usl := subs ( uu=UU, erg[1] );
+
+phii := subs ( uu=UU, rhs ( erg[2] ) );
+
+phii1 := dnormal ( 2 * diff ( phii, UU ) * yy01 );
+
+phii2 := dnormal ( 4*yy01*(diff(diff(phii,UU),UU)*yy01+yy00*diff(phii,UU)) );
+				 
+				 
+yy01v := solve ( phii1= _K1, yy01 );
+yy00v := solve ( phii2= _K2, yy00 );
+
+yy00v := subs ( usl, subs ( yy01 = yy01v, yy00v ) );
+
+yy00v := dnormal ( yy00v );
+
+cnstnts := { _K1, _K2 } union cnstnts;
+
+sl := selectDefined ( [yy00v], [op(cnstnts)],[(-15..15) $ 3], [ 0 $ 3 ] );
+
+if sl <> FAIL then
+
+	yy00v1 := dnormal ( subs ( sl, yy00v ) );
+	
+else
+
+	yy00v1 := FAIL;
+	
+fi;
+
+# berechne sigma
+
+sbyy := dgetresolve ( [4,9,tfff], jb1, fs1, ID_SBYY );
+
+xx00v := intbyy ( sbyy, [x, y] );
+
+xx00v := dsimplify ( xx00v );
+
+
+# Ergebnis:
+
+RETURN ( [[xx00v, yy00v], [xx00v, yy00v1], cnstnts] );
+
+end;
+
+#
+#
+#
+
+dcancoord_g4_9_ffft := proc ( jb, fs )
+
+local uu,
+		fs1,
+		jb1,
+		c1v,
+		d1v,
+		eq1, eq2,
+		erg,
+		cnstnts,
+		usl,
+		phii,
+		phii1,
+		phii2,
+		yy10v, yy00v,
+		yy00v1,
+		sl,
+		ff,
+		xx00v;
+
+
+# berechne rho
+
+
+fs1 := [xi, eta];
+
+jb1 := dchangefs ( jb, fs, fs1 );
+
+
+uu := UU(x, y);
+
+eq1 := dgetsavedexpr ( [4,9,ffft], ID_EQ1 );
+eq2 := dgetsavedexpr ( [4,9,ffft], ID_EQ2 );
+
+eq1 := dresolve ( [4, 9, ffft], jb1, fs1, eq1 );
+
+eq2 := dresolve ( [4, 9, ffft], jb1, fs1, eq2 );
+
+
+erg := dRiccatiSys ( eq1, eq2, uu );
+
+cnstnts := erg[3];
+
+usl := subs ( uu=UU, erg[1] );
+
+phii := subs ( uu=UU, rhs ( erg[2] ) );
+
+phii1 := dnormal ( 2 * diff ( phii, UU ) * yy10 );
+
+phii2 := dnormal ( 4*yy10*(diff(diff(phii,UU),UU)*yy10+yy00*diff(phii,UU)) );
+				 
+				 
+yy10v := solve ( phii1= _K1, yy10 );
+yy00v := solve ( phii2= _K2, yy00 );
+
+yy00v := subs ( usl, subs ( yy10 = yy10v, yy00v ) );
+
+yy00v := dnormal ( yy00v );
+
+cnstnts := { _K1, _K2 } union cnstnts;
+
+sl := selectDefined ( [yy00v], [op(cnstnts)],[(-15..15) $ 3], [ 0 $ 3 ] );
+
+if sl <> FAIL then
+
+	yy00v1 := dnormal ( subs ( sl, yy00v ) );
+	
+else
+
+	yy00v1 := FAIL;
+	
+fi;
+
+# berechne sigma
+
+ff := dgetresolve ( [4,9,ffft], jb1, fs1, ID_EQ3 );
+
+xx00v := dincomplQuadr ( ff, [x, y] );
+
+xx00v := dsimplify ( xx00v );
+
+
+# Ergebnis:
+
+RETURN ( [[xx00v, yy00v], [xx00v, yy00v1], cnstnts] );
+
+end;
+
+#
+#
+#
+
+dcancoord_g4_9_tfft := proc ( jb, fs )
+
+local uu,
+		fs1,
+		jb1,
+		c1v,
+		d1v,
+		eq1, eq2,
+		erg,
+		cnstnts,
+		usl,
+		phii,
+		phii1,
+		phii2,
+		yy10v, yy00v,
+		yy00v1,
+		sl,
+		sbyy,
+		xx00v;
+
+
+# berechne rho
+
+
+fs1 := [xi, eta];
+
+jb1 := dchangefs ( jb, fs, fs1 );
+
+
+uu := UU(x, y);
+
+eq1 := dgetsavedexpr ( [4,9,tfft], ID_EQ1 );
+eq2 := dgetsavedexpr ( [4,9,tfft], ID_EQ2 );
+
+eq1 := dresolve ( [4, 9, tfft], jb1, fs1, eq1 );
+
+eq2 := dresolve ( [4, 9, tfft], jb1, fs1, eq2 );
+
+
+erg := dRiccatiSys ( eq1, eq2, uu );
+
+cnstnts := erg[3];
+
+usl := subs ( uu=UU, erg[1] );
+
+phii := subs ( uu=UU, rhs ( erg[2] ) );
+
+phii1 := dnormal ( 2 * diff ( phii, UU ) * yy10 );
+
+phii2 := dnormal ( 4*yy10*(diff(diff(phii,UU),UU)*yy10+yy00*diff(phii,UU)) );
+				 
+				 
+yy10v := solve ( phii1= _K1, yy10 );
+yy00v := solve ( phii2= _K2, yy00 );
+
+yy00v := subs ( usl, subs ( yy10 = yy10v, yy00v ) );
+
+yy00v := dnormal ( yy00v );
+
+cnstnts := { _K1, _K2 } union cnstnts;
+
+sl := selectDefined ( [yy00v], [op(cnstnts)],[(-15..15) $ 3], [ 0 $ 3 ] );
+
+if sl <> FAIL then
+
+	yy00v1 := dnormal ( subs ( sl, yy00v ) );
+	
+else
+
+	yy00v1 := FAIL;
+	
+fi;
+
+# berechne sigma
+
+sbyy := dgetresolve ( [4,9,tfft], jb1, fs1, ID_SBYY );
+
+xx00v := intbyy ( sbyy, [x, y] );
+
+xx00v := dsimplify ( xx00v );
+
+
+# Ergebnis:
+
+RETURN ( [[xx00v, yy00v], [xx00v, yy00v1], cnstnts] );
+
+end;
+
+#
+#
+#
+#
+dcancoord_g4_9_ftff := proc ( jb, fs )
+
+local uu,
+		fs1,
+		jb1,
+		eq1, eq2,
+		erg,
+		cnstnts,
+		usl,
+		phii,
+		phii1,
+		phii2,
+		yy01v, yy00v,
+		yy00v1,
+		sl,
+		sbyx,
+		xx00v;
+
+
+# berechne rho
+
+
+fs1 := [xi, eta];
+
+jb1 := dchangefs ( jb, fs, fs1 );
+
+
+
+uu := UU(x, y);
+
+eq1 := dgetsavedexpr ( [4,9,ftff], ID_EQ1 );
+eq2 := dgetsavedexpr ( [4,9,ftff], ID_EQ2 );
+
+eq1 := dresolve ( [4, 9, ftff], jb1, fs1, eq1 );
+
+eq2 := dresolve ( [4, 9, ftff], jb1, fs1, eq2 );
+
+
+erg := dRiccatiSys ( eq1, eq2, uu );
+
+cnstnts := erg[3];
+
+usl := subs ( uu=UU, erg[1] );
+
+phii := subs ( uu=UU, rhs ( erg[2] ) );
+
+phii1 := dnormal ( 2 * diff ( phii, UU ) * yy01 );
+
+phii2 := dnormal ( 4*yy01*(diff(diff(phii,UU),UU)*yy01+yy00*diff(phii,UU)) );
+				 
+				 
+yy01v := solve ( phii1= _K1, yy01 );
+yy00v := solve ( phii2= _K2, yy00 );
+
+yy00v := subs ( usl, subs ( yy01 = yy01v, yy00v ) );
+
+yy00v := dnormal ( yy00v );
+
+cnstnts := { _K1, _K2 } union cnstnts;
+
+sl := selectDefined ( [yy00v], [op(cnstnts)],[(-15..15) $ 3], [ 0 $ 3 ] );
+
+if sl <> FAIL then
+
+	yy00v1 := dnormal ( subs ( sl, yy00v ) );
+	
+else
+
+	yy00v1 := FAIL;
+	
+fi;
+
+# berechne sigma
+
+sbyx := dgetresolve ([4,9,ftff], jb1, fs1,  ID_SBYX );
+
+xx00v := intbyx ( sbyx, [x, y] );
+
+xx00v := dsimplify ( xx00v );
+
+
+# Ergebnis:
+
+RETURN ( [[xx00v, yy00v], [xx00v, yy00v1], cnstnts] );
+
+end;
+
+#
+#
+#
+#
+
+
+dcancoord_g4_9_fftf := proc ( jb, fs )
+
+local uu,
+		fs1,
+		jb1,
+		c1v,
+		d1v,
+		eq1, eq2,
+		erg,
+		cnstnts,
+		usl,
+		phii,
+		phii1,
+		phii2,
+		yy01v, yy00v,
+		yy00v1,
+		sl,
+		ff,
+		xx00v;
+
+
+# berechne rho
+
+
+fs1 := [xi, eta];
+
+jb1 := dchangefs ( jb, fs, fs1 );
+
+
+uu := UU(x, y);
+
+eq1 := dgetsavedexpr ( [4,9,fftf], ID_EQ1 );
+eq2 := dgetsavedexpr ( [4,9,fftf], ID_EQ2 );
+
+eq1 := dresolve ( [4, 9, fftf], jb1, fs1, eq1 );
+
+eq2 := dresolve ( [4, 9, fftf], jb1, fs1, eq2 );
+
+
+erg := dRiccatiSys ( eq1, eq2, uu );
+
+cnstnts := erg[3];
+
+usl := subs ( uu=UU, erg[1] );
+
+phii := subs ( uu=UU, rhs ( erg[2] ) );
+
+phii1 := dnormal ( 2 * diff ( phii, UU ) * yy01 );
+
+phii2 := dnormal ( 4*yy01*(diff(diff(phii,UU),UU)*yy01+yy00*diff(phii,UU)) );
+				 
+				 
+yy01v := solve ( phii1= _K1, yy01 );
+yy00v := solve ( phii2= _K2, yy00 );
+
+yy00v := subs ( usl, subs ( yy01 = yy01v, yy00v ) );
+
+yy00v := dnormal ( yy00v );
+
+cnstnts := { _K1, _K2 } union cnstnts;
+
+sl := selectDefined ( [yy00v], [op(cnstnts)],[(-15..15) $ 3], [ 0 $ 3 ] );
+
+if sl <> FAIL then
+
+	yy00v1 := dnormal ( subs ( sl, yy00v ) );
+	
+else
+
+	yy00v1 := FAIL;
+	
+fi;
+
+# berechne sigma
+
+ff := dgetsavedexpr ( [4,9,fftf], ID_EQ3 );
+
+ff := dresolve ( [4, 9, fftf], jb1, fs1, ff );
+
+xx00v := dincomplQuadr ( ff, [x, y] );
+
+xx00v := dsimplify ( xx00v );
+
+
+# Ergebnis:
+
+RETURN ( [[xx00v, yy00v], [xx00v, yy00v1], cnstnts] );
+
+end;
+
+#
+#
+#
+#
+#
+
+dcancoord_g4_9_fttf := proc ( jb, fs )
+
+local uu,
+		fs1,
+		jb1,
+		eq1, eq2,
+		erg,
+		cnstnts,
+		usl,
+		phii,
+		phii1,
+		phii2,
+		yy01v, yy00v,
+		yy00v1,
+		sl,
+		sbyx,
+		xx00v;
+
+
+# berechne rho
+
+
+fs1 := [xi, eta];
+
+jb1 := dchangefs ( jb, fs, fs1 );
+
+
+uu := UU(x, y);
+
+eq1 := dgetsavedexpr ( [4,9,fttf], ID_EQ1 );
+eq2 := dgetsavedexpr ( [4,9,fttf], ID_EQ2 );
+
+eq1 := dresolve ( [4, 9, fttf], jb1, fs1, eq1 );
+
+eq2 := dresolve ( [4, 9, fttf], jb1, fs1, eq2 );
+
+
+erg := dRiccatiSys ( eq1, eq2, uu );
+
+cnstnts := erg[3];
+
+usl := subs ( uu=UU, erg[1] );
+
+phii := subs ( uu=UU, rhs ( erg[2] ) );
+
+phii1 := dnormal ( 2 * diff ( phii, UU ) * yy01 );
+
+phii2 := dnormal ( 4*yy01*(diff(diff(phii,UU),UU)*yy01+yy00*diff(phii,UU)) );
+				 
+				 
+yy01v := solve ( phii1= _K1, yy01 );
+yy00v := solve ( phii2= _K2, yy00 );
+
+yy00v := subs ( usl, subs ( yy01 = yy01v, yy00v ) );
+
+yy00v := dnormal ( yy00v );
+
+cnstnts := { _K1, _K2 } union cnstnts;
+
+sl := selectDefined ( [yy00v], [op(cnstnts)],[(-15..15) $ 3], [ 0 $ 3 ] );
+
+if sl <> FAIL then
+
+	yy00v1 := dnormal ( subs ( sl, yy00v ) );
+	
+else
+
+	yy00v1 := FAIL;
+	
+fi;
+
+# berechne sigma
+
+sbyx := dgetresolve ([4,9,fttf], jb1, fs1,  ID_SBYX );
+
+xx00v := intbyx ( sbyx, [x, y] );
+
+xx00v := dsimplify ( xx00v );
+
+
+# Ergebnis:
+
+RETURN ( [[xx00v, yy00v], [xx00v, yy00v1], cnstnts] );
+
+end;
+
+
+
+
+
+
+
+
+#
+#
+#
+#
+##############################################################################################
+
+tempforgetdep ();
+
+
+cancoordsetup_g4_9 := proc ()
+
+local rivs,
+		vf,
+		uu,
+		sbyy,
+		sbyx;
+
+
+# Fall ffff
+
+iginit ( [4,9,ffff] );
+
+igdefgrp ( G1, igiv ( [1,2,4,5] ) );
+
+rivs:=igrelinvars ( G0, G1, 2 );
+
+uu := yy[0,2]/yy[0,1];
+
+vf := rivs[1][1];
+
+igrelinvdiscuss1 ( uu, vf, ID_EQ1, ID_EQ2 );
+
+igsaveexpr ( ID_EQ3, 1/c[1](x,y) );
+
+
+
+# Fall tfff
+
+iginit ( [4,9,tfff] );
+
+igdefgrp ( G1, igiv ( [1,2,4,5] ) );
+
+rivs:=igrelinvars ( G0, G1, 2 );
+
+uu := yy[0,2]/yy[0,1];
+
+vf := rivs[1][1];
+
+igrelinvdiscuss1 ( uu, vf, ID_EQ1, ID_EQ2 );
+
+sbyy := igreduce ( [4,9,tfff], [syx/sy, syy/sy, sx/sy] );
+
+igsaveexpr ( ID_SBYY, sbyy );
+
+
+
+# Fall ffft
+
+iginit([4,9,ffft]);
+
+igdefgrp ( G1, igiv ( [1,2,4,5] ) );
+
+rivs := igrelinvars ( G0, G1, 2 );
+
+uu := yy[2,0]/yy[1,0];
+
+vf := rivs[1][1];
+
+igrelinvdiscuss1 ( uu, vf, ID_EQ1, ID_EQ2 );
+
+igsaveexpr(ID_EQ3,1/c[1](x,y));
+
+
+
+
+# Fall tfft
+
+iginit([4,9,tfft]);
+
+igdefgrp ( G1, igiv ( [1,2,4,5] ) );
+
+rivs := igrelinvars ( G0, G1, 2 );
+
+uu := yy[2,0]/yy[1,0];
+
+vf := rivs[1][1];
+
+igrelinvdiscuss1 ( uu, vf, ID_EQ1, ID_EQ2 );
+
+sbyy := igreduce ( [4,9,tfft], [syx/sy, syy/sy, sx/sy] );
+
+igsaveexpr ( ID_SBYY, sbyy );
+
+
+
+#####
+
+# Fall ftff
+
+iginit([4,9,ftff]);
+
+igdefgrp ( G1, igiv ( [1,2,4,5] ) );
+
+rivs := igrelinvars ( G0, G1, 2 );
+
+uu := yy[0,2]/yy[0,1];
+
+vf := rivs[1][1];
+
+igrelinvdiscuss1(uu,vf,ID_EQ1,ID_EQ2);
+
+sbyx := igreduce ( [4,9,ftff], [sxx/sx, sxy/sx, sy/sx] );
+
+igsaveexpr ( ID_SBYX, sbyx );
+
+
+
+
+# Fall fftf
+
+iginit([4,9,fftf]);
+
+igdefgrp ( G1, igiv ( [1,2,4,5] ) );
+
+rivs := igrelinvars ( G0, G1, 2 );
+
+uu := yy[0,2]/yy[0,1];
+
+vf := rivs[1][1];
+
+igrelinvdiscuss1(uu,vf,ID_EQ1,ID_EQ2);
+
+igsaveexpr ( ID_EQ3, 1/b[1](x,y) );
+
+
+
+
+# Fall fttf
+
+iginit([4,9,fttf]);
+
+igdefgrp ( G1, igiv ( [1,2,4,5] ) );
+
+rivs := igrelinvars ( G0, G1, 2 );
+
+uu := yy[0,2]/yy[0,1];
+
+vf := rivs[1][1];
+
+igrelinvdiscuss1(uu,vf,ID_EQ1,ID_EQ2);
+
+sbyx := igreduce ( [4,9,fttf], [sxx/sx, sxy/sx, sy/sx] );
+
+igsaveexpr ( ID_SBYX, sbyx );
+
+
+end;
+
+restoredep();
+
+
+
+

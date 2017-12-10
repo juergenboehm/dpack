@@ -1,0 +1,363 @@
+
+tempforgetdep ();
+
+
+normevalsubs := proc ()
+
+normal ( eval ( value ( subs ( args ) ) ) );
+
+end;
+
+#
+#
+#
+
+cleardenom := proc ( e, v )
+
+evalb ( not has ( denom ( normal ( e ) ), v ) );
+
+end;
+
+#
+#
+#
+
+recog2 := proc ( jb, fs )
+
+local xi, eta, x, y, XXI, EETA,
+	fss, varsfs,
+	slvars, slfuns,
+	jb1, jbtype, jbpatt,
+	fff, rels, cond, l1bed, cond2, cond3,
+	lbed2, lbed3, lbed1,
+	res, cpe, ff, cpe1;
+
+				
+xi := XXI (x,y);
+eta := EETA ( x, y);
+
+fss := [xi, eta];
+
+setcotes ( fss, totDegOrder ( fss ) );
+
+varsfs := [op(fs[1])];
+
+slvars := [varsfs[1]=x, varsfs[2] = y];
+
+slfuns := [fs[1]=xi, fs[2]=eta];
+
+
+jb1 := subs ( slvars, subs ( slfuns, jb ) );
+
+jb1 := sortdiffs ( jb1, [xi, eta] );
+
+
+jbtype := map ( dlterm, jb1, [xi, eta] );
+
+
+
+jbpatt := makejbpattern ( jbtype, [xi, eta], withargs, prefix=`RCGI` );
+
+
+fff := subs (T = [xi,eta], (xx,yy)-> dmatch ( xx,yy,T ) );
+
+
+rels := zip ( fff, jbpatt, jb1 );
+
+rels := map ( x->x[2..-1], rels );
+
+rels := flatten1 ( rels );
+
+##################### include if-list after this line
+
+if jbtype = [diff(diff(eta,x),x), diff(eta,y), xi] then 
+
+    cond := [-RCGIb[1](x,y) = 0]; 
+
+    l1bed := normevalsubs ( rels, cond ) ;
+
+    l1bed := evalb ( convert ( l1bed, `and` ));
+
+    if not l1bed then
+
+        cond2 := [RCGIb[1](x,y)^2 <> 0]; 
+
+        cond3 := [false]; 
+
+        lbed2 := normevalsubs ( rels, cond2 );
+
+        lbed3 := normevalsubs ( rels, cond3 );
+
+        lbed2 := evalb ( convert ( lbed2, `and` ) );
+
+        lbed3 := evalb ( convert ( lbed3, `and` ) );
+
+        lbed1 := evalb ( not (lbed2 or lbed3) );
+
+        if lbed2 then
+
+            # Gruppe `2_4_ftff`
+
+            print ( `2_4_ftff` );
+
+            res := [2, 4, ftff];
+
+        fi;
+
+    else
+
+        cond2 := [RCGIb[1](x,y)^2 <> 0]; 
+
+        cond3 := [false]; 
+
+        lbed2 := normevalsubs ( rels, cond2 );
+
+        lbed3 := normevalsubs ( rels, cond3 );
+
+        lbed2 := evalb ( convert ( lbed2, `and` ) );
+
+        lbed3 := evalb ( convert ( lbed3, `and` ) );
+
+        lbed1 := evalb ( not (lbed2 or lbed3) );
+
+        if lbed1 then
+
+            # Gruppe `2_15_ftff`
+
+            print ( `2_15_ftff` );
+
+            res := [2, 15, ftff];
+
+        fi;
+
+    fi;
+
+elif jbtype = [diff(diff(eta,y),y), diff(eta,x), xi] then 
+
+    cond := [false]; 
+
+    l1bed := normevalsubs ( rels, cond ) ;
+
+    l1bed := evalb ( convert ( l1bed, `and` ));
+
+    if not l1bed then
+
+        cond2 := []; 
+
+        cond3 := [false]; 
+
+        lbed2 := normevalsubs ( rels, cond2 );
+
+        lbed3 := normevalsubs ( rels, cond3 );
+
+        lbed2 := evalb ( convert ( lbed2, `and` ) );
+
+        lbed3 := evalb ( convert ( lbed3, `and` ) );
+
+        lbed1 := evalb ( not (lbed2 or lbed3) );
+
+        if lbed2 then
+
+            # Gruppe `2_4_fttf`
+
+            print ( `2_4_fttf` );
+
+            res := [2, 4, fttf];
+
+        fi;
+
+    fi;
+
+elif jbtype = [diff(diff(xi,x),x), diff(xi,y), eta] then 
+
+    cond := [1+RCGIc[1](x,y)*RCGIb[1](x,y) = 0]; 
+
+    l1bed := normevalsubs ( rels, cond ) ;
+
+    l1bed := evalb ( convert ( l1bed, `and` ));
+
+    if not l1bed then
+
+        cond2 := [(RCGIc[1](x,y)*RCGIb[1](x,y)-1)^2+4*RCGIc[1](x,y)*RCGIb[1](x,y) <> 0]; 
+
+        cond3 := [-RCGIb[1](x,y) = 0, RCGIc[1](x,y)*RCGIb[1](x,y)-1 = 0, RCGIc[1](x,y) = 0]; 
+
+        lbed2 := normevalsubs ( rels, cond2 );
+
+        lbed3 := normevalsubs ( rels, cond3 );
+
+        lbed2 := evalb ( convert ( lbed2, `and` ) );
+
+        lbed3 := evalb ( convert ( lbed3, `and` ) );
+
+        lbed1 := evalb ( not (lbed2 or lbed3) );
+
+        if lbed2 then
+
+            # Gruppe `2_4_ffff`
+
+            print ( `2_4_ffff` );
+
+            res := [2, 4, ffff];
+
+        fi;
+
+    else
+
+        cond2 := [(RCGIc[1](x,y)*RCGIb[1](x,y)-1)^2+4*RCGIc[1](x,y)*RCGIb[1](x,y) <> 0]; 
+
+        cond3 := [-RCGIb[1](x,y) = 0, RCGIc[1](x,y)*RCGIb[1](x,y)-1 = 0, RCGIc[1](x,y) = 0]; 
+
+        lbed2 := normevalsubs ( rels, cond2 );
+
+        lbed3 := normevalsubs ( rels, cond3 );
+
+        lbed2 := evalb ( convert ( lbed2, `and` ) );
+
+        lbed3 := evalb ( convert ( lbed3, `and` ) );
+
+        lbed1 := evalb ( not (lbed2 or lbed3) );
+
+        if lbed1 then
+
+            # Gruppe `2_15_ffff`
+
+            print ( `2_15_ffff` );
+
+            res := [2, 15, ffff];
+
+        fi;
+
+    fi;
+
+elif jbtype = [diff(diff(xi,y),y), diff(xi,x), eta] then 
+
+    cond := [-RCGIc[1](x,y) = 0]; 
+
+    l1bed := normevalsubs ( rels, cond ) ;
+
+    l1bed := evalb ( convert ( l1bed, `and` ));
+
+    if not l1bed then
+
+        cond2 := [RCGIc[1](x,y)^2 <> 0]; 
+
+        cond3 := [false]; 
+
+        lbed2 := normevalsubs ( rels, cond2 );
+
+        lbed3 := normevalsubs ( rels, cond3 );
+
+        lbed2 := evalb ( convert ( lbed2, `and` ) );
+
+        lbed3 := evalb ( convert ( lbed3, `and` ) );
+
+        lbed1 := evalb ( not (lbed2 or lbed3) );
+
+        if lbed2 then
+
+            # Gruppe `2_4_fftf`
+
+            print ( `2_4_fftf` );
+
+            res := [2, 4, fftf];
+
+        fi;
+
+    else
+
+        cond2 := [RCGIc[1](x,y)^2 <> 0]; 
+
+        cond3 := [false]; 
+
+        lbed2 := normevalsubs ( rels, cond2 );
+
+        lbed3 := normevalsubs ( rels, cond3 );
+
+        lbed2 := evalb ( convert ( lbed2, `and` ) );
+
+        lbed3 := evalb ( convert ( lbed3, `and` ) );
+
+        lbed1 := evalb ( not (lbed2 or lbed3) );
+
+        if lbed1 then
+
+            # Gruppe `2_15_tfff`
+
+            print ( `2_15_tfff` );
+
+            res := [2, 15, tfff];
+
+        fi;
+
+    fi;
+
+elif jbtype = [diff(eta,y), diff(eta,x), diff(xi,y), diff(xi,x)] then 
+
+    if true then
+
+        cond2 := [false]; 
+
+        cond3 := []; 
+
+        lbed2 := normevalsubs ( rels, cond2 );
+
+        lbed3 := normevalsubs ( rels, cond3 );
+
+        lbed2 := evalb ( convert ( lbed2, `and` ) );
+
+        lbed3 := evalb ( convert ( lbed3, `and` ) );
+
+        lbed1 := evalb ( not (lbed2 or lbed3) );
+
+        if lbed3 then
+
+            # need characteristic polynomial to distinguish cases
+
+            cpe := lambda^2+((RCGIb[1](x,y)-RCGIa[2](x,y))*t[1]+(-RCGId[1](x,y)+
+
+            RCGIc[2](x,y))*t[2])*lambda
+
+            ;
+
+            # end characteristic polynomial
+
+			ff := subs ( RELS = rels, (xx)->normevalsubs ( RELS, xx ) );
+			
+			cpe1 := collect ( cpe, lambda, ff );
+			
+			if cleardenom ( cpe1/lambda^2, lambda ) then
+			
+            	# Gruppe `2_26_ffff`
+
+            	print ( `2_26_ffff` );
+
+            	res := [2, 26, ffff];
+
+			else
+
+            	# Gruppe `2_25_ffff`
+
+            	print ( `2_25_ffff` );
+
+            	res := [2, 25, ffff];
+
+			fi;
+
+#####################
+
+		fi;
+
+	fi;
+	
+fi;
+
+remcotes ( fss );
+
+RETURN ( res );
+
+end;
+
+
+restoredep ();
+

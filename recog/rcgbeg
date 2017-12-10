@@ -1,0 +1,79 @@
+
+tempforgetdep ();
+
+
+normevalsubs := proc ()
+
+normal ( eval ( value ( subs ( args ) ) ) );
+
+end;
+
+#
+#
+#
+
+cleardenom := proc ( e, v )
+
+evalb ( not has ( denom ( normal ( e ) ), v ) );
+
+end;
+
+
+recog3 := proc ( jb, fs )
+
+local xi, eta, x, y,
+		XXI, EETA;
+		
+		
+xi := XXI (x,y);
+eta := EETA ( x, y);
+
+fss := [xi, eta];
+
+setcotes ( fss, totDegOrder ( fss ) );
+
+varsfs := [op(fs[1])];
+
+slvars := [varsfs[1]=x, varsfs[2] = y];
+
+slfuns := [fs[1]=xi, fs[2]=eta];
+
+
+jb1 := subs ( slvars, subs ( slfuns, jb ) );
+
+
+jbtype := map ( dlterm, jb1, [xi, eta] );
+
+jbpatt := makejbpattern ( jbtype, [xi, eta], withargs, prefix=`RCGI` );
+
+
+fff := subs (T = [xi,eta], (xx,yy)-> dmatch ( xx,yy,T ) );
+
+
+rels := zip ( fff, jbpatt, jb1 );
+
+rels := map ( x->x[2..-1], rels );
+
+rels := flatten1 ( rels );
+
+##################### include if-list after this line
+
+
+
+#####################
+
+		fi;
+
+	fi;
+	
+fi;
+
+remcotes ( fss );
+
+RETURN ( res );
+
+end;
+
+
+restoredep ();
+

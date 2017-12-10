@@ -1,0 +1,35 @@
+# _solvabletable := table ( [] );
+
+_solvabletable[ [3, 5] ] := [[p, p, x*p],
+[[y[0], y[1]], [y[0], y[1]], [y[0], y[1]*x]]];
+
+_solvabletable[ [3, 7] ] := [[p, p, x*p*c-x*p-y*q],
+[[y[0], y[1]], [y[0], y[1]], [y[0]*x^(1/(c-1)), y[1]*y[0]^(-c)]]];
+
+_solvabletable[ [[3, 7], [c = -1]] ] := [[p, p, -2*x*p-y*q],
+[[y[0], y[1]], [y[0], y[1]], [y[0]/x^(1/2), y[1]*y[0]]]];
+
+_solvabletable[ [[3, 7], [c = 2]] ] := [[p, p, x*p-y*q],
+[[y[0], y[1]], [y[0], y[1]], [y[0]*x, y[1]/y[0]^2]]];
+
+_solvabletable[ [3, 16] ] := [[q, q, y*q],
+[[x, y[1]], [x, y[1]], [x, y[1]/y[0]]]];
+
+_solvabletable[ [3, 17, 1] ] := [[exp(x)*q, -exp(a*x)*q+q*a*exp(a*x), p],
+[[x, y[1]-y[0]], [x, y[1]-a*y[0]], [y[0], y[1]]]];
+
+_solvabletable[ [3, 17, 2] ] := [[exp(x)*q, exp(x)*q, p],
+[[x, y[1]-y[0]], [x, y[1]-y[0]], [y[0], y[1]]]];
+
+_solvabletable[ [3, 17, 3] ] := [[q, exp(x)*q, p],
+[[x, y[1]], [x, y[1]-y[0]], [y[0], y[1]]]];
+
+_solvabletable[ [3, 17, 4] ] := [[q, q, p],
+[[x, y[1]], [x, y[1]], [y[0], y[1]]]];
+
+_solvabletable[ [3, 20] ] := [[p, p, -(-x*p+y*q+x*y*q)/x],
+[[y[0], y[1]], [y[0], y[1]], [y[0]*x*exp(x), exp(x)*(y[1]*x+y[0])]]];
+
+_solvabletable[ [3, 24] ] := [[p, p, -y*q],
+[[y[0], y[1]], [y[0], y[1]], [x, y[1]/y[0]]]];
+

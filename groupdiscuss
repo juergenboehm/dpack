@@ -1,0 +1,1738 @@
+
+remdep ( [xi, eta, sigma, rho] );
+
+depend ( [xi, eta, sigma, rho], [x,y] );
+
+#
+#
+#
+
+special_g315 := proc ( e )
+
+local i,
+		sl;
+
+if type ( e, list ) then
+
+	RETURN ( map ( procname, e ) );
+	
+fi;
+
+sl := [seq(`@@`(D,i)(phi[1])(sigma) = `@@`(D,i)(phi[1])(ww(x,y)), i=1..5)];
+
+sl := [op(sl), phi[1](sigma)=phi1(ww(x,y))];
+
+eval ( subs ( sl, e ) );
+
+end;
+	
+#
+#
+#
+#
+
+##################################################################################################
+#
+# verify Routinen
+#
+#
+
+`type/funcmalformed` := proc (xx) 
+							evalb ( type (xx, function( name )) 
+							  and type (op(0,xx), function(name) ) );
+							end;
+
+
+#
+#
+
+verify_igcoeffbase := proc ()
+
+local 	fs,
+		oldcotes,
+		indl,
+		ii,
+		igb,
+		igb1,
+		eqsl,
+		xtrcnd;
+
+fs := [sigma, rho];
+
+oldcotes := setcotes ( fs, totDegOrder ( fs ) );
+
+if nargs = 0 then
+
+	indl := cacheindices ( igcoeffbase );
+
+	indl := map ( x-> x[1][1], indl );
+
+else
+
+	indl := args[1];
+
+fi;
+
+
+for ii in indl do
+
+	print ( `testing `, ii );
+
+	igb := igcoeffbase ( ii );
+
+	if not type ( igb, list(equation) ) then
+
+		print ( `wrong result type in `, ii );
+
+		next;
+
+	fi;
+
+	
+
+	if hastype ( igb, funcmalformed ) then
+
+		print ( `malformed function in `, ii );
+
+		clearcache ( igcoeffbase, [ii] );
+
+	else
+
+		eqsl := getEqsubsl ( ii, [xi,eta] );
+
+		igb1 := remove ( x->rhs(x)=0, igb );
+
+		xtrcnd := getdxaddlist ( ii, sigma, rho );
+
+		igb1 := dagsubs ( eqsl, igb1 );
+
+		igb1 := normevalval ( igb1 );
+
+		igb1 := eq2expr ( igb1 );
+
+		igb1 := tdsubs ( xtrcnd, igb1 );
+
+		if not iszerol ( igb1 ) then
+
+			print ( `identity check failed in `, ii );
+
+		fi;
+		
+	fi;		
+
+od;
+
+setcotes ( fs, oldcotes );
+
+print ( `finished.` );
+
+end;
+
+
+
+
+
+###############################################################################
+#
+#
+# the ig package
+#
+#
+
+igreduceX := proc ( typinfo, ivl, e )
+
+local e1,
+		ivl1, ivl2,
+		fs,
+		didts,
+		idts,
+		sl,
+		res,
+		oldcotes;
+
+e1 := igtostdform ( e );
+
+ivl1 := igtostdform ( ivl );
+
+
+fs := [sigma, rho];
+
+oldcotes := setcotes ( fs, totDegOrder ( fs ) );
+
+
+ivl2 := map ( (zz,tt)-> lhs(zz) = igreduce ( tt, rhs(zz) ), ivl1, typinfo );
+
+
+idts := map ( lhs, ivl2 );
+
+
+didts := dindets ( ivl2, fs );
+
+didts := dsortterms ( didts, fs );
+
+if nops ( didts ) < nops ( ivl2 ) then
+
+	ERROR ( `too few parametric derivatives to solve for` );
+	
+fi;
+
+didts := didts[1..nops(ivl2)];
+
+
+sl := solvesubs ( {op(ivl2)}, {op(didts)} );
+
+sl := dsortxt ( [op(sl)], fs, lhs );
+
+res := igreduce ( typinfo, e1 );
+
+res := normal ( eval ( value ( subs ( sl, res ) ) ) );
+
+res := igreduce ( typinfo, res );
+
+
+res := collect ( res, idts, normal );
+
+
+setcotes ( fs, oldcotes );
+
+
+res;
+
+end;
+
+#
+#
+
+igreduce := proc ( typinfo, ea )
+
+local 	e,
+		res,
+		ee,
+		rels, rels1,
+		e1,
+		e1n, e1d,
+		eqsl,
+		pdvs,
+		fs,
+		oldcotes,
+		ff, ff1;
+
+e := igtostdform ( ea );
+
+if type ( e, list ) then
+
+	res := [];
+	
+	for ee in e do
+
+		res := [op(res), igreduce ( typinfo, ee )];
+		
+	od;
+	
+	RETURN ( res );
+
+fi; 
+
+
+rels1 := igcoeffbase ( typinfo );
+
+
+rels := map ( proc ( xx, tt )
+				
+				local ls, loes, res;
+				
+				ls := lhs ( xx );
+
+				if type ( ls, `^` ) then
+				
+					ls := op ( 1, ls );
+					
+					loes := solve3 (xx, ls );
+					
+					if nops ( [loes] ) > 0 then
+										
+						# print ( ls, [loes] );
+					
+						# if hastype ( [loes], radical ) then
+						
+						#	loes := convert ( [loes], RootOf );
+							
+						# fi;
+					
+						res := ls = loes[1] ;
+											
+					else
+					
+ 						res := ls = loes;
+	
+					fi;
+					
+					res;
+					
+				else
+				
+					res := xx;
+					
+				fi; end, rels1, typinfo );
+					
+
+
+if has ( rels, FAIL ) then
+
+	ERROR ( `relations not quasilinear` );
+	
+fi;
+
+# rels := reverse ( rels );
+
+e1 := tdsubs ( rels, e );
+
+eqsl := getEqsubsl ( typinfo, [xi, eta] );
+
+pdvs := map ( lhs, rels );
+
+fs := [sigma, rho];
+
+oldcotes := setcotes ( fs, totDegOrder ( fs ) );
+
+
+pdvs := paramDerivsList ( pdvs, fs );
+
+
+ff := proc ( ee, eqsll )
+
+		local ee1;
+
+		if _minimalspace = true then
+
+			if hastype ( ee, radical ) then
+
+				ee1 := dsimplify ( 
+						eval ( value ( dxeconsubs ( eqsll, ee ) ) ), symbolic );
+
+			else
+			
+				ee1 := normevalval ( dxeconsubs ( eqsll, ee ) );
+				
+			fi;
+
+		else
+		
+			if hastype ( ee, radical ) then
+		
+				ee1 := normal ( eval ( value ( dagsubs ( eqsll, ee1 ))));
+				
+			else
+
+				ee1 := convert ( ee, horner );
+				ee1 := normal ( eval ( value ( dagsubs ( eqsll, ee1 ) ) ) );
+			
+			fi;
+
+		fi;
+
+		if ee1 = 0 then
+		
+			0;
+			
+		else
+		
+			normal ( ee );
+			
+		fi; end;
+		
+
+ff1 := subs ( EQSL = eqsl, FF=ff, zz->FF(zz,EQSL ) );
+
+e1n := numer ( e1 );
+e1d := denom ( e1 );
+		
+e1n := collect ( e1n, pdvs, ff1 );
+e1d := collect ( e1d, pdvs, ff1 );
+
+setcotes ( fs, oldcotes );
+
+normal ( e1n / e1d );
+
+end;
+
+#
+#
+
+igmakeeql := proc ( typinfo, eql, fs )
+
+local oldcotes,
+		order, eql1;
+
+if nargs = 4 then
+
+	order := args[4];
+
+else
+
+	order := totDegOrder;
+
+fi;
+
+oldcotes := setcotes ( fs, order (fs) );
+
+igcoeffsetup ( typinfo );
+
+eql1 := select ( x -> x <> 0, eql );
+
+eql1 := select ( has, eql1, fs );
+
+eql1 := [op(eql1), op ( map ( xx->lhs(xx)-rhs(xx), _dxaddlist ) )];
+
+eql1 := dxmakeeql ( eql1, fs );
+
+
+eql1 := map ( xx-> xx[2]=frontend ( solve, [xx[1], xx[2]] ), eql1 );
+
+
+setcotes ( fs, oldcotes );
+
+eql1;
+
+end;
+
+#
+#
+
+igcoeffbaseX := proc ( eql, typinfo, fs, order )
+
+local res,
+		oldcotes,
+		eqss;
+
+
+oldcotes := setcotes ( fs, order ( fs ) );
+
+
+igcoeffsetup ( typinfo );
+
+
+eqss := eql;
+
+eqss := [op(eqss), op ( _dxaddlist )];
+
+eqss := map ( x-> lhs ( x ) - rhs ( x ), eqss );
+
+eqss := select ( has, eqss, fs );
+
+
+eqss := dxmakeeql ( eqss, fs );
+
+res := dxmakeJanetBase ( eqss, fs );
+
+res := map ( xx->eqlt(xx)=frontend(solve,[eqeq(xx),eqlt(xx)]), res );
+
+setcotes ( fs, oldcotes );
+
+res;
+
+end;
+
+#
+#
+#
+
+igsetaddlistadd := proc ( al )
+
+global _dxaddlistadd;
+
+if nops ( al ) = 0 then
+
+	unassign ( '_dxaddlistadd' );
+	
+else
+
+	_dxaddlistadd := al;
+	
+fi;
+
+end;
+
+#
+#
+#
+
+igcoeffsetup := proc ( typinfo )
+
+local oldcotes,
+		fs2;
+
+global _dxaddlist, _eqsubsl, 
+		_watchlist, _assertlist, _assumelist,
+		_cnstlist, _xtaylvar1;
+
+
+fs2 := [sigma, rho];
+
+oldcotes := setcotes ( fs2, totDegOrder ( fs2 ) );
+
+if oldcotes <> [] then
+
+	setcotes ( fs2, oldcotes );
+
+fi;
+
+
+_dxaddlist := getdxaddlist ( typinfo, sigma, rho );
+
+if assigned ( _dxaddlistadd ) then
+
+	_dxaddlist := [op(_dxaddlist), op(_dxaddlistadd)];
+	
+fi;
+
+
+_eqsubsl := getEqsubsl ( typinfo, [xi,eta] );
+
+
+
+
+_watchlist := [sigma, rho];
+
+_assertlist := getassertlist ( typinfo, sigma, rho );
+
+_assumelist := {};
+
+
+
+_cnstlist := {a,b,c};
+
+_cnstlist := _cnstlist intersect indets ( _eqsubsl );
+
+if nops ( _cnstlist ) > 0 then
+
+	_xtaylvar1 := [op(_cnstlist)];
+
+else
+
+	unassign ( '_xtaylvar1' );
+	
+fi;
+
+
+if _superminimal = true then
+
+	xtaylorinit ( 5, 5 );
+
+fi;
+
+if oldcotes = [] then
+
+	setcotes ( fs2, oldcotes );
+
+fi;
+
+
+end;
+
+#
+#
+#
+
+igcoeffbase := proc ( typinfo )
+
+local res,
+		res1,
+		selectl,
+		fs1,
+		oldcotes,
+		case, casebool,
+		order,
+		eqss,
+		ff;
+		
+global _dxaddlist, _eqsubsl, 
+		_watchlist, _assertlist, _assumelist,
+		_cnstlist, _xtaylvar1;
+
+res := getfromcache ( procname, [args] );
+
+if res <> FAIL then
+
+	RETURN ( res );
+	
+fi;
+
+
+if nargs > 2 then
+
+	order := args[2];
+	
+else
+
+	order := totDegOrder;
+	
+fi;
+
+
+fs1 := [sigma, rho];
+
+oldcotes := setcotes ( fs1, order ( fs1 ) );
+
+
+igcoeffsetup ( typinfo );
+
+
+eqss := _eqsubsl;
+
+eqss := [op(eqss), op ( _dxaddlist )];
+
+eqss := map ( x-> lhs ( x ) - rhs ( x ), eqss );
+
+eqss := select ( has, eqss, [sigma, rho] );
+
+
+
+####### speziell fuer g3-15
+
+#eqss := special_g315 ( eqss );
+
+#_eqsubsl := special_g315 ( _eqsubsl );
+
+#_dxaddlist := [op(_dxaddlist), ww(x,y)=Sig];
+
+####### ende speziell
+
+
+eqss := dxmakeeql ( eqss, fs1 );
+
+
+res := dxmakeJanetBase ( eqss, fs1 );
+
+unassign ( '_assertlist' );
+
+remdep ( [op(_depcoeflist )] );
+
+print ( `Additionally assumed :`, _assumelist );
+
+print ( res );
+
+
+
+res1 := res;
+
+res := map ( x-> eqlt(x)=frontend(solve,[eqeq(x),eqlt(x)]), res );
+
+if not assigned ( _doeconsubs ) then
+
+	ff := subs;
+
+else
+
+	ff := _doeconsubs;
+
+fi;
+
+res1 := normal ( eval ( value ( ff ( _eqsubsl, res ) ) ) );
+
+print ( `Kontrolle:` );
+
+print ( res1 );
+
+res1 := map ( xx ->lhs(xx) - rhs(xx), res1 );
+
+res1 := tdsubs ( _dxaddlist, res1 );
+
+print ( res1 );
+
+setcotes ( fs1, oldcotes );
+
+if nops ( remove ( x->x=0, res1 ) ) = 0 then
+
+	savetocache ( procname, [args], res );
+
+	res;
+
+else
+
+	print ( `solve failed: error in solving for leading terms` );
+
+fi;
+
+end;
+
+#
+#
+#
+#
+
+`type/igstridt` := proc ( e )
+	
+	if type ( e, name ) and not type (e, indexed )
+			and member(substring(e, 1), [s, r])
+	
+		and {op(explode(substring(e,2..-1)))} union {x,y} = {x,y}
+	
+	 then 
+		
+		true;
+	
+	else 
+	
+		false;
+
+	fi;
+	
+	end;
+	
+`type/igstdidt` := proc ( e )
+
+	if type ( e, diffmonom ) and member ( op(1,fdifflist(e)), [sigma, rho] ) then
+	 
+		true;
+		
+	else 
+	
+		false;
+		
+	fi;
+	
+	end;
+	
+`type/igbraidt` := proc ( e )
+
+	if type ( e, name ) and type ( e, indexed ) and member ( op(0,e), [xx,yy] )
+	
+		then true; else false; fi;
+
+	end;
+	
+`type/igidt` := { igstridt, igstdidt, igbraidt };	
+
+#
+#
+#
+#
+
+
+igtostrform := proc ( e )
+
+local e1,
+		sl,
+		idts;
+
+if type ( e, list ) then
+
+	RETURN ( map ( procname, args ) );
+	
+fi;
+
+if type ( e, igstridt ) then
+
+	RETURN ( e );
+	
+elif type ( e, igstdidt ) then
+
+	e1 := fdifflist ( e );
+	
+	e1 := subsop ( 1 = substring(op(0,op(1, e1)), 1 ), e1 );
+	
+	e1 := cat ( op ( e1 ) );
+	
+	RETURN ( e1 );
+	
+elif type ( e, igbraidt ) then
+
+	if op( 0, e ) = xx then
+	
+		e1 := s;
+		
+	else
+	
+		e1 := r;
+		
+	fi;
+	
+	e1 := cat ( e1, x $ op ( 1, e ), y $ op ( 2, e ) );
+	
+	RETURN ( e1 );
+	
+fi;
+
+
+idts := indets ( e );
+
+idts := select ( type, idts, igidt );
+
+sl := map ( xx-> xx = igtostrform(xx), idts );
+
+e1 := subs ( sl, e );
+
+e1;
+
+end;
+
+#
+#
+
+igtobraform := proc ( e )
+
+local e1,
+		sl,
+		f,
+		idts;
+
+if type ( e, list ) then
+
+	RETURN ( map ( procname, args ) );
+	
+fi;
+
+
+if type ( e, igstridt ) then
+
+	e1 := explode ( e );
+
+	f := op(map( (ee,xx)->numboccur(ee,xx), [x,y], e1[2..-1] ));
+	
+	if e1[1] = s then
+	
+		e1 := xx[f];
+		
+	else
+	
+		e1 := yy[f];
+		
+	fi;
+	
+	RETURN ( e1 );
+	
+elif type ( e, igstdidt ) then
+
+	e1 := fdifflist ( e );
+	
+	f := op(map( (ee,xx)->numboccur(ee,xx), [x,y], e1[2..-1] ));
+	
+	if e1[1] = sigma then
+	
+		e1 := xx[f];
+		
+	else
+	
+		e1 := yy[f];
+		
+	fi;
+	
+	RETURN ( e1 );
+	
+elif type ( e, igbraidt ) then
+
+	RETURN ( e );
+	
+fi;
+
+
+idts := indets ( e );
+
+idts := select ( type, idts, igidt );
+
+sl := map ( xx-> xx = igtobraform(xx), idts );
+
+e1 := subs ( sl, e );
+
+e1;
+
+
+end;
+
+#
+#
+
+igtostdform := proc ( e )
+
+local e1,
+		sl,
+		idts;
+				
+if type ( e, list ) then
+
+	RETURN ( map ( procname, args ) );
+	
+fi;
+if type ( e, igstridt ) then
+
+	e1 := explode ( e );
+	
+	if e1[1] = s then
+	
+		e1 := diffX ( sigma, op(2..-1, e1 ));
+		
+	else
+	
+		e1 := diffX ( rho, op(2..-1, e1 ));
+		
+	fi;
+	
+	RETURN ( e1 );
+	
+elif type ( e, igstdidt ) then
+	
+	RETURN ( e );
+	
+elif type ( e, igbraidt ) then
+
+	if op(0, e ) = xx then
+	
+		e1 := diffX (sigma, x $ op(1,e), y $ op (2,e) );
+		
+	else
+	
+		e1 := diffX ( rho, x $ op (1,e), y $ op(2,e) );
+		
+	fi;
+	
+	RETURN ( e1 );
+	
+fi;
+
+
+idts := indets ( e );
+
+idts := select ( type, idts, igidt );
+
+sl := map ( xx-> xx = igtostdform(xx), idts );
+
+e1 := subs ( sl, e );
+
+e1;
+
+
+end;
+
+#
+#
+
+igtoshortform := proc ( e )
+
+local e1,
+		idts,
+		sl;
+
+e1 := igtobraform ( e );
+
+idts := indets ( e1 );
+
+idts := select ( type, idts, igbraidt );
+
+sl := map ( xx->xx = cat ( op(0,xx), op(xx) ) , idts );
+
+subs ( sl, e1 );
+
+
+end;
+
+#
+#
+#
+
+igclose := proc ()
+
+alias ( igstr = igstr, igbra = igbra, igstd = igstd );
+
+end;
+
+#
+#
+#
+
+iginits := proc ( typinfo )
+
+global _igtypinfo;
+
+_igtypinfo := typinfo;
+
+end;
+
+
+#
+#
+#
+
+iginit := proc ( typinfo )
+
+local iginpgrp;
+
+global _igaktgrp, _iginvgrp, 
+		_igtypinfo,
+		_iggrptable, _tt;
+
+alias ( igstr = igtostrform, igbra = igtobraform, igstd = igtostdform );
+
+forget ( igprolongl );
+
+_igtypinfo := typinfo;
+
+_tt := typinfo;
+
+iginpgrp := getliealgX ( typinfo );
+
+print ( `Gruppe:` );
+
+print ( iginpgrp );
+
+_iginvgrp := inverseGrpBase ( iginpgrp, [xi, eta], solve = true );
+
+_iginvgrp := subs ( [x=xx,y=yy], _iginvgrp );
+
+_iginvgrp := vliesort ( _iginvgrp, [xx,yy], [p,q] );
+
+_iggrptable[G0] := _iginvgrp;
+
+igsetgrp ( G0 );
+
+print ( `inverse Gruppe (Gruppe G0):` );
+
+print ( _igaktgrp );
+
+end;
+
+#
+#
+
+igshowgrps := proc ()
+
+print ( eval ( _iggrptable ) );
+
+end;
+
+#
+#
+
+igdefgrp := proc ( gn, vfl )
+
+local vfl1;
+
+global _iggrptable;
+
+vfl1 := vliesort ( vfl, [xx, yy], [p,q] );
+
+if nops ( vfl ) = 0 then
+
+	_iggrptable[gn] := evaln ( _iggrptable[gn] );
+	
+else
+
+	_iggrptable[gn] := vfl1;
+
+fi;
+
+end;
+
+#
+#
+
+igsetgrp := proc ( gn )
+
+global _igaktgrp;
+
+_igaktgrp := _iggrptable[gn]
+
+end;
+
+#
+#
+
+igiv := proc ( )
+
+local i;
+
+if nargs = 1 then
+
+	if type ( args[1], range ) then
+
+		_igaktgrp[args[1]];
+	
+	elif type ( args[1], list(constant) ) then
+	
+		[seq ( _igaktgrp[args[1][i]], i = 1..nops ( args[1] ) )];
+		
+	fi;
+	
+else
+
+	_igaktgrp;
+	
+fi;
+
+end;
+
+#
+#
+
+igprolongv := proc ( vf, ord )
+
+local sl,
+		res;
+
+sl := igcasesubs ( [[p,q], [xx, yy]], ord );
+
+res := dprolong ( vf, [[igrrr,igsss],[p,q]],[[x,y], [xx, yy]], ord );
+
+res := subs ( sl, res );
+
+end;
+
+#
+#
+
+igprolongl := proc ( ord, grp )
+
+local res,
+		sl;
+
+option remember;
+
+sl := veccasesubs ( getcase ( _igtypinfo ), [[p,q],[xx,yy]], ord, 2 );
+
+res := map ( dprolong, igiv (), [[igrrr,igsss],[p,q]],[[iguuu,igvvv],[xx,yy]], ord );
+
+res := subs ( sl, res );
+
+end;
+
+
+
+#
+#
+
+igprolong := proc ( ord )
+
+local prll,
+		i;
+
+if nargs = 1 then
+
+	igprolongl ( ord, _igaktgrp );
+
+elif nargs = 2 then
+
+	prll := igprolongl ( ord, _igaktgrp );
+
+	if type ( args[2], range ) then
+
+		prll[args[2]];
+		
+	elif type ( args[2], list ) then
+	
+		[seq ( prll[args[2][i]], i=1..nops(args[2]) )];
+		
+	fi;
+	
+fi;
+
+end;
+
+
+#
+#
+
+iggenfunc := proc ( FF, ord )
+
+local sl,
+		ff;
+
+ff := makegenericfun ( FF, [[iguuu,igvvv],[xx,yy]], ord );
+
+sl := veccasesubs ( getcase ( _igtypinfo ), [[xx, yy]], ord, 2 );
+
+ff := subs ( sl, ff );
+
+ff := remove ( xx -> xx = 0, ff ); 
+
+ff := remove ( member, ff, [iguuu,igvvv] );
+
+end;
+
+#
+#
+
+
+iginvars := proc ( ord )
+
+local 	cacheargs,
+		ff,
+		fs,
+		fl, sr,
+		sl,
+		igprl,
+		deq,
+		res;
+
+cacheargs := _igtypinfo, {op(_igaktgrp)}, args;
+
+res := getfromcache ( procname, [cacheargs] );
+
+if res <> FAIL then
+
+	RETURN ( res );
+	
+fi;
+
+ff := iggenfunc ( FF, ord );
+
+# special arguments
+
+# remove xx or yy from invariant
+
+fl := selectfirst ( type, [args], list(name) );
+
+if fl <> FAIL and nops (fl) > 0 and {op(fl)} union {xx,yy} = {xx, yy} then
+
+	fs := {xx, yy} minus {op(fl)};
+	
+	ff := remove ( has, ff, fs );
+	
+fi;
+
+# only invariants of a subgroup
+
+sr := selectfirst ( xx-> type (xx, range) or type (xx, list(constant)), [args]);
+
+# The following line has been changed, due to considerations about selectfirsts
+# return-value
+# if nops ( sr ) > 0 then 
+
+if sr <> FAIL then
+
+	igprl := igprolong ( ord, sr );
+
+else
+
+	igprl := igprolong ( ord );
+
+fi;
+ 
+deq := map ( vecapply, igprl, [[igrrr,igsss],[p,q]],[[iguuu,igvvv],[xx,yy]], ff );
+
+res := lpdesolvesys ( deq, ff );
+
+# res := igtostdform ( res );
+
+savetocache ( procname, [cacheargs], res );
+
+res;
+
+end;
+
+#
+#
+
+igrelinvars := proc ( gn1, gn2, ord )
+
+local vf0,
+		v0,
+		iv,
+		aiv,
+		v00;
+
+igsetgrp ( gn1 );
+
+vf0 := igprolong ( ord );
+
+
+v0 := {op(igiv())};
+
+igsetgrp ( gn2 );
+
+v0 := v0 minus {op( igiv() )};
+
+
+
+iv := iginvars ( ord );
+
+aiv := igapply ( vf0, iv );
+
+aiv := listparallel ( iv, aiv );
+
+aiv := select ( xx -> not iszerol ( xx[2] ), aiv );
+
+aiv := map ( proc ( xx, vv )
+
+				local i;
+
+				[xx[1], [seq ( condev1 ( xx[2][i] <> 0, xx[2][i] ), i=1..nops(xx[2]) )]];
+
+			end, aiv, vf0 );
+
+v0 := [op(v0)];
+
+v0 := vliesort ( v0, [xx, yy], [p, q] ); 
+
+v00 := igprolongv ( v0, ord ); 
+
+igsetgrp ( gn1 );
+
+[v00, aiv];
+
+end;
+
+#
+#
+
+igsaveexpr := proc ( exprid, expr )
+
+global exprcache;
+
+savetocache ( exprcache, [_igtypinfo, exprid], expr );
+
+end;
+
+#
+#
+
+igrelinvdiscuss1 := proc ( relinv )
+
+local vf,
+		fn,
+		uu1,
+		erg,
+		uu2,
+		ww,
+		erg1, erg2;
+
+if nargs >= 2 then
+
+	vf := args[2];
+
+fi;
+
+
+fn := UU(x,y);
+
+
+uu1 := igtostdform ( relinv );
+
+
+print ( `***** Ausdruck fuer diff(UU, x): ` );
+
+print ( ` ` );
+
+print ( ` ` );
+
+erg1 := igreduceX ( _igtypinfo, [UU=uu1], diff ( uu1, x ) );
+
+erg1 := Diff( fn, x ) = subs ( UU=fn, diff = Diff, erg1 );
+
+print ( erg1 );
+
+print ( ` ` );
+
+
+print ( ` ` );
+
+
+print ( `***** Ausdruck fuer diff(UU, y): ` );
+
+print ( ` ` );
+
+print ( ` ` );
+
+erg2 := igreduceX ( _igtypinfo, [UU=uu1], diff ( uu1, y ) );
+
+erg2 := Diff ( fn, y ) = subs ( UU=fn, diff = Diff, erg2 );
+
+print ( erg2 );
+
+print ( ` ` );
+
+
+print ( ` ` );
+
+print ( ` ` );
+
+if nargs >= 4 then
+
+	igsaveexpr ( args[3], erg1 );
+	
+	igsaveexpr ( args[4], erg2 );
+
+fi;
+
+if assigned ( vf ) then
+
+	uu2 := igtobraform ( uu1 );
+
+	ww := phi ( x, y, uu2 );
+
+	print ( `V phi (x,y,u) = ` );
+
+	erg := igapply ( vf, ww );
+
+	erg := subs ( uu2 = UU, erg );
+
+	erg := convert ( erg, diff );
+
+	erg := igtoshortform ( erg );
+
+	print ( ` ` );
+
+	print ( erg );
+
+	print ( ` ` );
+
+	print ( ` ` );
+
+	print ( `V V phi (x,y,u) = ` );
+	
+	erg := igapply(vf, igapply ( vf, ww ));
+
+	erg := convert ( subs ( uu2 = UU, erg ), diff );
+
+	erg := igtoshortform ( erg );
+
+	print ( ` `);
+
+	print ( erg );
+
+	print ( ` `);
+
+	print ( ` `);
+
+	print ( `V V V phi (x,y,u) = ` );
+	
+	erg := igapply( vf, igapply(vf, igapply ( vf, ww )));
+
+	erg := convert ( subs ( uu2 = UU, erg ), diff );
+
+	erg := igtoshortform ( erg );
+
+	print ( ` ` );
+
+	print ( erg );
+
+	print ( ` ` );
+
+	print ( ` ` );
+
+fi;
+
+end;
+
+
+#
+#
+
+iginvarsforget := proc ()
+
+clearcache ( iginvars, [_igtypinfo, {op(_igaktgrp)},args] );
+
+end;
+
+#
+#
+
+igcasesubs := proc ( namll, ord )
+
+veccasesubs ( getcase ( _igtypinfo ), namll, ord, 2 );
+
+end;
+
+#
+#
+
+igapply := proc ( vf, ff )
+
+local ord,
+		res,
+		sl;
+
+if type ( ff, list ) then
+
+	RETURN ( map ( (ii,vv)->igapply(vv,ii), ff, vf ) );
+	
+fi;
+
+if type ( vf, list ) then
+
+	RETURN ( map ( igapply, vf, ff ) );
+		
+fi;
+
+res := vecapply ( vf, [[r,s],[p,q]], [[x,y],[xx,yy]], ff );
+
+ord := vidtsorder ( indets ( res ), [[x,y],[xx,yy]] );
+
+sl := veccasesubs ( getcase ( _igtypinfo ), [[xx, yy]], ord, 2 );
+
+res := subs ( sl, res );
+
+end;
+
+#
+#
+
+igdk := proc ( k, ff )
+
+local ord,
+		ddd,
+		res;
+
+ord := vidtsorder ( indets ( ff ), [[x,y],[xx,yy]] );
+
+ddd := makeDoperat ( k, [[x,y],[xx,yy]], ord );
+
+res := eval(value( ddd ( ff ) ) );
+
+forget ( makeDoperat );
+
+res;
+
+end;
+
+#
+#
+
+igdx := proc ( ff )
+
+igdk ( 1, ff );
+
+end;
+
+#
+#
+
+igdy := proc ( ff )
+
+igdk ( 2, ff );
+
+end;
+
+#
+#
+
+iglowesteq := proc ( fun, var, ord )
+
+local a, i, j,
+	tstdeq,
+	rels,
+	tst1,
+	idts,
+	erg,
+	vl,
+	sl,
+	cfs1, cfs,
+	res,
+	iszero,
+	oldcotes;
+
+tstdeq := add ( aa[i] * diff (fun, [var $ i ] ), i=0..ord ) + bb;
+
+rels := igcoeffbase ( _igtypinfo );
+
+tst1 := igreduce ( _igtypinfo, tstdeq );
+
+tst1 := numer ( tst1 );
+
+oldcotes := setcotes ( [sigma, rho], totDegOrder([sigma, rho]) );
+
+idts := dxindets ( tst1, [sigma, rho] );
+
+tst1 := collect ( tst1, idts, distributed );
+
+cfs := [coeffs (tst1, idts)];
+
+erg := FAIL;
+
+for i from 0 to ord do
+
+	vl := [ bb, ((aa[j]) $ j = 0..i) ];
+	
+	sl := [ (aa[j] = 0) $ j=i+1..ord ];
+
+	cfs1 := normal ( subs ( sl, cfs ));
+	
+	res := solve ( {op(cfs1)}, {op(vl)} );
+
+	iszero := iszerol ( subs ( res, vl ) );
+	
+	if  not iszero then
+	
+		erg := subs ( res, subs ( sl, tstdeq ) );
+		
+		break;
+		
+	fi;
+	
+od;
+
+setcotes ( [sigma,rho], oldcotes );
+
+RETURN ( erg );
+
+end;
+
+#
+#
+#
+#
+
+igexamplejb := proc ( typinfo, xsubs, ysubs )
+
+local jb0,
+		igcase;
+
+jb0 := getGenJanetBase ( typinfo );
+
+igcase := getcase ( typinfo );
+
+if not checkderivs ( igcase, xsubs, ysubs ) then
+
+	RETURN ( FAIL );
+
+fi;
+
+
+jb0 := subs ( [sig(x,y) = xsubs, sig(x) = xsubs, sig(y) = xsubs,
+				rh(x,y) = ysubs, rh(x) = ysubs, rh(y) = ysubs], jb0 );
+
+if assigned ( _rcgcnstnts ) then
+
+	jb0 := subs ( _rcgcnstnts, jb0 );
+	
+fi;
+
+jb0 := normal ( eval ( value ( jb0 ) ) );
+
+jb0 := csimpJanetBase ( jb0, [xi,eta] );
+
+end;
+
+#
+#
+#
+
+igcancoord := proc ( typinfo, jb )
+
+dcancoord ( typinfo, jb, [xi,eta], args[3..-1] );
+
+end;
+
+#
+#
+#
+
+igcheckjb := proc ( typinfo, xsubs, ysubs )
+
+local jb0;
+
+jb0 := vectfToJanetBase ( getliealgX(typinfo), [xi,eta] );
+
+jb0 := csimpJanetBase ( jb0, [xi,eta] );
+
+jb0 := dvsubs ( jb0, [xi,eta], [x=xsubs, y=ysubs] );
+
+jb0 := makeJanetBase ( jb0, [xi,eta] );
+
+jb0 := csimpJanetBase ( jb0, [xi,eta] );
+
+end;
+
+#
+#
+#
+
+igcheckdenom := proc ( typinfo, e );
+
+igcheckpart ( typinfo, e, denom );
+
+end;
+
+#
+#
+
+igchecknumer := proc ( typinfo, e );
+
+igcheckpart ( typinfo, e, numer );
+
+end;
+
+
+
+#
+#
+#
+
+igcheckpart := proc ( typinfo, e, ff )
+
+local	e1,
+		eqsubsl,
+		res;
+		
+global _watchlist, _assertlist, _assumelist;
+
+if type ( e, list ) then
+
+	RETURN (
+		map ( (xx,yy,zz)->igcheckpart(yy,xx,zz), e, typinfo, ff ) );
+			
+fi;
+
+e1 := e;
+
+if type ( e1, equation ) then
+
+	e1 := lhs ( e1 ) - rhs ( e1 );
+	
+fi;
+
+e1 := normal ( e1 );
+
+e1 := ff ( e1 );
+
+
+eqsubsl := getEqsubsl ( typinfo, [xi,eta] );
+
+
+e1 := dagsubs ( eqsubsl, e1 );
+
+e1 := normal ( eval ( value ( e1 ) ) );
+
+e1 := dsimplify ( e1, symbolic );
+
+
+_assertlist := getassertlist ( typinfo, sigma, rho );
+
+_assumelist := {};
+
+_watchlist := [sigma, rho,a,b,c];
+
+res := assertNotZero ( e1, _assumelist );
+
+end;
+
+#
+#
+#
+
+igcanvalue := proc ( typinfo, e )
+
+local indl;
+
+if nargs >= 3 then
+
+	indl := args[3];
+	
+else
+
+	indl := [ffff, tfff, ftff, fftf, ffft, tfft, fttf];
+	
+fi;
+
+
+end;
+
+
+
+
+
+
+
+
+
+
+

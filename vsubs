@@ -1,0 +1,375 @@
+
+
+#
+#	transformation of u(nu, J), x(i) to differential-forms in
+#	dy1,...dyn
+#
+
+
+dutody := proc ( J )
+
+local e, j, l;
+
+global _ny;
+
+options remember;
+
+e := getu(J);
+
+l := array(1.._ny);
+
+for j from 1 to _ny do
+
+	l[j] := (diff ( e, _newindeps[j] ));
+
+od;
+
+RETURN ( evalm(l) );
+
+end;
+
+#
+#
+#	end transformation to differential forms
+#
+
+makeAinv := proc ( glist, newindeps )
+
+local A, j, i;
+
+global _nx, _ny;
+
+A := array ( 1.._ny, 1.._nx );
+
+for j from 1 to _ny do
+
+	for i from 1 to _nx do
+
+		A[j,i] := diff ( glist[i], newindeps[j] );
+
+	od;
+od;
+
+A := linalg[inverse](A);
+
+A := evalm( map ( dsimplify, A ) );
+
+RETURN ( A );
+
+end;
+
+
+#
+#
+#
+#	vsubs ( [ ..., newindep(i), ... ],
+#			[ ..., oldindep(i)=gi(...,newindep(j),...),... ],
+#			[ ..., oldfun(nu)=fnu(...,newindep(j),...),... ],
+#		    [ ..., expri, ... ] );
+#
+#
+#
+
+
+vsubs := proc ( newindeps, glist, flist, e )
+
+local e1,nu,IndList,Ind,idts,oldindeps,oldfuns,maxim,e2,glist1,opts,exsflag,
+        fidts,oldindset,flistadd,flist1,fidts1,dm,vars,newfunexpr;
+
+
+global _nu, _nx, _ny, _glist, _newindeps, _Ainv, _null, _tflist;
+
+if not assigned ( forget ) then
+
+	readlib ( forget );
+	
+fi;
+
+forget ( indexlsteq );
+forget ( indexlstleq );
+
+if nargs > 4 then
+
+	opts := [args[5..nargs]];
+	
+else
+
+	opts := [];
+	
+fi;
+
+if member ( 'extsubs', opts ) then
+
+	exsflag := true;
+	
+else
+
+	exsflag := false;
+	
+fi;
+
+idts := indets ( e );
+
+flist1 := flist;
+
+oldindeps := map ( x->lhs(x), glist );
+oldfuns := map ( x->lhs(x), flist1 );
+
+e1 := e;
+
+if exsflag = true then
+
+#	oldindset := { op(oldindeps) };
+#	fidts := select ( x->type ( x, functionx (name)), idts );
+#	fidts := select ( (x,y)->not member (x,y), fidts, oldfuns );
+#	fidts := select ( (x,y)->{op(x)} intersect y = {op(x)}, fidts, oldindset );
+#	flistadd := map ( (x, ni) -> x = op(0,x)(op(ni)), fidts, newindeps );
+#	
+#	flist1 := [op(flist1), op(flistadd)];
+
+	fidts := select ( x->type ( x, diffmonomvsubs ), idts );
+	
+	fidts1 := [];
+	
+	for dm in fidts do
+	
+		vars := diffvars ( dm, 'ffname' );
+		
+		fidts1 := [op(fidts1), [dm, ffname, [vars]]];
+		
+	od;
+	
+	fidts1 := sort ( fidts1, (x,y)->evalb(nops(x[3]) >= nops(y[3])) ); 
+	
+	if nops ( fidts1 ) > 0 then
+	
+		fidts1 := select ( (x,y)->not member ( x[2], y ), fidts1, oldfuns );
+
+		newfunexpr := map ( x->[x[1],convert(x[1], D )], fidts1 );
+		
+		newfunexpr := map ( (x,glis)->x[1]=subs(glis,x[2]), newfunexpr, glist );
+		
+		e1 := subs ( newfunexpr, e1 );
+				
+	fi;
+		
+fi;
+	
+
+oldfuns := map ( x->lhs(x), flist1 );
+glist1 := map ( x->rhs (x), glist );
+
+_newindeps := newindeps;
+
+_ny := nops ( newindeps );
+_nx := nops ( oldindeps );
+_nu := nops ( flist1 );
+
+_null := op(indexlsteq ( 0, _nx ));
+
+_Ainv := makeAinv ( glist1, newindeps );
+
+
+for nu from 1 to _nu do
+
+	forget ( dutody );
+	_tflist := table ();
+	_tflist[ _null ] := rhs(flist1[nu]);
+
+
+
+	IndList := prepareIndList ( idts, oldfuns[nu],
+											oldindeps, 'maxim' );
+
+	for Ind in IndList do
+
+		e2 := eval(getu ( Ind[3] ));
+
+		if nops ( Ind[4] ) > 0 then
+			e2 := diff ( e2, op ( Ind[4] ));
+		fi;
+
+		e1 := subs ( Ind[2] = e2, e1 );
+	od;
+
+od;
+
+e1 := subs ( {op(glist)}, e1 );
+
+forget ( indexlsteq );
+forget ( indexlstleq );
+
+RETURN ( e1 );
+
+end;
+
+
+
+
+prepareIndList := proc ( idts, fname, vars, maximum )
+
+local i, n, v, aktfname, max1, l, lel, n1, n2, v1, v2, J;
+
+l := [];
+
+n := nops ( idts );
+
+max1 := -1;
+
+for i from 1 to n do
+
+	v := diffvars ( idts[i], 'aktfname' );
+
+	if v = FAIL then
+		next;
+	fi;
+
+	if aktfname <> fname then
+		next;
+    fi;
+
+    v := [ v ];
+
+	v1 := select ( (x,y)-> member ( x, y ), v, vars );
+
+	v2 := select ( (x,y) -> not member ( x, y ) , v, vars );
+
+	n1 := nops ( v1 );
+
+	if n1 > max1 then
+		max1 := n1;
+	fi;
+
+	n2 := nops ( v2 );
+
+	J := vars2J ( v1, vars );
+
+	lel := [ [n1, n2], idts[i], J, v2 ];
+
+	l := [ op(l), lel ];
+
+od;
+
+# l := sort ( l, dbllexorder );
+
+l := sort ( l, (x,y) -> not vleq(x[1], y[1]) );
+
+# ASSERT ( l = l1 );
+
+maximum := max1;
+
+RETURN ( l );
+
+end;
+
+
+
+#
+#
+#
+#	getu ( J ) computes uJ in the new indeps
+#
+#
+
+firstnonzero := proc ( Il )
+
+local i;
+
+for i from 1 to nops ( Il ) do
+
+	if Il[i] > 0 then
+	
+		RETURN ( i );
+		
+	fi;
+
+od;
+
+RETURN ( FAIL );
+
+end;
+
+
+
+
+#
+#
+
+getu := proc ( J )
+
+local i, i0,
+	 J1, b, Ainv, ord1, Ji;
+
+global  _ny, _nx, _null, _tflist, _Ainv, _sparse;
+
+if assigned ( _tflist[J] ) then
+	RETURN ( _tflist[J] );
+fi;
+
+J1 := convert(J, vector );
+
+for i from 1 to _nx do
+
+	if J1[i] > 0 then
+
+		i0 := i;
+		J1[i] := J1[i] - 1;
+		break;
+	fi;
+od;
+
+J1 := convert ( J1, list );
+
+b := dutody ( J1 );
+
+if not ( _vsubssparse = true ) then
+
+	for i from 1 to _nx do
+
+		Ji := addi ( J1, i );
+		if not assigned ( _tflist[Ji] ) then
+
+				_tflist[ Ji ] :=
+						( evalm (
+						linalg[transpose](linalg[row](_Ainv,i)) &* b ) );
+		fi;
+	od; # i
+
+else
+
+	Ji := addi ( J1, i0 );
+	if not assigned ( _tflist[Ji] ) then
+
+			_tflist[ Ji ] :=
+					( evalm (
+					linalg[transpose](linalg[row](_Ainv,i0)) &* b ) );
+	fi;
+	
+fi;
+
+
+RETURN (  _tflist[J] );
+
+end;
+
+#
+#
+#
+
+dDtodiff := proc ( e )
+
+local e1;
+
+e1 := e;
+
+if has ( e1, D ) then
+
+	e1 := convert ( e, diff );
+	
+fi; 
+
+e1;
+
+end;
+
+

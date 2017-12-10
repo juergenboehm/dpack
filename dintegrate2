@@ -1,0 +1,114 @@
+
+getdepvar := proc ( fn ) op ( 0, fn ) end;
+getindepvar := proc ( fn ) op ( fn ) end;
+
+
+dintegrate_2_g3_13 := proc ( deq, fn, jb, fs, ccoordl )
+
+local	sl,
+		inv2,
+		lt,
+		phii,
+		degr,
+		anscfs,
+		deq0, deq01,
+		ansz,
+		dits,
+		cmp,
+		cfs,
+		res,
+		loes,
+		i,
+		x, y;
+		
+global XX, YY;
+
+x := getindepvar ( fn );
+y := getdepvar ( fn );
+
+sl := ccoordl;
+
+inv2 := fn^3 * diff ( fn, x, x );
+
+lt := diff ( fn, x, x );
+degr := degree ( deq, lt );
+
+anscfs := [seq ( _CC||i, i = 0..degr )];
+
+
+deq0 := [seq ( anscfs[i+1] * phii^i , i = 0..degr )];
+deq0 := convert ( deq0, `+` );
+deq01 := deq0;
+
+deq0 := subs ( phii=inv2, deq0 );
+ansz := dtrans ( sl, deq0 );
+
+cmp := dnormal ( ansz - deq );
+
+dits := dindets ( cmp, [fn] );
+dits := rawsort ( dits );
+
+cmp := collect ( cmp, dits, distributed );
+cfs := coeffs ( cmp, dits );
+
+res := map ( (xx,cc) -> [op(solve ( identity(xx = 0,x ), cc ))], [cfs], {op(anscfs)} );
+res := flatten2 ( res );
+res := select ( type, res, name = constant );
+res := [op({op(res)})];
+
+deq01 := subs ( res, deq01 );
+deq01 := map ( (z,w)-> w = z, [solve ( deq01, phii )], phii );
+deq01 := subs ( phii=inv2, deq01 );
+
+loes := map( (z,ff) -> dsolve ( z, ff ), deq01, fn );
+
+loes := map ( x-> lhs(x)-rhs(x), loes );
+
+loes := map ( (x,s)->dtrans ( s, x, full ), loes, sl );
+
+loes := dnormal ( loes );
+
+loes;
+
+end;
+
+#
+#
+
+dintGetOmega := proc ( deq, fn, invarlis, ccoordl )
+
+local ivl1, ivl,
+		e,
+		dits, dxlt,
+		i,
+		ee;
+
+ivl1 := map ( (X,Y)->lhs(X)-dtrans ( Y, rhs(X), full ), invarlis, ccoordl );
+
+ivl := [];
+
+for e in ivl1 do
+
+	e := normal ( e );
+
+	dits := dindets ( e, [fn] );
+	dits := rawsort ( dits );
+	dxlt := dits[1];
+	
+	ivl := [op(ivl), dxlt = solve ( e, dxlt )];
+
+od;
+
+ee := deq;
+
+for i from nops ( ivl ) to 1 by -1 do
+
+	ee := subs ( ivl[i], ee );
+	
+	ee := dsimplify ( ee, symbolic );
+	
+od;
+
+RETURN ( ee );
+
+end;

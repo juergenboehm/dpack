@@ -1,0 +1,678 @@
+#:mode=maple:
+
+
+dsimplify := proc ()
+
+local e;
+
+if has ( [args], symbolic ) and not has ( [args], power ) then
+
+	e := args[1..-2];
+	
+	e := convert([e],expln);
+	
+	e := simplify ( e, power);
+
+	simplify ( e, symbolic );
+	
+	op(e);
+	
+else
+
+	simplify ( args );
+
+fi;
+
+end;
+
+#
+#
+
+factorl := proc ( e )
+
+local e1,
+		ed;
+
+ed := denom ( e );
+
+if ed = 1 then
+
+	e1 := frontend( factors,  [e] );
+
+	map ( zz->zz[1], e1[2] );
+
+else
+
+	flatten2 ( [ factorl ( numer ( e ) ), factorl ( ed ) ] );
+	
+fi; 
+
+end;
+
+#
+#
+#
+
+solveeq := proc ( )
+
+local idts,
+		v,
+		res;
+
+res := solve ( args );
+
+if nargs = 2 then
+
+	v := args[2];
+	
+	if type ( v, name ) then
+	
+		v := {v};
+		
+	fi;
+	
+else
+
+	v := indets(args[1]);
+	
+fi;
+
+if nops ( v ) = 1 then
+
+	res := map ( (zz,ww) -> ww = zz, {res}, v[1] );
+	
+else
+
+	res;
+	
+fi;
+
+end;
+
+#
+#
+
+solvesubs := proc ()
+
+local il,
+		i,
+		sl,
+		na,
+		res;
+
+il := args[2];
+
+sl := [seq ( il[i] = genname ( i, 1 ), i = 1.. nops ( il ) ) ];
+
+na := subs ( sl, [args] );
+
+res := solve ( op ( na ) );
+
+if nops ( [res] ) = 0 then
+
+	RETURN ( );
+	
+fi;
+
+subs ( swapeqs ( sl ), res );
+
+end;
+
+#
+#
+#
+
+eq2expr := proc ( e )
+
+if type ( e, {list, set} ) then
+
+	map ( eq2expr, e );
+	
+elif type ( e, equation ) then
+
+	lhs ( e ) - rhs ( e );
+	
+else
+
+	e;
+	
+fi;
+
+end;
+
+#
+#
+#
+
+diffX := proc ()
+
+if nargs = 1 then args[1]; else diff ( args ); fi;
+
+end;
+
+#
+# coeffs1st extrahiert eine anordnungsrichtige Folge von Koeffizienten aus
+# einem Ausdruck e der linear in vars ist.
+#
+
+
+coeffslin := proc ( e, vars )
+
+local e1,
+		i;
+
+e1 := collect ( e, vars );
+
+[seq ( coeff ( e, vars[i] ), i=1..nops(vars) ) ];
+
+end;
+
+#
+#
+#
+
+pmakemonic := proc ( p, v )
+
+local cc;
+
+cc := lcoeff ( p, v );
+
+collect (normal ( p / cc ), v );
+
+end;
+
+#
+#
+
+swapeqs := proc ( l :: list )
+
+map ( x->rhs(x)=lhs(x), l );
+
+end;
+
+
+
+#
+#
+#
+
+normevalval := proc ( e )
+
+normal ( eval ( value ( e ) ) );
+
+end;
+
+#
+#
+
+iszerol := proc ( el )
+
+convert ( map ( xx->evalb(xx=0), el ), `and` );
+
+end;
+
+#
+#
+#
+
+############################################################################################
+#
+#
+#	Indexlistenfunktionen
+#
+#
+
+#
+#	two functions for generating lists of indices
+#
+
+
+#	indexlsteq ( s,n ) generates a list of all ( k1,...kn ) with 
+#	k1+..+kn = s
+
+indexlsteq := proc ( s, n )
+
+local i,l,r;
+
+options remember;
+
+if n = 1 then
+
+	RETURN ( [ [s] ] );
+
+else
+
+	r := [];
+	
+	for i from 0 to s do
+
+		l := indexlsteq ( s - i, n - 1 );
+
+		l := map ( ( x,i ) -> [i, op(x) ], l, i );
+
+		r := [op(r), op(l) ];
+	od;
+	RETURN ( r );
+fi;
+
+end;
+
+
+#	indexlstleq ( s,n ) produces all (k1,..kn) with k1+..+kn <=s
+
+indexlstleq := proc ( s, n )
+
+local i, r, minim;
+
+options remember;
+
+if nargs >= 3 then
+
+	minim := args[3];
+	
+else
+
+	minim := 0;
+	
+fi;
+
+r := [];
+
+for i from s by -1 to minim do
+
+	r := [ op ( indexlsteq ( i, n ) ), op ( r ) ];
+od;
+
+RETURN ( r );
+
+end;
+
+
+#	total degree : tdeg ( [k1,..kn] ) = k1+...+kn
+#
+
+tdeg := proc ( J )
+
+convert ( J, `+` );
+
+end;
+
+#
+#
+
+addi := proc ( J, i )
+
+[ op(J[1..i-1]), J[i] + 1, op(J[i+1..nops(J)]) ];
+ # update to V4
+
+end;
+
+#
+#
+
+addik := proc ( J, i, k )
+
+[ op(J[1..i-1]), J[i] + k, op(J[i+1..nops(J)]) ];
+ # update to V4
+
+end;
+
+##############################################################################################
+#
+#
+# Diffmonomfunktionen
+#
+#
+#
+
+`type/functionx` := proc (e) 
+
+	type(e,function(name)) and not type (op(0,e), mathfunc);
+	
+	end;
+
+
+
+
+#`type/diffmonom` := { functionx (name), 'diff'( diffmonom, name ),
+#						'Diff'(diffmonom, name) }:
+
+# folgende Aenderung wegen Anpassung an neues type/diff
+
+
+`type/diffmonom` := proc ( e )
+						type ( subs ( [diff = mydiff, Diff=myDiff], e ), mydiffmonom ); end;
+						
+						
+`type/mydiffmonom` := { functionx (name), mydiff( mydiffmonom, name ),
+						myDiff( mydiffmonom, name) }:
+
+
+`type/diffmonomvsubs` := eval ( `type/diffmonom` );
+
+
+
+#
+#
+#    diffvars ( e, fname )
+#    Input : expression e, variablename fname
+#    Output: if e is not of the form diff( f(x,y,..),var1,var2,..)
+#            return value is FAIL
+#            otherwise [var1,var2,var3,...] is returned and fname is set
+#            to f(x,y,...)
+
+diffvars:= proc ( e, fname )
+
+local e1, vars;
+
+e1 := e;
+vars := [];
+
+while true do
+
+    if type ( e1, 'diff'(algebraic, name )) then
+        vars := [ op(vars), op (2, e1) ];
+        e1 := op ( 1, e1 );
+    elif type ( e1, function ( algebraic ) ) then
+        fname := e1;
+        RETURN ( op ( vars ) );
+    else
+        RETURN ( FAIL );
+    fi;
+od;
+end;
+
+#
+#
+
+aux_difflist := proc ()
+args;
+end;
+
+#
+#
+#
+#
+
+difflist := proc ( e )
+
+local e1;
+
+if type ( e, diffmonom ) then
+
+	[eval(subs ( diff = aux_difflist, Diff=aux_difflist, e ))];
+
+else
+
+	FAIL;
+	
+fi;
+
+#if type ( e1[1], function ( algebraic ) ) then
+#
+# if type ( [e1[2..nops(e1)]], list(name) ) then
+#
+#    RETURN ( e1 );
+# fi;
+#fi;
+#
+#RETURN ( FAIL );
+
+end;
+
+#
+#
+#
+#
+
+difflistD := proc ( e )
+
+local e1;
+
+e1 := [eval(subs ( diff = aux_difflist, Diff=aux_difflist, e ))];
+
+if type ( e1[1], function ( algebraic ) ) then
+
+ if type ( [op(e1[2..nops(e1)])], list(name) ) then
+ # update to V4
+
+    RETURN ( e1 );
+ fi;
+fi;
+
+RETURN ( FAIL );
+
+end;
+
+#
+#
+#
+
+fdifflist := proc ( e )
+
+[ eval ( subs ( diff = aux_difflist, e ) ) ];
+
+end;
+
+#
+#
+#
+
+fdiffprod := proc ( e )
+
+convert ( fdifflist(e), `*` );
+
+end;
+
+#
+#
+#
+
+diffdeg:= proc ( e )
+
+local v,f;
+
+v := diffvars ( e, f );
+if ( v = FAIL ) then
+    RETURN ( -1 );
+else
+    RETURN ( nops ( [v] ) );
+fi;
+
+end;
+
+#
+#  e1 and e2 should be diff(f(x,y,..),vars1), diff(f(x,y,..), vars2 )
+#  diffcompare tries to find a list of variables, so that differentiating
+#  e2 by these gives e1, otherwise it returns FAIL
+#
+
+diffcompare := proc ( e1, e2 )
+
+local fname1, fname2, vars1, vars2;
+
+vars1 := diffvars ( e1, 'fname1' );
+
+if (vars1 = FAIL ) then
+    RETURN ( FAIL );
+fi;
+
+vars2 := diffvars ( e2, 'fname2' );
+
+if ( vars2 = FAIL ) then
+    RETURN ( FAIL );
+fi;
+
+
+if ( fname2 <> fname1 ) then
+    RETURN ( FAIL );
+fi;
+
+RETURN ( listminus ( [vars1], [vars2] ) );
+
+end;
+
+
+#
+#
+#
+#
+
+lincollect := proc ( e, vl )
+
+local fn,
+		nv,
+		rs,
+		res,
+		i,
+		res1;
+
+if nargs = 3 then
+
+	fn := args[3];
+	
+else
+
+	fn := x->x;
+	
+fi;
+
+nv := nops ( vl );
+
+rs := [1, 0 $ (nv-1) ];
+
+res := [];
+
+res1 := 0;
+
+for i from 1 to nv do
+
+	res := [op(res), QQQXXX||i = fn ( subs ( zip ( (x,y)->x=y, vl, rs ), e ) ) ];
+		
+	res1 := res1 + QQQXXX||i * vl[i];
+	
+	rs := [rs[-1], op(rs[1..-2])];
+	
+od;
+
+res1 := collect ( res1, vl);
+
+res1 := subs ( res, res1 );
+
+res1;
+
+end;
+
+
+#
+#
+#
+#
+
+genpowterm := proc ( n, idts, coefn, argvs )
+
+local l, s, il;
+
+l := indexlsteq ( n, nops ( idts ) );
+
+s := 0;
+
+for il in l do
+
+	s := s + convert ( zip ((x,y)->x^y, idts, il), `*` ) * 
+	eval(condev2 ( nops(argvs)=0,'coefn[op(il)]', 'coefn[op(il)](op(argvs))' ));
+
+od;
+
+s;
+
+end;
+
+#
+#
+#
+#
+#
+#
+
+if not assigned ( mtaylor ) then 
+
+### WARNING: persistent store makes one-argument readlib obsolete
+	readlib ( mtaylor )
+	
+fi;
+
+#
+#
+
+funclincomb := proc ( ff, flist, vars, ord )
+
+local i, cnt,
+		cfl,
+		rnd,
+		dvlppnt,
+		ttt1,
+		sl,
+		ttt,
+		cfs,
+		res;
+
+
+cfl := [seq ( genUniqueName (), i = 1..nops ( flist ) )];
+
+ttt := ff - add ( cfl[i] * flist[i], i = 1..nops ( flist ) );
+
+
+rnd := rand ( -20..20 );
+
+
+for cnt from 1 to 100 do
+
+	dvlppnt := [seq ( rnd(), i = 1..nops ( vars ) )];
+
+	sl := zip ( (x,y) -> x = x - y, vars, dvlppnt );
+
+	ttt1 := normevalval ( subs ( sl, ttt ) );
+
+	ttt1 := traperror ( mtaylor ( ttt1, vars, ord ) );
+
+	if not type ( ttt1, string ) then break; fi;
+
+od;
+
+if type ( ttt1, string ) then
+	
+	RETURN ( FAIL );
+
+fi;
+
+
+cfs := coeffs ( collect ( ttt1, vars, distributed ), vars );
+
+
+res := solve ( {cfs}, {op(cfl)} );
+
+if nops ( [res] ) > 0 then
+
+	normal ( subs ( res, cfl ) );	
+		
+else
+
+	FAIL;
+	
+fi;
+
+end;
+
+#
+#
+#
+
+
+
+
+
+
+
+
+

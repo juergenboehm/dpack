@@ -1,0 +1,335 @@
+
+#
+# macht die Transformation knownsol -> [1,0,...,0]
+# knownsols werden mittransformiert.
+#
+
+lincomplete := proc ( v )
+
+local n,
+		i,
+		mm,
+		j,
+		A;
+
+n := nops ( v );
+
+i := firstpos ( x-> x <> 0, v );
+
+mm := [v];
+
+for j from 1 to i-1 do
+
+	mm := [op(mm), [0$ (j-1), 1, 0 $ (n-j)]];
+	
+od;
+
+for j from i+1 to n do
+
+	mm := [op(mm), [0$ (j-1), 1, 0 $ (n-j)]];
+
+od;
+
+A := convert ( mm, matrix );
+
+A := linalg[transpose] ( A );
+
+evalm ( A );
+
+end;
+
+#
+#
+
+v1tov2mat := proc ( v1, v2 )
+
+local V, W, A;
+
+V := lincomplete ( v1 );
+
+W := lincomplete ( v2 );
+
+A := evalm ( W &* linalg[inverse] ( V ) ); 
+
+evalm ( A );
+
+end;
+
+#
+#
+#
+
+
+xpdetransf1 := proc ( eqs, fs, knownsol, knownsols )
+
+local 	vars,
+		newfs,
+		i,
+		sl,
+		eqs1,
+		knsl1,
+		res,
+		A, A1;
+
+vars := op ( dgetvars ( fs ) );
+
+newfs := [ seq ( genUniqueName () ( vars ), i = 1..nops ( fs ) ) ];
+
+A := v1tov2mat ( [1, 0 $ ( nops ( fs ) - 1 )], knownsol );
+
+sl := evalm ( A &* newfs );
+
+sl := convert ( sl, list );
+
+sl := zip ( (xx,yy) -> xx = yy, fs, sl );
+
+eqs1 := subs ( sl, eqs );
+
+eqs1 := normevalval ( eqs1 );
+
+
+A1 := linalg[inverse] ( A );
+
+knsl1 := map ( (xx,yy) -> convert ( evalm ( yy &* xx ), list ), knownsols, A1 );
+
+res := [eqs1, newfs, knsl1, sl];
+
+end;
+
+#
+# macht die Transformation xi_x = v, xi_y = w, v_y= w_x
+# knownsols werden mittransformiert.
+#
+
+xpdetransf2 := proc ( eqs, fs, knownsols )
+
+local vars,
+		i, j, k,
+		newfs1,
+		newfs2,
+		newfs,
+		sl,
+		sl1,
+		igb,
+		igba,
+		eqs1,
+		knsll,
+		knsl,
+		res,
+		fsint;
+
+vars := dgetvars ( fs );
+
+newfs1 := [seq ( genUniqueName () ( op ( vars ) ), i = 1.. nops ( vars ) ) ];
+
+newfs2 := fs[2..-1];
+
+newfs := [op(newfs1), op(newfs2)];
+
+sl1 := map ( (xx,yy) -> diff ( yy, xx ), vars, fs[1] );
+
+sl1 := zip ( (xx,yy) -> xx = yy, sl1, newfs1 );
+
+sl := zip ( (xx,yy) -> xx = yy, fs[2..-1], newfs2 );
+
+sl := [op(sl1), op(sl)];
+
+
+
+igb := [];
+
+for i from 1 to nops ( newfs1 ) do
+
+	for j from 1 to nops ( vars ) do
+	
+		if i >= j then next; fi;
+		
+		igba := diff ( newfs1[i], vars[j] ) - diff ( newfs[j], vars[i] );
+		
+		igb := [op(igb), igba];
+		
+	od;
+	
+od;
+
+
+
+eqs1 := tdsubs ( sl1, eqs );
+
+eqs1 := [op(eqs1), op(igb)];
+
+eqs1 := xpdejanetBase ( eqs1, newfs );
+
+
+
+knsl := map ( (xx, yy) -> [op ( map ( (uu,vv)->diff(vv,uu), yy, xx[1] ) ),
+							op ( xx[2..-1] )], knownsols, vars );
+
+
+res := [eqs1, newfs, knsl, sl];
+
+end;
+
+#
+#
+#
+#
+#
+
+xpdesolveX := proc ( eqs, fs )
+
+local	vars,
+		opts,
+		opts1,
+		sol1,
+		kns1,
+		loes,
+		sl, i,
+		loes1,
+		kns,
+		erg,
+		fs1,
+		eqs1,
+		kns11,
+		fsmul,
+		fs2,
+		eqs2,
+		kns12,
+		fsint,
+		vfeq,
+		vB;
+
+
+vars := op(dgetvars ( fs ));
+
+
+opts := [args[3..-1]];
+
+kns := getoptval ( opts, knsols );
+
+if kns <> FAIL then
+			
+	sol1 := kns[1];
+	
+	kns1 := kns[2..-1];
+
+	erg := xpdetransf1 ( eqs, fs, sol1, kns1 );
+	
+	eqs1 := erg[1];
+	
+	fs1 := erg[2];
+	
+	kns11 := erg[3];
+	
+	fsmul := erg[4];
+	
+	erg := xpdetransf2 ( eqs1, fs1, kns11 );
+	
+	eqs2 := erg[1];
+	
+	fs2 := erg[2];
+	
+	kns12 := erg[3];
+	
+	fsint := erg[4];
+	
+	if nops ( kns12 ) > 0 then
+	
+		opts1 := changeoptval ( opts, knsols, kns12 );
+		
+		opts1 := removeopts ( opts1, [basis] );
+	
+		loes := xpdesolveX ( eqs2, fs2, op (opts1) );
+		
+	else
+	
+		opts1 := selectopts ( opts, [rational] );
+	
+		opts1 := removeopts ( opts1, [basis] );
+	
+		loes := xpdesolve ( eqs2, fs2, op(opts1) );
+		
+	fi;
+
+	sl := fsint;
+
+	loes := subs ( _CC = _CC1, _FF = _FF1, loes );
+
+	sl := zip ( (xx,yy) -> xx - yy, map ( lhs, sl ), subs ( loes, map ( rhs, sl ) ) );
+
+	loes := xpdesolve ( sl, fs1 );
+
+	loes := xpdeconstnormal ( loes, [[_CC1,_CC], [_FF1,_FF]] );
+
+	erg := subs ( loes, fsmul );
+
+	erg := normevalval ( erg );
+
+	loes1 := erg;
+		
+	
+else
+
+	loes1 := xpdesolve ( eqs, fs, optsxpde );
+	
+fi;
+
+if hasoptname ( opts, basis ) then
+
+	loes1 := makesolbasis ( loes1 );
+	
+elif hasoptname ( opts, vectf ) then
+
+	vfeq := getoptval ( opts, vectf );
+	
+	if vfeq <> FAIL then
+	
+		vB := rhs ( vfeq );
+		
+	else
+		
+		vB := [p, q];
+		
+	fi;
+
+	loes1 := vectfform ( loes1, fs, vB, '_CC', '_FF' );
+
+fi;
+
+loes1;
+
+end;
+
+#
+#
+#
+#
+
+xpdejanetBase := proc ( eqs, fs )
+
+local oldcotes,
+		eqs1;
+
+oldcotes := setcotes ( fs, totDegOrder ( fs ) );
+
+eqs1 := makeJanetBase ( eqs, fs );
+
+setcotes ( fs, oldcotes );
+
+eqs1;
+
+end;
+
+
+
+
+
+
+
+
+
+
+
+
+
+

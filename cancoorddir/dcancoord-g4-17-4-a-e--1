@@ -1,0 +1,179 @@
+
+remdep ( [xi, eta, sigma, rho, a[1], b[1], d[1]] );
+
+depend ( [xi, eta, sigma, rho], [x,y] );
+
+
+####################################################################################
+#
+#   Group g 4, 17, 4
+#
+#
+
+
+read cat ( DPACKPATH, `cancoorddir/dcancoord-g4-17-gener1` ):
+
+
+
+
+KNOWNSOLS_4_17_4_SPEC1 := [ exp(SIGMA), exp(a*SIGMA), 1, SIGMA];
+
+
+
+`dcancoord_g4_17_4_ffff_a_e_-1` := proc ( jb, fs )
+
+dcancoord_g4_17_generic1 ( jb, fs, [[4,17,4,ffff],[a=-1]], KNOWNSOLS_4_17_4_SPEC1 );
+
+end;
+
+#
+#
+#
+
+`dcancoord_g4_17_4_tfff_a_e_-1` := proc ( jb, fs )
+
+local fs1,
+		jb1,
+		jbakt,
+		cnt,
+		rhoxycrit,
+		cco,
+		sl,
+		loes;
+
+# Prolog
+
+fs1 := [xi, eta];
+
+jb1 := dchangefs ( jb, fs, fs1 );
+
+
+
+
+jbakt := jb1;
+
+cnt := 0;
+
+while true do
+
+#	print ( cnt );
+
+	rhoxycrit := dresolve ( [[4,17,4,tfff],[a=-1]], jbakt, fs1, a[1](x,y) + 3 * b[1](x,y) ); 
+
+	if rhoxycrit <> 0 then break; fi;
+
+	sl := [x=x*y+cnt,y=y];
+
+	jbakt := dvsubs ( jb1, fs1, sl );
+
+	jbakt := makeJanetBase ( jbakt, fs1 );
+
+	jbakt := csimpJanetBase ( jbakt, fs1 );	
+
+	cnt := cnt + 1;
+
+od;
+
+
+loes := dcancoord_g4_17_generic1 ( jbakt, fs1, [[4,17,4,tfff],[a=-1]], KNOWNSOLS_4_17_4_SPEC1 );
+
+
+if cnt > 0 then
+
+	cco := loes[2];
+
+	sl := [x=(x-(cnt-1))/y, y=y];
+
+	cco := normevalval ( subs ( sl, cco ) );
+
+	loes := [[],cco,[]];
+
+fi;
+
+loes;
+
+end;
+
+#
+#
+#
+
+`dcancoord_g4_17_4_ftff_a_e_-1` := proc ( jb, fs )
+
+local fs1,
+		jb1,
+		jbakt,
+		cnt,
+		rhoxycrit,
+		cco,
+		sl,
+		loes;
+
+# Prolog
+
+fs1 := [xi, eta];
+
+jb1 := dchangefs ( jb, fs, fs1 );
+
+
+
+
+jbakt := jb1;
+
+cnt := 0;
+
+while true do
+
+	print ( cnt );
+
+	rhoxycrit := dresolve ( [[4,17,4,ftff],[a=-1]], jbakt, fs1, a[1](x,y) + 3 * d[1](x,y) ); 
+
+	if rhoxycrit <> 0 then break; fi;
+
+	sl := [x=x,y=x*y+cnt];
+
+	jbakt := dvsubs ( jb1, fs1, sl );
+
+	jbakt := makeJanetBase ( jbakt, fs1 );
+
+	jbakt := csimpJanetBase ( jbakt, fs1 );	
+
+	cnt := cnt + 1;
+
+od;
+
+
+
+
+
+
+loes:=dcancoord_g4_17_generic1 ( jbakt, fs1, [[4,17,4,ftff],[a=-1]], KNOWNSOLS_4_17_4_SPEC1 );
+
+
+if cnt > 0 then
+
+	cco := loes[2];
+
+	sl := [x=x,y=(y-(cnt-1))/x];
+
+	cco := normevalval ( subs ( sl, cco ) );
+
+	loes := [[],cco,[]];
+
+fi;
+
+loes;
+
+end;
+
+
+#
+#
+#
+
+
+`cancoordsetup_g4_17_4_a_e_-1` := proc ()
+
+cancoordsetup_g4_17_generic1 ( [[4,17,4,XXXX], [a=-1]] );
+
+end;

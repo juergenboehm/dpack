@@ -1,0 +1,31 @@
+
+FUNCTION: dcontent  - Compute the gcd (content) of the coefficients in a linear
+                      partial differential equation ( LPDE )
+   
+          dprimpart - Compute the primitive part of a LPDE
+      
+CALLING SEQUENCE:
+   dcontent(e, fs)
+   dcontent(e, fs, `p`)
+      
+   dprimpart(e, fs)
+   dprimpart(e, fs, `co`)
+      
+PARAMETERS:
+   e     - an expression
+   fs    - a list of functions of the same independent variables
+   p, co - optional variable names
+      
+SYNOPSIS:   
+- The function dcontent considers e as a LPDE and returns the gcd (content) of 
+  its coefficients.
+   
+- The function dprimpart(e, fs) returns e/dcontent(e,fs).
+   
+- The optional third argument is assigned the primitive part or the content of
+  the LPDE.
+      
+EXAMPLES:   
+      
+SEE ALSO: dcollect
+

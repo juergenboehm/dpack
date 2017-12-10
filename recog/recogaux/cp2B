@@ -1,0 +1,127 @@
+     lambda^5+((RCGIb[2](x,y)-RCGIc[1](x,y)*RCGIa[1](x,y)-2*RCGIc[1](x,y)
+
+   *RCGIe[3](x,y)-RCGIc[2](x,y)*RCGIc[1](x,y)+RCGId[3](x,y)+2*RCGIc[3](x,y)
+
+        +diff(RCGIc[1](x,y),x))*lambda^4+((-RCGIb[2](x,y)*RCGIc[1](x,y)
+
+    *RCGIa[1](x,y)+RCGIb[1](x,y)*RCGIa[2](x,y)*RCGIc[1](x,y)+RCGIc[1](x,y)
+
+         ^2*RCGIa[3](x,y)+(-RCGIb[2](x,y)*RCGIc[1](x,y)-RCGIb[3](x,y)
+
+         +RCGIc[2](x,y)*RCGIb[1](x,y))*RCGIc[2](x,y)+(2*RCGIb[2](x,y)
+
+    -RCGIc[1](x,y)*RCGIa[1](x,y)+RCGIc[3](x,y))*RCGIc[3](x,y)-RCGIc[4](x,y)
+
+         +(-RCGIc[1](x,y)*RCGIa[1](x,y)-RCGIc[2](x,y)*RCGIc[1](x,y)+2*
+
+         RCGIc[3](x,y))*RCGId[3](x,y)+(2*RCGIc[2](x,y)*RCGIb[1](x,y)-
+
+         RCGIb[3](x,y)-2*RCGId[3](x,y)*RCGIc[1](x,y)-2*RCGIb[2](x,y)*
+
+    RCGIc[1](x,y)+RCGIb[1](x,y)*RCGIe[3](x,y))*RCGIe[3](x,y)+RCGIb[5](x,y)
+
+    -RCGIc[5](x,y)*RCGIc[1](x,y)+(RCGId[3](x,y)+RCGIc[3](x,y)+RCGIb[2](x,y)
+
+       )*diff(RCGIc[1](x,y),x)-RCGIc[1](x,y)*RCGIc[4](x,y)*RCGIe[2](x,y)
+
+   -diff(RCGIe[3](x,y),x)*RCGIb[1](x,y)-diff(RCGIc[3](x,y),x)*RCGIc[1](x,y)
+
+        -diff(RCGIc[2](x,y),x)*RCGIb[1](x,y))*lambda^3+((RCGIb[2](x,y)
+
+   *RCGIc[1](x,y)^2*RCGIa[3](x,y)+RCGIb[1](x,y)*RCGIc[1](x,y)*RCGIa[5](x,y)
+
+   -RCGIb[3](x,y)*RCGIc[1](x,y)^2*RCGIa[2](x,y)+RCGIb[1](x,y)*RCGIa[4](x,y)
+
+    +(RCGIc[1](x,y)*RCGIa[1](x,y)*RCGIb[3](x,y)-RCGIb[1](x,y)*RCGIa[3](x,y)
+
+         *RCGIc[1](x,y))*RCGIc[2](x,y)+(-RCGIb[2](x,y)*RCGIc[1](x,y)*
+
+     RCGIa[1](x,y)-RCGIc[2](x,y)*RCGIb[3](x,y)+RCGIb[1](x,y)*RCGIa[2](x,y)
+
+   *RCGIc[1](x,y)+RCGIb[2](x,y)*RCGIc[3](x,y))*RCGIc[3](x,y)+(RCGIc[2](x,y)
+
+         *RCGIc[1](x,y)-2*RCGIc[3](x,y)+RCGIc[1](x,y)*RCGIa[1](x,y))*
+
+       RCGIc[4](x,y)-diff(RCGIc[5](x,y),x)*RCGIb[1](x,y)+(RCGIc[1](x,y)
+
+         ^2*RCGIa[3](x,y)+(-RCGIc[1](x,y)*RCGIa[1](x,y)+RCGIc[3](x,y)
+
+         )*RCGIc[3](x,y))*RCGId[3](x,y)+(-RCGIb[1](x,y)*RCGIa[3](x,y)
+
+    *RCGIc[1](x,y)+RCGIc[1](x,y)*RCGIa[1](x,y)*RCGIb[3](x,y)+RCGIc[2](x,y)
+
+   *RCGIb[3](x,y)*RCGIc[1](x,y)+(-RCGIb[3](x,y)-RCGIc[2](x,y)*RCGIb[1](x,y)
+
+         )*RCGIc[3](x,y)+2*RCGIc[1](x,y)*RCGIc[4](x,y)+(-RCGIc[3](x,y)
+
+   *RCGIb[1](x,y)+RCGIc[1](x,y)*RCGIb[3](x,y))*RCGIe[3](x,y))*RCGIe[3](x,y)
+
+   -RCGIc[4](x,y)*RCGIe[4](x,y)*RCGIb[1](x,y)+(-RCGIc[2](x,y)*RCGIc[1](x,y)
+
+         +2*RCGIc[3](x,y)-RCGIc[1](x,y)*RCGIa[1](x,y)-2*RCGIc[1](x,y)
+
+         *RCGIe[3](x,y))*RCGIb[5](x,y)+(2*RCGIc[2](x,y)*RCGIb[1](x,y)
+
+   -RCGId[3](x,y)*RCGIc[1](x,y)+3*RCGIb[1](x,y)*RCGIe[3](x,y)-RCGIb[2](x,y)
+
+   *RCGIc[1](x,y)-RCGIb[3](x,y))*RCGIc[5](x,y)+(RCGId[3](x,y)*RCGIc[3](x,y)
+
+    -RCGIb[3](x,y)*RCGIe[3](x,y)+RCGIb[5](x,y)+RCGIb[2](x,y)*RCGIc[3](x,y)
+
+        -RCGIc[4](x,y)-RCGIc[2](x,y)*RCGIb[3](x,y))*diff(RCGIc[1](x,y)
+
+        ,x)+((-RCGIb[2](x,y)*RCGIc[1](x,y)+RCGIc[2](x,y)*RCGIb[1](x,y)
+
+    )*RCGIc[4](x,y)-RCGIc[4](x,y)*RCGId[3](x,y)*RCGIc[1](x,y)+RCGIc[4](x,y)
+
+         *RCGIb[1](x,y)*RCGIe[3](x,y))*RCGIe[2](x,y)+(-RCGIc[3](x,y)*
+
+         RCGIb[1](x,y)+RCGIc[1](x,y)*RCGIb[3](x,y))*diff(RCGIe[3](x,y)
+
+         ,x)+(RCGIc[2](x,y)*RCGIb[1](x,y)-RCGIb[2](x,y)*RCGIc[1](x,y)
+
+-RCGId[3](x,y)*RCGIc[1](x,y)+RCGIb[1](x,y)*RCGIe[3](x,y))*diff(RCGIc[3](x,y\
+    )
+
+         ,x)+(-RCGIc[3](x,y)*RCGIb[1](x,y)+RCGIc[1](x,y)*RCGIb[3](x,y)
+
+        )*diff(RCGIc[2](x,y),x))*lambda^2+(-RCGIa[4](x,y)*RCGIb[3](x,y)
+
+   *RCGIc[1](x,y)-RCGIc[1](x,y)^2*RCGIa[5](x,y)*RCGIb[3](x,y)+(RCGIb[1](x,y)
+
+    *RCGIa[4](x,y)+RCGIb[1](x,y)*RCGIc[1](x,y)*RCGIa[5](x,y))*RCGIc[3](x,y)
+
+         +(-RCGIc[1](x,y)^2*RCGIa[3](x,y)+(RCGIc[1](x,y)*RCGIa[1](x,y)
+
+         -RCGIc[3](x,y))*RCGIc[3](x,y))*RCGIc[4](x,y)+(-RCGIc[3](x,y)
+
+        *RCGIb[1](x,y)+RCGIc[1](x,y)*RCGIb[3](x,y))*diff(RCGIc[5](x,y)
+
+         ,x)+(-RCGIc[3](x,y)*RCGIb[1](x,y)+RCGIc[1](x,y)*RCGIb[3](x,y)
+
+         )*RCGIc[4](x,y)*RCGIe[4](x,y)+(RCGIc[1](x,y)^2*RCGIa[3](x,y)
+
+         +(-RCGIc[1](x,y)*RCGIa[1](x,y)+RCGIc[3](x,y))*RCGIc[3](x,y))
+
+   *RCGIb[5](x,y)+(-RCGIc[3](x,y)*RCGIb[3](x,y)+RCGIc[1](x,y)*RCGIc[4](x,y)
+
+    +RCGIc[1](x,y)*RCGIa[1](x,y)*RCGIb[3](x,y)-RCGIb[1](x,y)*RCGIa[3](x,y)
+
+    *RCGIc[1](x,y)-RCGIc[1](x,y)*RCGIb[5](x,y)+RCGIc[5](x,y)*RCGIb[1](x,y)
+
+         )*RCGIc[5](x,y)+(-RCGIc[4](x,y)*RCGIc[3](x,y)-RCGIb[3](x,y)*
+
+         RCGIc[5](x,y)+RCGIb[5](x,y)*RCGIc[3](x,y))*diff(RCGIc[1](x,y)
+
+        ,x)+(RCGIc[4](x,y)^2*RCGIc[1](x,y)+RCGIc[4](x,y)*RCGIb[1](x,y)
+
+    *RCGIc[5](x,y)-RCGIc[4](x,y)*RCGIb[5](x,y)*RCGIc[1](x,y))*RCGIe[2](x,y)
+
+   +(-RCGIc[1](x,y)*RCGIb[5](x,y)+RCGIc[5](x,y)*RCGIb[1](x,y)+RCGIc[1](x,y)
+
+        *RCGIc[4](x,y))*diff(RCGIc[3](x,y),x))*lambda*t[5])*t[5])*t[5])
+
+                                     *t[5]
+
+                                      []
+

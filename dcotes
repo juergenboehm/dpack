@@ -1,0 +1,281 @@
+#
+#
+#
+
+remcotes := proc(lfs)
+
+local i,e;
+global _cotelist;
+
+if assigned ( _cotelist[lfs] ) then
+
+	e := lfs;
+	_cotelist[e] := evaln(_cotelist[e]);
+
+fi;
+
+end;
+
+#
+#
+
+initcotevars := proc ( n )
+
+local i;
+
+global _cotevars;
+
+_cotevars := [seq ( _uu||i,i=1..n ) ]:
+
+end;
+
+
+
+#
+#
+#
+
+showcotes := proc ()
+
+global _cotelist;
+
+eval( _cotelist );
+
+end;
+
+#
+#
+#
+
+isCoteAssigned := proc ( fs )
+
+global _cotelist;
+
+assigned ( _cotelist[fs] );
+
+end;
+
+#
+#
+#
+
+setCotesDefault := proc ( fs )
+
+global _cotelist;
+
+setcotes ( fs, totDegOrder ( fs ) );
+
+end;
+
+#
+#
+#
+
+rebuildcotemat := proc ( cle )
+
+local cle1, ncv, zl0, i, j, m, zl;
+
+cle1 := cle[1];
+
+ncv := cle[2];
+
+if type ( cle1, procedure ) then
+
+	RETURN ( [ eval(cle1), ncv ] );
+	
+fi; 
+	
+
+m := [];
+zl0 := map ( x->x[1], cle1 );
+
+for j from 1 to ncv do
+
+	zl := [];
+
+	for i from 1 to nops(cle1) do
+		
+		zl := [op(zl), degree ( cle1[i][2], cat ( _uu, j ) )];
+		
+	od;
+	
+	m := [op(m), zl];
+	
+od;
+
+[zl0, op(m)];
+
+end;
+
+#
+#
+#
+
+setcotes := proc(l,ma)
+
+#
+# ma ist entweder eine Cotematrix oder ein Paar [procedure, integer]
+#
+
+local i,j,e,p,l1, m, res;
+global _cotelist, _cotevars;
+
+chkcreatetable('_cotelist');
+
+if assigned ( _cotelist[l] ) then
+
+	res := rebuildcotemat ( _cotelist[l] ) ;
+	
+else
+
+	res := [];
+	
+fi;
+
+if nops ( ma ) > 0 then
+
+	if not type ( ma[1], procedure ) then
+
+		m := ma;
+
+		l1 := m[1];
+
+		m := m[2..-1];
+
+		initcotevars ( nops(m) );
+
+		e := [];
+
+		for i from 1 to nops(l1) do
+
+    		p := 1;
+
+    		for j from 1 to nops(m) do
+
+        		p := p * _cotevars[j]^m[j][i];
+
+    		od;
+
+    		e := [op(e),[l1[i],p]];
+
+		od;
+
+		_cotelist[l] := [e, nops ( m )];
+
+	else
+	
+		_cotelist[l] := ma;
+
+	fi;
+
+else
+
+	remcotes ( l );
+
+fi;
+	
+
+
+RETURN ( res );
+
+end;
+
+#
+#
+#
+#
+
+clearcotes := proc ()
+
+global _cotelist;
+
+_cotelist := '_cotelist';
+
+end;
+
+#
+#
+
+usecotes := proc ( fs )
+
+global _aktcotes, _cotelist;
+
+initcotevars ( op(2,_cotelist[ fs ]) );
+
+if type ( op (1, _cotelist[fs] ), procedure ) then
+
+	_aktcotes := op ( 1, _cotelist[fs] );
+
+else
+
+	_aktcotes := op(map ( e->(e[1]=e[2]), op(1,_cotelist[ fs ]) ));
+
+fi;
+
+
+end;
+
+#
+#
+
+clearaktcotes := proc ( )
+
+global _aktcotes;
+
+_aktcotes := '_aktcotes';
+
+end;
+
+
+
+#
+#
+
+getcotes := proc ( dm )
+
+getcotes1 ( fdifflist ( dm ) );
+
+end;
+
+#
+#
+
+getcotes1 := proc ( dl )
+
+global _aktcotes;
+
+if not type ( [_aktcotes], list(procedure) ) then
+
+	convert ( subs ( _aktcotes, dl ), `*` );
+
+else
+
+	_aktcotes ( dl );
+	
+fi;
+
+end;
+
+#
+#
+
+getcotes2 := proc ( dp )
+
+global _aktcotes;
+
+if not type ( [_aktcotes], list(procedure) ) then
+
+	subs ( _aktcotes, dp );
+	
+else
+
+	_aktcotes ( dp );
+	
+fi;
+
+end;
+
+
+#
+#
+#

@@ -1,0 +1,20 @@
+
+FUNCTION: dindets - returns a selection of the indeterminates of an expression 
+   
+      
+CALLING SEQUENCE:
+   dindets(e, fs)
+      
+PARAMETERS:
+   e     - an expression
+   fs    - a list of expressions, typically a list of functions
+      
+SYNOPSIS:   
+- The function dindets returns those indeterminates of an expression e ( that
+  were determined by indets(e) before ) in which an element of fs appears.
+   
+      
+EXAMPLES:   
+      
+SEE ALSO: dcollect
+

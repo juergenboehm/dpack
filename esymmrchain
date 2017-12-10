@@ -1,0 +1,397 @@
+
+
+addsuffix := proc ( e, suf )
+
+local idts, sl;
+
+idts := [op(indets(e))];
+
+sl := map ( (x,y)->x=cat(x,y), idts, suf );
+
+subs ( sl, e );
+
+end;
+
+
+#
+#
+#
+#
+
+
+srchain := proc ( deq, vfl, vBLists, varLists )
+
+
+local P, Q, X, Y,
+		r, vflx,
+		i, j,
+		va, res,
+		phi1, phi2;
+
+
+P := vBLists[1][1];
+
+Q := vBLists[2][1];
+
+
+X := varLists[1][1];
+
+Y := varLists[2][1];
+
+
+
+
+r := nops ( vfl );
+
+vflx := [ seq ( dprolong ( vfl[i], vBLists, varLists, (i-1) ), i=1..r ) ];
+
+vflres := [];
+
+dummyvbl := [];
+
+for j from 1 to r do
+
+	
+	va := vflx[1];
+	
+	vaold := va;
+	
+	sl := vecindets ( va, vBLists );
+	
+	sl := map ( (xx,bb)->xx=condev2(type(xx,vecbaseindet(bb)), xx, 0 ), sl, vBLists );
+	
+	va := subs ( sl, va );
+	
+	va := subs ( map ( x->x=0, dummyvbl ), va );
+
+
+	res := invariantEquation ( [va], vBLists, varLists );
+	
+
+	phi1 := res[1][1];
+	
+	phi2 := res[2][1];
+
+	print ( `Ergebnis = `, va, phi1, phi2 );
+	
+
+	vflres := [op(vflres),[va,[phi1,phi2]]];
+	
+	if j = r then
+	
+		break;
+		
+	fi;
+
+
+	res := reduceAuxinfo ( phi1, phi2, vBLists, varLists, r-j );
+	
+
+	vlsa := res[1];
+	
+	slretrans := res[2];
+	
+	dummys := res[3];  #dummys[1] = dummyv, dummys[2] = dummyvb	
+	
+	dummyvbl := [op(dummyvbl), dummys[2]];
+
+
+	vflxa := vliesubsX ( vflx[2..-1], op (vlsa) );
+	
+
+	print ( `vflxa = `, vflxa );
+
+	
+	#print ( `vflxa (simplify) = `, simplify ( vflxa ) ); 
+	
+	vflxa := subs ( flatten2 ( slretrans ), vflxa );
+	
+
+	vBListsDummy := [vBLists[1],[op(vBLists[2]),op(dummyvbl)]];
+
+	vflxa := map ( veccollectX, vflxa, vBListsDummy, xx->simplify(xx,symbolic) );
+	
+	print (vflxa);
+	
+
+	vflx := vflxa;	
+
+
+od;
+
+vflres;
+
+
+end;
+
+
+#
+#
+#
+#
+#
+
+reduceAuxinfo := proc ( p1, p2, vBLists, varLists, ord )
+
+local vBL1, varL1, T, U, bvl, X, Y, Y1, 
+		Yvar, vBlis, vB1lis, dummyvar, dummyvb, 
+		loes, 
+		Xval, Y1val, Xvaldeq, Y1valdeq, 
+		slvar, slvb, 
+		Ykvaldeq,
+		k, 
+		Ykval, 
+		res, Yval, 
+		Yvaldeq;
+
+vBL1 := addsuffix ( vBLists, ord );
+
+varL1 := addsuffix ( varLists, ord );
+
+
+
+T := varL1[1][1];
+
+U := varL1[2][1];
+
+
+
+bvl := makeextvarlist ( varLists, 1 );
+
+
+X := bvl[1];
+
+Y := bvl[2];
+
+Y1 := bvl[3];
+
+Yvar := varLists[2][1];
+
+
+
+vBlis := flatstrstr ( makevbaselist ( vBLists, ord ) );
+
+vB1lis := flatstrstr ( makevbaselist ( vBL1, ord ) );
+
+
+
+
+
+dummyvar := cat ( DDV, ord );
+
+dummyvb := cat ( DD, ord );
+
+
+
+
+
+# try to solve for x and y[1] first
+
+loes := solveeqsys ( [T-p1, U-p2], [X, Y1], [] );
+
+if loes <> FAIL then
+
+	Xval := subs ( loes, X );   # val bezeichnet die ext-Form
+	
+	Y1val := subs ( loes, Y1 );
+	
+
+	Xvaldeq := subs ( U=U(T), Xval ); #  valdeq bezeichnet die deq-Form
+	
+	Y1valdeq := subs ( U=U(T), Y1val );
+		
+
+	slvar := [X = subs(Y=dummyvar,Xval), Y = dummyvar, Y1 = subs(Y=dummyvar,Y1val)];
+	
+	slvbtra := [dummyvar = dummyvb, T = vB1lis[1], U = vB1lis[2]];
+	
+	
+	Ykvaldeq := Y1valdeq;
+
+	tx := diff ( p1, X ) + diff ( p1, Y ) * Y1valdeq;
+
+	tx := subs ( X = Xvaldeq, tx );
+		
+	for k from 2 to ord do
+	
+		Ykvaldeq := diff ( Ykvaldeq, T ) * tx + diff( Ykvaldeq, Y ) * Y1valdeq;
+		
+		Ykval := deqtoextform ( Ykvaldeq, varL1 )[1];
+		
+		slvar := [op(slvar), Yvar[k] = subs(Y=dummyvar,Ykval)];
+		
+		slvbtra := [op(slvbtra), U[k-1] = vB1lis[k+1]];
+	
+	od;
+	
+	solved_already := true;
+
+fi;
+
+
+
+# now try to solve for y and y[1]
+
+
+loes := solveeqsys ( [T-p1, U-p2], [Y, Y1], [] );
+
+if loes <> FAIL and not ( solved_already = true ) then
+
+	Yval := subs ( loes, Y );   # val bezeichnet die ext-Form
+	
+	Y1val := subs ( loes, Y1 );
+	
+
+	Yvaldeq := subs ( U=U(T), Yval ); #  valdeq bezeichnet die deq-Form
+	
+	Y1valdeq := subs ( U=U(T), Y1val );
+		
+
+	slvar := [X = dummyvar, Y = subs(X=dummyvar,Yval), Y1 = subs(X=dummyvar,Y1val)];
+
+	slvbtra := [dummyvar = dummyvb, T = vB1lis[1], U = vB1lis[2]];
+	
+		
+	Ykvaldeq := Y1valdeq;
+	
+
+	tx := diff ( p1, X ) + diff ( p1, Y ) * Y1valdeq;
+
+	tx := subs ( Y = Yvaldeq, tx );
+		
+	for k from 2 to ord do
+	
+		Ykvaldeq := diff ( Ykvaldeq, T ) * tx + diff ( Ykvaldeq, X );
+		
+		Ykval := deqtoextform ( Ykvaldeq, varL1 )[1];
+		
+		slvar := [op(slvar), Yvar[k] = subs(X=dummyvar,Ykval)];
+
+		slvbtra := [op(slvbtra), U[k-1] = vB1lis[k+1]];
+			
+	od;
+
+
+fi;
+
+
+slvar := vectostdform ( slvar, vBL1, varL1 );
+	
+newvars := map ( lhs, slvbtra );
+
+newvars := vectostdform ( newvars, vBL1, varL1 );
+
+slvbtra := vectostdform ( slvbtra, vBL1, varL1 );
+
+
+slvbold := zip ( (x,y)->x=y,
+					vectostdform ( flatstrstr(makevbaselist ( vBL1, ord - 1)), vBL1, varL1 ),
+					vectostdform ( flatstrstr(makevbaselist ( vBLists, ord - 1)), 
+										vBLists, varLists ) );
+										
+										
+slvarold := zip ( (x,y)->x=y,
+					vectostdform ( makeextvarlist ( varL1, ord-1 ), vBL1, varL1 ),
+					vectostdform ( makeextvarlist ( varLists, ord-1 ), 
+										vBLists, varLists ) );
+					 
+
+	
+res := [[vBlis, newvars, slvar, slvbtra],[slvbold, slvarold],[dummyvar,dummyvb]];
+	
+RETURN ( res );
+
+
+end;
+
+#
+#
+#
+#
+#
+
+vliesubsX := proc ( vfl, vBold, varsnew, varsubs, vbtrasubs )
+
+local n,
+		varsold, ff, ffnew,
+		vflres,
+		vf,
+		slx,
+		vfdgl, vfdglnew, i;
+
+n := nops ( varsnew );
+
+varsold := map ( lhs, varsubs );
+
+ff := DD ( op ( varsold ) );
+
+ffnew := DD ( op ( varsnew ) );
+
+vflres := [];
+
+slx := [ seq ( diff ( ffnew, varsnew[i] ) = subs ( vbtrasubs, varsnew[i] ), i=1..n ) ];
+
+for vf in vfl do
+	
+	vfdgl := vecapply ( vf, [vBold,[]], [varsold,[]], ff );
+	
+	vfdglnew := vsubs ( varsnew, varsubs, [ff = ffnew], vfdgl );
+		
+	
+	vflres := [op(vflres), subs ( slx, vfdglnew )];
+
+od;
+
+vflres;
+
+end;
+
+
+#
+#
+#
+#
+
+
+srall := proc ( ldim, tablename )
+
+
+global _solvablegrouplist;
+
+
+vBLists := [[p],[q]];
+
+varLists := [[x],[y]];
+
+
+fd := fopen ( cat ( DPACKPATH, tablename, ldim ), WRITE );
+
+fprintf ( fd, `_xsolvabletable := table ( [] );\n\n` );
+
+
+for ii in _solvablegrouplist do
+
+	n := getliedim ( ii );
+
+	if n <> ldim then
+	
+		next;
+		
+	fi;
+	
+	vfl := getliealgX ( ii );
+	
+	
+	res := srchain ( [], vfl, vBLists, varLists );
+	
+	
+	
+	fprintf ( fd, `_xsolvabletable [ %a ] := %a;\n\n`, ii, res );
+	
+od;
+
+fclose ( fd );
+
+end;
+
+

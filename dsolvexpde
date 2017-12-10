@@ -1,0 +1,1322 @@
+
+
+uniqueName := proc ( un )
+
+global _uniqueCounter;
+
+if not assigned ( _uniqueCounter[un] ) then
+
+	RETURN ( FAIL );
+	
+fi;
+
+_uniqueCounter[un] := _uniqueCounter[un] + 1;
+
+un[_uniqueCounter[un]];
+
+end;
+
+#
+#
+
+resetUniqueName := proc ( uc, un )
+
+global _uniqueCounter;
+
+_uniqueCounter[un] := uc;
+
+end;
+
+#
+#
+
+resetUniqueName ( 0, GUNIQ );
+
+#
+#
+
+
+genUniqueName := proc ()
+
+local res;
+
+res := uniqueName ( GUNIQ );
+
+res := cat ( op (0, res), op(res) );
+
+end;
+
+
+#
+#
+#
+
+pdenormal := proc ( e )
+
+dsimplify ( e, symbolic );
+
+end;
+
+#
+#
+#
+
+`type/xpdeconst` := proc ( e, cnl )
+
+if type ( e, name ) then
+
+	if type ( e, indexed ) then
+	
+		if type ( op (0, e ), name ) and type ( op ( e ), constant ) and
+				
+				member ( op ( 0, e ), cnl ) then
+				
+				RETURN ( true );
+				
+		fi;
+		
+	fi;
+	
+fi;
+
+RETURN ( false );
+
+end;
+
+#
+#
+#
+
+`type/xpdeconstfun` := proc ( e, cnl )
+
+if type ( e, functionx (name) ) then
+
+	if type ( op ( 0, e ), indexed ) then
+	
+		if type ( op ( op (0, e) ), constant ) and
+				
+				type ( op ( 0, op ( 0, e ) ), name ) and
+				
+				 member ( op ( 0, op ( 0, e ) ), cnl ) then
+				
+				RETURN ( true );
+				
+		fi;
+		
+	fi;
+	
+fi;
+
+RETURN ( false );
+
+end;
+
+#
+#
+
+getxpdeconst := proc ( e )
+
+local idts,
+		idtsc, idtsf,
+		idtsnams;
+
+
+if nargs > 1 then
+
+	idtsnams := args[2];
+	
+else
+
+	idtsnams := [[_CC], [_FF]];
+	
+fi;
+
+
+idts := [op(indets ( e ))];
+
+
+idtsc := select ( type, idts, name );
+
+idtsc := select ( type, idts, indexed );
+
+idtsc := select ( (xx,yy) -> member(op ( 0, xx ), yy ), idts, idtsnams[1] );
+
+
+idtsf := select ( type, idts, functionx (name) );
+
+idtsf := select ( xx-> type ( op(0,xx), indexed), idts );
+
+idtsf := select ( (xx,yy)->has ( op(0, op(0, xx ) ), yy ), idtsf, idtsnams[2] );
+
+[idtsc, idtsf];
+
+end;
+
+#
+#
+#
+
+xpdeconstsl := proc ( cns, constnams, newnam )
+
+local sl,
+		i, j, k,
+		cc,
+		lc;
+
+j := 1;
+
+sl := [];
+
+for i from 1 to nops ( constnams ) do
+
+	cc := constnams[i];
+		
+	lc := select ( has, cns, cc );
+
+	lc := map ( xx -> eval(condev2 ( type ( xx, functionx (name) ), 'op ( 0, xx )', 'xx' )),
+							 lc );
+	
+	lc := sort ( lc, (xx,yy) -> evalb ( op(xx) < op (yy) ) );
+	
+	for k from 1 to nops ( lc ) do
+	
+		sl := [op(sl), lc[k] = newnam[j]];
+		
+		j := j + 1;
+		
+	od;
+	
+od;
+
+sl;
+	
+end;
+
+#
+#
+#
+
+xpdeconstnormal := proc ( e, constnams )
+
+local cns,
+		sl1,
+		sl2,
+		e1;
+
+cns := getxpdeconst ( e, constnams );
+
+sl1 := xpdeconstsl ( cns[1], constnams[1], '_CC' );
+
+sl2 := xpdeconstsl ( cns[2], constnams[2], '_FF' );
+
+e1 := subs ( sl1, subs ( sl2, e ) );
+
+e1;
+
+end;
+
+#
+#
+#
+#
+
+
+makesolbasis := proc ( loes )
+
+local cns,
+		res1,
+		i, j,
+		sl;
+
+cns := getxpdeconst ( loes );
+
+cns := [op(cns[1]), op(cns[2])];
+
+res1 := [];
+
+for i from 1 to nops ( cns ) do	
+
+	sl := eval(condev2 ( has ( cns[1], _CC ), 'cns[1] = 1', 'cns[1] = cns[1]' ));
+
+	sl := sl, seq ( cns[j] = 0, j=2..nops ( cns ) );
+
+	res1 := [ op(res1), subs ( [sl], loes ) ];
+
+	cns := [op(cns[2..-1]), cns[1]];
+
+od;
+
+res1;
+
+end;
+
+#
+#
+#
+
+xpdegensol := proc ( solbasis, knownsols )
+
+local fn,
+		ord,
+		vars,
+		sol,
+		res;
+		
+fn := lhs ( solbasis[1][1] );
+
+vars := [op(fn)];
+
+ord := nops ( solbasis );
+
+if hasoptname ( [args[3..-1]], inhom ) then
+
+	solbasis[1];
+	
+else
+
+	for sol in solbasis do
+	
+		res := funclincomb ( rhs ( sol[1] ), knownsols, vars, ord );
+		
+		if res = FAIL then
+		
+			RETURN ( sol );
+			
+		fi;
+		
+	od;
+
+	RETURN ( FAIL );
+	
+fi;
+
+end;
+
+#
+#
+#
+
+vectfform := proc ( loes, fs, vB, cnstn, funn )
+
+local fs1,
+		cnstl, funl,
+		rsl,
+		resl, sl,
+		i;
+
+fs1 := subs ( loes, fs );
+
+cnstl := select ( has, [op(indets ( loes ))], cnstn );
+
+cnstl := sort ( cnstl, (x,y)-> evalb( op(x) <= op(y) ) );
+
+
+funl := select ( has, [op(indets ( loes ))], funn );
+
+funl := sort ( funl, (x,y)-> evalb( op(op(0,x)) <= op(op(0,y)) ) );
+
+cnstl := [op(cnstl), op (funl)];
+
+
+fs1 := convert ( zip ( (x,y)->x*y, fs1, vB ), `+` );
+
+rsl := [0 $ (nops ( cnstl ) - 1), 1 ];
+
+resl := [];
+
+for i from 1 to nops ( cnstl ) do
+
+	rsl := [rsl[-1], op(rsl[1..-2])];
+
+	sl := zip ( (x,y)->x=y, cnstl, rsl );
+	
+	sl := map ( proc ( x,y) option operator;
+					if has ( lhs(x), y ) and rhs(x) = 1 then
+						
+						lhs(x)=lhs(x);
+						
+					else
+					
+						x;
+						
+					fi; end, sl, funn ); 
+						
+	resl := [op(resl), normal ( eval ( value ( subs ( sl, fs1 ) ) ) ) ];
+	
+od;
+
+resl;
+
+end;
+
+#
+#
+#
+
+xpdesolve := proc ( eql, fnl )
+
+local res, ccl, ffl,
+		vB, vfeq,
+		optlist,
+		orderopt,
+		i, j,
+		sl,
+		res1,
+		cns;
+
+global pdenormal, pdelexorder, pdesolvesysXopt;
+
+
+resetUniqueName ( 0, `_CC` );
+
+resetUniqueName ( 0, `_FF` );
+
+
+
+optlist := select ( type, [args[3..-1]], equation );
+
+orderopt := select ( (xx,yy)->lhs(xx)=yy, optlist, order );
+
+if nops ( orderopt ) = 1 then
+
+	orderopt := rhs ( orderopt[1] );
+	
+	pdelexorder := orderopt;
+	
+else
+
+	pdelexorder := lexOrder;
+
+fi;
+
+
+pdesolvesysXopt := {};
+
+if has ( [args[3..-1]], rational ) then
+
+	pdesolvesysXopt := pdesolvesysXopt union {rational};
+	
+fi;
+
+if has ( [args[3..-1]], hypexp ) then
+
+	pdesolvesysXopt := pdesolvesysXopt union {hypexp};
+	
+fi;
+
+
+res := pdesolvesysX ( eql, fnl );
+
+ccl := select ( ( x, y )-> has ( x, y), indets ( res ), _CC );
+
+ccl := select ( type, ccl, xpdeconst ( [_CC] ) );
+
+ffl := select ( ( x, y )-> has ( x, y), indets ( res ), _FF );
+
+ffl := select ( type, ffl, xpdeconstfun ( [_FF] ) );
+
+
+resetUniqueName ( 0, `_DD` );
+
+resetUniqueName ( 0, `_GG` );
+
+ccl := map ( x-> x = uniqueName (`_DD`), ccl );
+
+ffl := map ( x-> x = uniqueName (`_GG`)(op(x)), ffl );
+
+res := subs ( _GG= _FF, subs ( ffl, res ) );
+
+res := subs ( _DD= _CC, subs ( ccl, res ) );
+
+
+if has ( [args[3..-1]], basis ) then
+
+	res := makesolbasis  ( res );
+
+fi;
+
+
+if has ( [args[3..-1]], vectf ) then
+
+	vfeq := select ( x->has ( x, vectf ), [args[3..-1]] )[1];
+	
+	if type ( vfeq, equation ) then
+	
+		vB := rhs ( vfeq );
+		
+	else
+		
+		vB := [p, q];
+		
+	fi;
+
+	res := vectfform ( res, fnl, vB, '_CC', '_FF' );
+
+fi;
+
+res;
+
+end;
+
+
+
+
+pdesolvesysX := proc ( eql, fnl )
+
+local i, vars, lexord,
+	oldcotes,
+	jbeql, jbeql1,
+	zeroeq,
+	sl, slc, slcns,
+	odecnsl,
+	res, erg, loes, loesv,
+	fnakt,
+	nn,
+	aktfun, fun,
+	mindeq, mindeql, mindeql0, mindeql1, mindeql2, mindeqll, mindeqlfn,
+	varszero, varsremain,
+	varsremfl,
+	dits, dits1,
+	zerobed, zerovars, zerovars1,
+	varsode, mindeqode, odeloes, odeloes1,
+	neweql,
+	fnl1,
+	constlist, constlistnew,
+	dummyf, dummysols,
+	ndeg, var1,
+	funname, constfunl, nondeql, fnx, vrs, nfnl, nvars,
+	elemdiffvars, jbeqltail, jbeqltailA, nvarspos;
+
+global pdelexorder, pdesolvesysXopt, _xpderestdeqs, _xpdeodeintallow;	
+
+if nops ( fnl ) = 0 then
+
+	if nops ( eql ) = 0 then
+	
+		RETURN ( [] );
+		
+	fi;
+	
+fi;
+
+vars := dgetvars ( fnl );
+
+print ( fnl );
+
+if nops ( eql ) = 0 then
+
+	RETURN ( map ( (x,vv)->x=uniqueName(`_FF`)(op(vv)), fnl, vars ) );
+ 
+fi;
+
+############################## experimental code
+
+
+nfnl := nops ( fnl );
+nvars := nops ( vars );
+
+if has ( pdesolvesysXopt, hypexp ) then
+
+	jbeql := simpEINT1 ( eql );
+
+else
+
+	jbeql := eql;
+	
+fi;
+
+############################# end experimental code
+
+lexord := pdelexorder ( fnl );
+
+oldcotes := setcotes ( fnl, lexOrderA ( fnl, nfnl, nvars ) );
+
+jbeql := makeJanetBase ( jbeql, fnl );
+
+jbeql := csimpJanetBase ( jbeql, fnl );
+
+
+############################## experimental code 2
+
+erg := FAIL;
+
+# triedvars := [];
+
+while true do
+
+# mindeql contains the ode with fnl[nfnl]
+
+
+mindeql := select ( (x,y,z)->type(x, isode(y,z) ), jbeql, vars, fnl );
+
+mindeql := select ( (x,y)->not has (x, y), mindeql, fnl[1..nfnl-1] );
+
+
+# contains the elementary differential monomials, i.e. diff(xi,x), diff(eta,x) etc.
+
+mindeql1 := select ( (x,y)->type(x, elemdiff(y)), mindeql, fnl );
+
+# contains the potential ODEs to be solved
+
+mindeql2 := select ( (x,y)-> not type(x, elemdiff(y)), mindeql, fnl );
+
+
+
+elemdiffvars := [op(`union`(op(map ( x->{op(fdifflist(x)[2..-1])}, mindeql1 ))))];
+
+varsremain := remove ( member, vars, elemdiffvars );
+
+
+
+jbeqltailA := select ( (x,y)->not has ( x, y ), jbeql, fnl[1..nfnl-1] );
+
+jbeqltail := select ( (x,y)->not member (x, y), jbeqltailA, mindeql1 );
+
+# mindeql0 contains zeroth order equations, that allow to express a function
+# directly
+
+mindeql0 := map ( (x,f) -> dzerothorder ( x, f ), jbeqltailA, fnl );
+mindeql0 := select ( x->x <> FAIL, mindeql0 );
+
+if nops ( mindeql0 ) > 0 then
+
+	jbeql1 := select ( (x,y)->not member ( x, y ), jbeql, map ( x->x[1], mindeql0) );	
+
+	loes := map ( x->x[2]= -x[3], mindeql0 );
+
+	jbeql1 := pdenormal ( eval ( subs ( loes, jbeql1 ) ) );
+	jbeql1 := select ( x->x<>0, jbeql1 );
+	
+	fnl1 := select ( (x,y) -> not member ( x, y ), fnl, map ( lhs, loes ) );
+	
+	setcotes ( fnl, oldcotes );
+	
+	erg := pdesolvesysX ( jbeql1, fnl1 );
+	
+	erg := [op(loes), op(erg)];
+	
+	RETURN ( erg );
+
+fi;
+
+
+if nops ( mindeql2) = 0 then
+
+	if nops ( jbeqltail ) > 0 then
+	
+		dits := dindets ( jbeqltail );
+		
+		dits := select ( x->type(x, diffmonom), dits );
+		
+		dits := map ( x->fdifflist(x), dits );
+		
+		dits := select ( (x,y)->member(x[1],y), dits, fnl[nfnl] );
+		
+		varsremain := [op(`union`(op(map(x->{op(x[2..-1])}, dits))))];
+
+
+		nvarspos := firstpos ( (x,y)->x=y, vars, varsremain[1] );
+
+		oldcotes := setcotes ( fnl, lexOrderA ( fnl, nfnl, nvarspos ) );
+
+		jbeql := makeJanetBase ( jbeql, fnl );
+
+		jbeql := csimpJanetBase ( jbeql, fnl );
+		
+	else
+	
+		if nops ( varsremain ) > 0 then
+
+			loes := [fnl[nfnl] = uniqueName ( `_FF` ) (op(varsremain)) ];
+
+		else
+
+			loes := [fnl[nfnl] = uniqueName(`_CC`) ];
+
+		fi;
+	
+		if nops ( loes ) <> 0 then
+
+			jbeql1 := pdenormal ( eval ( subs ( loes, jbeql ) ) );
+			jbeql1 := select ( x->x<>0, jbeql1 );
+
+			fnl1 := select ( (x,y) -> not member ( x, y ), fnl, map ( lhs, loes ) );
+
+			setcotes ( fnl, oldcotes );
+
+			erg := pdesolvesysX ( jbeql1, fnl1 );
+
+			erg := [op(loes), op(erg)];
+
+			RETURN ( erg );
+
+		fi;
+		
+	fi;
+
+		
+fi;
+
+break;
+
+od;
+
+############################# end experimental code 2
+
+
+
+if _insolvJanet = true then
+
+	RETURN ( [] );
+	
+fi;
+
+
+zeroeq := select ( x->type(x,functionx (name)), jbeql );
+
+if nops ( zeroeq ) <> 0 then
+
+	sl := map ( x -> x = 0, zeroeq );
+	
+	jbeql1 := remove ( (x,y)->member(x,y), jbeql, zeroeq );
+	
+	fnl1 := remove ( member, fnl, zeroeq );
+	
+	jbeql1 := pdenormal ( eval ( subs ( sl, jbeql1 ) ) );
+	
+	setcotes ( fnl, oldcotes );
+	
+	res := pdesolvesysX ( jbeql1, fnl1 );
+	
+	erg := [op(res), op(sl )];
+	
+	RETURN ( erg );
+	
+fi;
+
+
+# dzerothorder returns [eq, ht, rest] or FAIL
+
+mindeql0 := map ( (x,f) -> dzerothorder ( x, f ), jbeql, fnl );
+mindeql0 := select ( x->x <> FAIL, mindeql0 );
+
+# mindeql0 contains zeroth order equations, that allow to express a function
+# directly
+
+if nops ( mindeql0 ) > 0 then
+
+	jbeql1 := select ( (x,y)->not member ( x, y ), jbeql, map ( x->x[1], mindeql0) );	
+
+	loes := map ( x->x[2]= -x[3], mindeql0 );
+
+	jbeql1 := pdenormal ( eval ( subs ( loes, jbeql1 ) ) );
+	jbeql1 := select ( x->x<>0, jbeql1 );
+	
+	fnl1 := select ( (x,y) -> not member ( x, y ), fnl, map ( lhs, loes ) );
+	
+	setcotes ( fnl, oldcotes );
+	
+	erg := pdesolvesysX ( jbeql1, fnl1 );
+	
+	erg := [op(loes), op(erg)];
+	
+	RETURN ( erg );
+
+fi;
+
+
+# if mindeql0 is empty then we have to go further:
+#
+# mindeql contains the odes in jbeql
+#
+
+mindeql := select ( (x,y,z)->type(x, isode(y,z) ), jbeql, vars, fnl );
+
+
+mindeql1 := select ( (x,y)->type(x, elemdiff(y)), mindeql, fnl );
+
+# contains the elementary differential monomials, i.e. diff(xi,x), diff(eta,x) etc.
+
+mindeql2 := select ( (x,y)-> not type(x, elemdiff(y)), mindeql, fnl );
+
+# contains the others, potential equations to be solved
+
+
+nondeql := select ( x->not has ( x, [diff,Diff] ), jbeql );
+
+
+
+if nops(mindeql) = 0 then
+
+		print ( jbeql );
+		ERROR ( `couldn't reduce to ode` );
+
+fi;
+
+
+if true then
+# special routine to take care of functions that have as equations only elemdiffs
+# and as such can be trivially solved.
+
+	mindeqll := map ( (f,x) -> select ( has, x, f ), fnl, mindeql1 );
+	
+	# mindeqll is a list of list, which sorts mindeql1 by functions in fn
+	
+	loes := [];
+	
+	# now we go function by function
+	
+	fnx := [];
+	
+	for mindeqlfn in mindeqll do
+		
+		if nops ( mindeqlfn ) = 0 then next; fi;
+		
+		fnakt := op(1, mindeqlfn[1]);
+		
+		nn := nops ( select ( has, jbeql, fnakt ) );
+		
+		# nn is the number of ocurrences of the current function in the list
+		# of all equations ( jbeql )
+		
+		# nops ( mindeqlfn ) is the number of elemdiff monomial equations for the
+		# current function
+		
+		# if they are equal then we can solve :
+		#
+
+		if nn = nops ( mindeqlfn ) then
+		
+			fnx := [op(fnx), fnakt];
+
+			varszero := `union` (op ( map ( x-> { op(2,x) }, mindeqlfn ) ) );
+			
+			varsremain := remove ( member, vars, varszero );
+			
+			if nops ( varsremain ) > 0 then
+			
+				loes := [op(loes), fnakt = uniqueName ( `_FF` ) (op(varsremain)) ];
+			
+			else
+			
+				loes := [op(loes), fnakt = uniqueName(`_CC`) ];
+				
+			fi;
+	
+		fi;
+				
+	od;
+	
+	if nops ( loes ) <> 0 then
+		
+		jbeql1 := pdenormal ( eval ( subs ( loes, jbeql ) ) );
+		jbeql1 := select ( x->x<>0, jbeql1 );
+
+		fnl1 := select ( (x,y) -> not member ( x, y ), fnl, map ( lhs, loes ) );
+
+		setcotes ( fnl, oldcotes );
+
+		erg := pdesolvesysX ( jbeql1, fnl1 );
+
+		erg := [op(loes), op(erg)];
+
+		RETURN ( erg );
+
+	fi;	
+		
+# end of special routine
+
+fi;
+
+
+if nops ( mindeql2 ) = 0 then
+
+	# then only elemdiffs are in mindeql
+
+	# sort by function name
+	mindeqll := map ( (f,x) -> select ( has, x, f ), fnl, mindeql );
+	
+	loes := [];
+	
+	fnx := [];
+	
+	for mindeqlfn in mindeqll do
+	
+		if nops ( mindeqlfn ) = 0 then next; fi;
+		
+		varszero := `union` (op ( map ( x-> { op(2,x) }, mindeqlfn ) ) );
+		
+		if varszero = {op(vars) } then
+		
+			fun := op(1, mindeqlfn[1]);
+			
+			fnx := [op(fnx), fun];
+			
+			loes := [op(loes), fun = uniqueName (`_CC`) ];
+			
+		fi;
+						
+	od;
+	
+	if nops ( loes ) = 0 then
+	
+		_xpderestdeqs := jbeql;
+
+		print ( `Residual equations = `, _xpderestdeqs );
+
+		setcotes ( fnl, oldcotes );
+		
+		RETURN ( [] );
+		
+	fi;
+	
+
+	jbeql1 := pdenormal ( eval ( subs ( loes, jbeql ) ) );
+	jbeql1 := select ( x->x<>0, jbeql1 );
+	
+	fnl1 := select ( (x,y) -> not member ( x, y ), fnl, map ( lhs, loes ) );
+	
+	setcotes ( fnl, oldcotes );
+	
+	erg := pdesolvesysX ( jbeql1, fnl1 );
+	
+	erg := [op(loes), op(erg)];
+	
+	RETURN ( erg );
+	
+fi;
+
+
+
+for mindeq in mindeql2 do
+
+#	mindeq := mindeql2[1];
+
+
+	jbeql := remove ( (x,y)->x=y, jbeql, mindeq );
+
+
+	dits := dindets ( mindeq, fnl );
+
+
+
+	aktfun := select ( (x,y)->has(y,x), fnl, dits ) ;
+	aktfun := aktfun[1];
+
+
+	varsode := [op(aktfun)];
+
+	dits1 := map ( difflist, dits );
+
+	var1 := `union` ( op ( map ( x-> {op(x[2..-1])}, dits1 ) ) );
+
+	zerobed := select ( (x, y) -> type ( x, elemdiff ( y ) ), jbeql, aktfun );
+
+	zerovars := map ( x-> op ( 2, x ), zerobed );
+	zerovars1 := [op({op(var1),op(zerovars)})];
+
+	ndeg := max ( op ( map ( x->nops(x)-1, dits1 ) ) );
+
+	dummyf := GG( op (var1) );
+
+	mindeqode := subs ( aktfun = dummyf, mindeq );
+
+	if not has ( pdesolvesysXopt, [rational, hypexp] ) then
+
+		odeloes := dsolve ( mindeqode, dummyf, explicit = true );
+		
+		if has ( [odeloes], [int,Int] ) then odeloes:= op([]); fi;
+
+
+		if nops([odeloes]) = 0 then
+		
+			odeloes := dsolve ( mindeqode, dummyf, [linear], explicit);
+			
+			if has ( [odeloes], [int,Int] ) and not _xpdeodeintallow = true 
+					then odeloes:= op([]); fi;
+			
+		fi;
+
+		if nops ( [odeloes] ) > 0 then
+		
+			break;
+			
+		else
+		
+			next;
+						
+		fi;
+		
+		
+	elif has ( pdesolvesysXopt, hypexp ) then
+	
+		vrs := remove ( member, vars, [var1] );
+		
+		print ( mindeqode );
+			
+		odeloes := expratlode ( mindeqode, dummyf, vrs );
+		
+		print ( odeloes );
+		
+		
+		if nops ( [odeloes] ) > 0 then
+		
+			if nops ( odeloes ) = 2 and type (odeloes[1], list) then
+			
+				# this is the case for an inhomogeneous equation
+
+				odeloes := dummyf = add ( _C||i * odeloes[1][i], i=1..nops(odeloes[1]) ) +
+		
+										odeloes[2];	
+			
+			else			
+		
+		
+				odeloes := dummyf = add ( _C||i * odeloes[i], i=1..nops(odeloes) );	
+
+			fi;
+		
+			break;
+		
+		else
+		
+			next;
+			
+		fi;
+		
+	else
+
+	#	odeloes := dsolve ( mindeqode, dummyf, explicit = true );
+
+		odeloes := ratlode ( mindeqode, dummyf );
+
+		if nops ( [odeloes] ) > 0 then
+
+			odecnsl := select ( has, odeloes[2], _C );
+			
+			slcns := [seq ( odecnsl[i] = _C||i, i = 1..nops ( odecnsl ) )];
+
+			odeloes := subs ( slcns, odeloes[1] );
+			
+			odeloes := dummyf = odeloes;
+
+			break;
+
+		else
+		
+			next;
+
+		fi;
+		
+	fi;
+
+od;
+
+print ( odeloes );
+
+if nops ( [odeloes] ) > 0 and
+	type ( odeloes, equation ) and lhs ( odeloes ) = dummyf then
+	
+	# solution found
+	
+	varsremain := remove ( has, varsode, zerovars1 );
+	
+	odeloes1 := odeloes;
+
+	constlist := [seq ( _C||i, `i` = 1..ndeg )];
+	
+
+	constlist := select ( (x,y)->has(y,x), constlist, odeloes1 );
+	
+	constlistnew := [ seq ( uniqueName (`_CC`), `i` = 1..nops ( constlist ) ) ];
+	
+	slc := zip ( (x,y)->x=y, constlist, constlistnew );
+	
+	odeloes1 := subs ( slc, odeloes1 );
+	
+	constlist := constlistnew; 
+
+
+	fnl1 := [];
+	
+	varsremfl := false;
+	
+	neweql := [];
+	
+	if nops ( varsremain ) > 0 or true then
+	
+		varsremfl := true;
+
+
+		if nops ( constlist ) < ndeg then
+
+			print ( `solutions incomplete` );
+
+		fi;
+
+		funname := op ( 0, aktfun );
+
+		constfunl := [seq ( cat(funname, `_`, i )(op(vars)),
+							`i` = 1..nops ( constlist ) )];
+
+		neweql := outer ( [constfunl, zerovars1 ], (x,y)->diff(x,y) );
+
+
+		sl := zip ( (x,y)-> x=y, constlist, constfunl );
+
+		odeloes1 := subs ( sl, odeloes1 );
+
+		fnl1 := constfunl;
+
+	fi;
+	
+	odeloes1 := subs ( dummyf = aktfun, odeloes1 );
+
+	jbeql1 := jbeql;
+
+	jbeql1 := pdenormal ( eval ( value ( subs ( odeloes1, jbeql1 ) ) ) );		
+
+	jbeql1 := select ( x -> x <> 0, jbeql1 );
+	
+	jbeql1 := [op( jbeql1), op(neweql) ];
+	
+	if nops ( jbeql1 ) = 0 then
+	
+		setcotes ( fnl, oldcotes );
+		
+		RETURN ( [odeloes1] );
+		
+	fi;
+
+	fnl1 := [op(remove ( has, fnl, aktfun )), op(fnl1) ];
+
+	setcotes ( fnl, oldcotes );
+
+	res := pdesolvesysX ( jbeql1, fnl1 );
+
+
+	if varsremfl then
+		
+		
+		dummysols := select ( (x,y)->has(lhs(x),y), res, constfunl );
+
+		
+		res := remove ( (x,y)->has(lhs(x),y), res, constfunl );
+		
+		res := subs ( dummysols, [ odeloes1, op(res) ] );
+		
+		res := pdenormal ( res );
+		
+		RETURN ( res );
+		
+	else
+
+		erg := [ odeloes1, op(res) ];
+
+		RETURN ( erg );
+
+	fi;
+
+else
+
+	setcotes ( fnl, oldcotes );
+
+	ERROR ( `couldn't solve ode` );
+	
+fi;
+
+### WARNING: `nondeql` is implicitly declared local
+### WARNING: `fnx` is implicitly declared local
+### WARNING: `vrs` is implicitly declared local
+end;
+
+#
+#
+
+`type/isode` := proc ( eq, v, fs )
+
+local dits, vars, anzfun;
+
+if type (v , list ) then
+
+	RETURN (
+		convert ( map ( (uu,vv,ww)-> type( vv, isode ( uu, ww ) ), v, eq, fs ), `or` )
+			);
+			
+fi;
+
+dits := dindets ( eq, fs );
+
+anzfun := convert ( map ( proc (x,y) if numboccur ( x, y ) > 0 then 1 else 0 fi; end,
+ 		fs, dits ), `+` );
+
+vars := `union` ( op ( map ( x->{op(fdifflist ( x )[2..-1])}, dits ) ) );
+
+evalb ( anzfun = 1 and vars = {v} );
+
+end;
+
+#
+#
+#
+
+`type/elemdiff` := proc ( dm, fun )
+
+if type ( fun, list ) then
+
+	RETURN (
+		convert ( map ( (uu,vv,ww)-> type( vv, elemdiff ( uu ) ), fun, dm ), `or` )
+			);
+			
+fi;
+
+evalb ( (type ( dm, 'diff' ( functionx (name), name )) or 
+					type ( dm, 'Diff' ( functionx (name), name )) )
+
+and
+
+	op ( 1, dm ) = fun );
+	
+end;
+
+#
+#
+#
+
+dzerothorder := proc ( eq, fs )
+
+local ht, rest;
+
+ht := dlterm ( eq, fs );
+
+rest := normal ( eq - ht );
+
+if not has ( rest, fs ) and type ( ht, functionx (name) ) then
+
+	RETURN ( [eq, ht, rest] );
+	
+else
+
+	RETURN ( FAIL );
+	
+fi;
+
+end;
+
+#
+#
+#
+
+dzerothorderA := proc ( eq, fs )
+
+local ht, rest;
+
+ht := dlterm ( eq, fs );
+
+rest := normal ( eq - ht );
+
+if type ( ht, functionx (name) ) and not has (ht, [diff,Diff]) then
+
+	RETURN ( [eq, ht, rest] );
+	
+else
+
+	RETURN ( FAIL );
+	
+fi;
+
+end;
+
+#
+#
+#
+#
+
+pdesolveD := proc ( eqs, fs )
+
+local vars, varsr,
+		v1,
+		loes,
+		i,
+		fs1,
+		slfs,
+		eqsv1, eqsv1s,
+		eqs1, eqs2,
+		dits,
+		cnstns,
+		cnsnewfn,
+		slnewfn,
+		res,
+		loessbs,
+		loes2;
+
+vars := [op(fs[1])];
+
+eqs1 := eqs;
+
+v1 := vars[1];
+varsr := vars[2..-1];
+
+fs1 := [seq ( cat( op(0,fs[i]), `X`) (v1), i=1..nops(fs) )]; 
+
+slfs := zip ( (xx, yy ) -> xx = yy, fs, fs1 );
+
+
+eqsv1 := [];
+eqs2 := [];
+
+
+for i from 1 to nops(eqs1) do
+
+	dits := [op(dindets ( eqs1[i], fs ))];
+	dits := map ( xx->fdifflist(xx)[2..-1], dits );
+
+	if has ( dits, varsr ) then
+
+		eqs2 := [op(eqs2), eqs1[i]];
+
+	else
+
+		eqsv1 := [op(eqsv1), eqs1[i]];
+
+	fi;
+
+od;
+
+eqsv1s := normal ( eval ( value ( subs ( slfs, eqsv1 ) ) ) );
+
+loes := pdenormal( xpdesolve ( eqsv1s, fs1, order=PdeOrder, rational ) );
+
+if nops ( varsr ) > 0 then
+
+	cnstns := [op(select ( has, indets ( loes ), _CC ))];
+
+	cnsnewfn := map ( (xx,vv)-> cat ( op(0,xx), op(xx), `X`) ( op(vv) ), 
+							cnstns, varsr  );
+
+	slnewfn := zip ( (xx,yy)->xx=yy, cnstns, cnsnewfn );
+
+
+	loessbs := subs ( swapeqs ( slfs ), loes );
+
+	loessbs := subs ( zip ( (xx,yy)->xx=yy, cnstns, cnsnewfn ), loessbs );
+
+
+	eqs2 := normal ( eval ( value ( subs ( loessbs, eqs2 ) ) ) );
+
+	loes2 := pdesolveD ( eqs2, cnsnewfn );
+
+	res := normal ( eval ( value ( subs ( loes2, loessbs ) ) ) );
+
+else
+
+	res := subs ( swapeqs ( slfs ), loes );
+	
+fi;
+
+res;
+
+end;
+
+
+

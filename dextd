@@ -1,0 +1,840 @@
+###############################################################################################
+#
+#	Parameter elimination routines that generate PDEs whose solution depends
+#   exactly on the given parameters. 
+#
+#
+
+
+#
+# parmElim takes a list of expressions [...,f(x,y,z,..)-g(a,b,c,...,x,y,z,...),...], eqList
+# and a list of names, vars, and a list of names, parms.
+# For the example eqList, [x, y, z,...] is the list of variables and [a,b,c,...] is the list
+# of constants.
+#
+# It tries to eliminate the parms and get a system of PDEs in the f(x,y,z,...) functions
+# whose general solution contains exactly the constants parms.
+#
+# It works gueranteed for expression that are linear in the parms.
+#
+
+parmElim := proc ( eqList, vars, parms )
+
+local L, D, U, e, e1, d, u, x, U1, A;
+
+A := [];
+L := eqList;
+D := [];
+U := {op(parms)};
+
+while nops ( L ) > 0 do
+
+    e := L[1];
+    L := [op(L[2..nops(L)])];
+ # update to V4
+    
+    if nops ( D ) > 0 then
+    
+        e1 := dsimplify(value(subs ( op(D) , e )), symbolic );
+    
+    else
+    
+        e1 := dsimplify ( e, symbolic );
+        
+    fi;
+    
+    
+    if e1 = 0 then
+    
+        next;
+    
+    fi;
+    
+    U1 := select ( (x,y)->has(y,x), U, e1 );
+    
+    if nops ( U1 ) = 0 then
+    
+        A := [op(A), e1 ];
+        next;
+        
+    fi;
+    
+    u := U1[1];
+    
+    d := frontend(solve ,[ e1, u ]);
+    
+    if nops ( [d] ) = 0 then
+    	
+    	d := solve ( e1, u );
+    	
+    fi;
+
+    if nops ( [d] ) = 0 then
+    	
+    	RETURN ( FAIL );
+    	
+    fi;
+    
+    if nops ( [d] ) > 1 then
+    
+    	print ( `solutions lost` );
+    	
+    	d := d[1];
+    	
+    fi;	
+     
+    U := U minus {u};
+    
+    D := [op(D), u=d ];
+    
+    for x in vars do
+    
+        L := [op(L), normal(diff(e1,x)) ];
+        
+    od;
+    
+od;
+
+RETURN ( A );
+
+end:
+
+#
+#
+# parmElimX takes a list of expressions eql and functions fs.
+# It determines the diffeqs in fs alone, that are fulfilled as
+# a consequence of the diffeqs in eql.
+#
+# The method is to create a Janetbase out of the DE in eql by extending
+# the constants and the functions(name) to depend on all the vars in fs.
+#
+# The Janetbase is created with a suitable lexOrder, where all the fs
+# have lower rank than the newly added functions coming from constants or
+# f(name).
+#
+# Retained are only expressions involving functions from fs
+#
+#
+
+parmElimX := proc ( eql, fs )
+
+local vars,
+		idts,
+		idtsfnl,
+		idtscnsl,
+		idtsfnl1,
+		idtscnsl1,
+		slfnl,
+		slcnsl,
+		ceqfnl,
+		ceqcnsl,
+		ceq,
+		fsa,
+		ceq0,
+		jb;
+
+vars := dgetvars ( fs );
+
+idts := [op(indets ( eql ))];
+
+idtsfnl := select ( (x,y) -> type ( x, functionx (name) ) and {op(x)} union y = y, 
+
+							idts, {op(vars)});
+
+idtsfnl := remove ( member, idtsfnl, fs );
+
+idtscnsl := select ( (x,y) -> type ( x, name ) and not member(x,[QQ1,QQ2]) and not member ( x, y), idts, vars );
+
+idtsfnl1 := map ( (x,y) -> op(0,x)(op(y)), idtsfnl, vars );
+
+idtscnsl1 := map ( (x,y) -> x(op(y)), idtscnsl, vars );
+
+slfnl := zip ( (x,y) -> x=y, idtsfnl, idtsfnl1 );
+
+slcnsl := zip ( (x,y) -> x=y, idtscnsl, idtscnsl1 );
+
+# prepare lists with functions and constants that are in eql but not in fs.
+# make constants and functions that depend only on a subset of vars
+# to functions of vars = vars of fs
+#
+# create substitution lists for the intended replacement.
+#
+
+
+ceqfnl := outer ( [slfnl, vars], (x,y) -> [diff (lhs(x), y), diff(rhs(x),y)] );
+
+ceqcnsl := outer ( [slcnsl, vars], (x,y) -> [diff(lhs(x),y), diff(rhs(x),y)] );
+
+
+ceq := [op(ceqfnl), op(ceqcnsl)];
+
+ceq := select ( x -> x[1] = 0, ceq );
+
+ceq := map ( x-> x[2], ceq );
+
+
+# 
+# In the list ceq are the additional diffeqs that the newly created functions have 
+# to fulfill because on their dependencies on subsets of vars but not on all vars
+#
+
+
+fsa := [op(idtsfnl1), op(idtscnsl1)];
+
+fsa := [op(fs), op(fsa)];
+
+
+# fsa is fsall, fs has the functions that we want to retain after
+# lexorder janetbase computation where the fs have lowest order
+
+
+ceq0 := subs ( slfnl, subs ( slcnsl, eql ) );
+
+ceq := [op(ceq0), op(ceq)];
+
+# 
+# now we have added to ceq from above the diffeqs from eql but with the substitions
+# slfnl, slcnsl having acted upon them.
+# 
+
+#setcotes ( fsa, lexOrder(fsa));
+
+setcotes ( fsa, elimOrder2(fsa,nops(fsa)-nops(fs)) );
+
+# there the lexOrder is introduced.
+
+jb := makeJanetBase ( ceq, fsa );
+
+jb := csimpJanetBase ( jb, fsa );
+
+
+jb := dselfun ( jb, fsa, fs );
+
+# dselfun does the trick of retaining 'pure fs' functions
+
+remcotes ( fsa );
+
+jb;
+
+end;
+
+#
+#
+#
+#
+
+reduceSolution := proc ( eql, fs )
+
+local fs1,
+		vars,
+		fncn,
+		eql1,
+		fncn1,
+		fncn2,
+		eql2;
+
+fs1 := map ( lhs, eql );
+
+vars := dgetvars ( fs1 );
+
+
+fncn := dgetfunX ( map(rhs, eql), vars );
+
+fncn := [op(fncn[1]), op(fncn[2])];
+
+
+eql1 := select ( (x,y)->member (lhs(x),y), eql, fs );
+
+
+fncn1 := dgetfunX ( map (rhs, eql1), vars );
+
+fncn1 := [op(fncn1[1]), op(fncn1[2])];
+
+
+fncn2 := remove ( member, fncn, fncn1 );
+
+
+eql2 := subs ( map ( x->x=0, fncn2 ), eql );
+
+end;
+
+###############################################################################################
+
+#
+# chooses among LPDE, given in jb, depending on fs,
+# those that depend only on fsu, which is a subset of fs.
+#
+
+dselfun := proc ( jb, fs, fsu )
+
+local fsdiff;
+
+fsdiff := [op({op(fs)} minus {op(fsu)})];
+
+select ( proc ( e, ffs, ffsdiff )
+			local tl;
+			dcoeffs ( e, ffs, 'tl' );
+			tl := map ( xx->fdifflist ( xx )[1], [tl] );
+			if has ( tl, ffsdiff ) then
+			
+				false;
+				
+			else
+			
+				true;
+				
+			fi;
+			end, jb, fs, fsdiff );
+
+
+end;
+
+#
+#
+#
+#
+
+
+
+#
+#	Einige Funktionen, die zu einer Liealgebra von Vektorfeldern die zugehoerigen DEQ
+#	erzeugen
+#	
+#
+
+
+vectfToDeq := proc ( vfList, fs )
+
+# vfList ist die Liste der Vektorfelder.
+# fs die Liste der Funktionsnamen fuer die infinitesimalen Verschiebungen xi, eta,..
+# Ein optionales drittes Argument gibt die Variablennamen fuer dx, dy,.. in vfList an.
+# Standard ist p, q fuer dx, dy.
+#
+
+local vB, vfList1, eqlist, vars, i, j, res, n;
+
+if nargs = 3 then
+
+	vB := args[3];
+	
+else
+
+	vB := [p,q];
+	
+fi;
+
+n := nops ( vfList );
+
+eqlist := fs;
+
+vfList1 := map ( (x,y)->collect (x,y), vfList, vB);
+
+vars := [];
+
+for i from 1 to n do
+
+	for j from 1 to nops ( eqlist ) do
+	
+		eqlist := zip ( (x,y)->[x,y],eqlist, vB );
+		eqlist := map ( (x,vfL,ii)->x[1]-coeff(vfL[ii],x[2]) *(aaa||ii),
+							eqlist, vfList1, i );
+		
+	od;
+
+	vars := [ op(vars), (aaa||i) ];
+	
+od;
+
+res := parmElim ( eqlist, dgetvars ( fs ), vars );
+
+RETURN ( res );
+
+end:
+
+
+#
+#	erzeugt die Janet-Basis aus den DEQ des Vektorfelds
+#
+
+vectfToJanetBase := proc ()
+
+global _xvers, _verbose;
+
+local fs, res;
+
+fs := args[2];
+
+res := vectfToDeq ( args );
+
+_xvers := true;
+
+_verbose := false;
+
+makeJanetBase ( res, fs );
+
+end:
+
+#
+#
+#
+
+vliebrack := proc ( vf1, vf2 )
+
+local vars,vB,n,s,j,bj,aj,c,i,vars1,ai,bi;
+
+
+if nargs >= 3 then
+
+	vars := args[3];
+	
+else
+
+	vars := [x,y];
+	
+fi;
+
+if nargs >= 4 then
+
+	vB := args[4];
+	
+else
+
+	vB := [p,q];
+
+fi;
+
+n := nops ( vB );
+
+
+s := 0;
+
+vars1 := table ([]);
+
+for i from 1 to n do
+
+	vars1[vB[i]]:=vars[i];
+	
+od;
+
+vars := vars1;
+
+for j in vB do
+
+	bj := coeff(vf2, j);
+	aj := coeff(vf1, j);
+	
+	c := 0;
+	
+	for i in vB do
+	
+		ai := coeff ( vf1, i );
+		bi := coeff ( vf2, i );
+	
+		c := c + (ai*diff(bj,vars[i]) - bi*diff(aj,vars[i]));
+		
+	od;
+	
+	s := s + normal(c) * j;
+	
+od;
+
+RETURN ( s );
+
+end:
+
+
+#
+#
+#
+#
+
+#
+# dindexform schreibt Ableitungen in Indexfom um und beruecksichtigt dabei
+# mit alias verdeckte Abhaengigkeiten
+#
+#
+
+dindexform := proc( e )
+
+local c, t, ee, argn, noarglist, noargsflag, idts, idts1, idts2, slist, i,
+	dl, fs, vars, fnctn, fse, convflag, eel;
+
+
+if has ( [args[2..nargs]], 'noargs' ) then
+
+	argn := select( x->has(x, `noargs` ), [args[2..nargs]] )[1];
+	
+	if type ( argn, equation ) then
+	
+		noarglist := rhs ( argn );
+		
+	else
+	
+		noarglist := [];
+		
+	fi;
+
+	noargsflag := true;
+	
+fi;
+
+idts := [op(indets ( e ))];
+
+
+#idts1 := select ( x-> (nops(x) > 1 and (op(0,x) = `diff` or op(0,x) = `Diff`)),
+#				    idts );
+
+idts1 := select ( x-> (type(x,diffmonom) and (op(0,x) = `diff` or op(0,x) = `Diff`)),
+				    idts );
+
+idts2 := select ( x-> type (x, functionx (name) ), idts );
+
+idts1 := map ( x->[x,difflistD(x)], idts1 );
+
+idts1 := map ( x->x[1],
+			sort (
+				map ( x->[x,nops(x[2])], idts1 ),
+				(x,y)->evalb(x[2] >= y[2])
+				)
+			);
+
+
+slist := [];
+
+for i from 1 to nops(idts1) do
+
+	dl := idts1[i][2];
+	fs := dl[1];
+
+	if (not freeofdep ( fs )) or ( noargsflag = true ) then
+
+		vars := [op(fs)];
+
+		fnctn := op(0,fs); 
+
+		fse := fnctn; 
+
+	else
+	
+		fse := fs;
+		
+	fi;
+	
+	slist := [op(slist),idts1[i][1]=fse[cat(op(dl[2..nops(dl)]))] ];
+ # update to V4
+	
+od;
+
+ee := e;
+
+if type ( ee, `+` ) then
+
+	ee := convert ( ee, list );
+	convflag := true;
+	
+fi;
+
+if nops(slist) > 0 then
+
+	ee := subs ( op(slist), ee );
+
+fi;
+
+if noargsflag <> true then
+
+	idts2 := select ( x->not freeofdep ( x ), idts2 );
+
+fi;		
+
+if ( nops(idts2) > 0 ) then
+	
+	if noargsflag = true and nops ( noarglist ) > 0  then
+
+		idts2 := select ( member,  idts2, noarglist );
+
+	fi;
+
+	if nops ( idts2 ) > 0 then
+
+		slist := map ( x->x=op(0,x), idts2 );
+
+		ee := subs ( op ( slist ), ee );
+	
+	fi;
+		
+fi;
+
+if convflag = true then
+
+	eel := map( x->x[1], ee );
+	ee := convert ( ee, `+` );
+	ee := sort ( ee, eel );
+	
+fi;
+
+
+RETURN ( ee );
+
+end:
+
+#
+#
+#
+#
+
+
+dunindex := proc ( e )
+
+local idts, ee, slist;
+
+idts := [op(indets ( e ))];
+
+idts := select ( x->type(x, indexed ), idts );
+
+slist := map ( x->x=_dDummy(op(0,x),[op(x)]), idts );
+
+ee := e;
+
+if nops ( slist ) > 0 then
+
+	ee := subs ( {op(slist)}, ee );
+	
+fi;
+
+RETURN ( ee );
+
+end:
+
+
+dreindex := proc ( e )
+
+local idts, ee, slist;
+
+idts := [op(indets ( e ))];
+
+idts := select ( x->type ( x, function ) and op(0,x) = `_dDummy` , idts );
+
+slist := map ( x->x=op(1,x)[op(op(2,x))], idts );
+
+ee := e;
+
+if nops ( slist ) > 0  then
+
+	ee := subs ( {op (slist )}, ee );
+	
+fi;
+
+RETURN ( ee );
+
+end:
+
+#
+#
+#
+#
+
+dmakemonicX := proc ( e, fs )
+
+local c, ee, pp;
+
+c := dlcoeff ( e, fs );
+
+pp := assertNotZero ( c );
+
+c := normal ( c / pp );
+
+if type ( e, `+` ) then
+
+	ee := map ( (x,y)->normal(x/y), e, c );
+
+else
+
+	ee := normal ( e /c );
+	
+fi;
+
+RETURN ( ee );
+
+end:
+
+#
+#
+#
+
+dmakemonic := proc ( e, fs )
+
+local c, ee,
+		ff;
+
+c := dlcoeff ( e, fs );
+
+ff := subs ( _CCC = c, _XX -> normal ( _XX/_CCC) );
+
+ee := dcollect ( e, fs, ff );
+
+RETURN ( ee );
+
+end:
+
+
+#
+#
+#
+
+dfrontendX := proc ( f, argsx )
+
+local args1, res;
+
+args1 := dunindex ( argsx );
+
+res := f(op(args1));
+
+RETURN ( dreindex ( res ) );
+
+end:
+
+			
+#
+#
+#
+
+mkvlist := proc ( vars, n )
+
+local v1,v,vr,i,vl;
+
+if nops ( vars ) = 0 then
+
+	RETURN ( [[]] );
+	
+else
+
+	v1 := [op(vars[2..nops(vars)])];
+
+	v := vars[1];
+
+	vr := [];
+
+	for i from 0 to n do
+
+		vl := mkvlist ( v1, n - i );
+		
+		vl := map ( (x,w,ii)-> [w $ ii, op(x) ], vl, v, i );
+
+		vr := [op(vr), op(vl)];
+		
+	od;
+	
+	RETURN ( vr );
+	
+fi;
+		
+end:
+
+#
+#
+
+mkdiff := proc ( e, vl )
+
+if nops ( vl ) = 0 then
+
+	RETURN ( e );
+	
+else
+
+	RETURN ( diff ( e, op ( vl ) ) );
+	
+fi;
+
+end:
+
+#
+#
+#
+
+
+#
+
+
+
+##########################################################################################
+#
+#	EINE ROUTINE ZUM VARIABLENWECHSEL IN XI-ETA-FORMEN
+#
+##########################################################################################
+
+
+dvsubs := proc ( elist, fs, vsl )
+
+local oldvars,transf,newvars,i,newfs,nvovsl,ovnvsl,transf1,ofnfsl,nfofsl,vsl1,n,
+    fsl,res;
+ 
+
+oldvars := map ( lhs, vsl );
+transf := map ( rhs, vsl );
+
+newvars := [seq ( aaa||i, i=1..nops(oldvars ) )];
+
+newfs := [seq ( fff||i(op(newvars)), i = 1..nops(fs) )];
+
+nvovsl := zip ( (x,y)->x=y, newvars, oldvars );
+ovnvsl := zip ( (x,y)->x=y, oldvars, newvars );
+
+transf1 := subs ( op(ovnvsl), transf );
+
+ofnfsl := zip ( (x,y)->x=y, fs, newfs );
+nfofsl := zip ( (x,y)->x=y, newfs, fs );
+
+vsl1 := zip ( (x,y)->x=y, oldvars, transf1 );
+
+n := nops ( newvars );
+
+fsl := [seq ( fs[i]=add(newfs[j]*diff(transf1[i],newvars[j]), j=1..n ),
+				i = 1..n )
+				];
+				
+res := vsubs ( newvars, vsl1, fsl, elist, args[4..nargs] );
+
+res := subs ( op(nfofsl) , res );
+res := subs ( op(nvovsl) , res );
+
+RETURN ( res );
+
+end:
+
+#
+#
+#
+
+dout := proc ( e )
+
+if type ( e, list ) then
+
+	RETURN ( map ( dout, e ) );
+	
+else
+
+	RETURN ( dindexform ( e ) );
+	
+fi;
+
+end:
+
+##########################################################################################
+#
+#	EINE HILFSROUTINE ZUM SORTIEREN UND VEREINFACHEN VON JANET-BASEN
+#
+##########################################################################################
+
+csimpJanetBase := proc ( jb, fs )
+
+local jb1;
+
+jb1 := map ( dmakemonic, jb, fs );
+jb1 := map ( x->map(y->factor(normal(y)),x), jb1 );
+jb1 := dsortlist ( jb1 , fs );
+
+RETURN ( jb1 );
+
+end:
+
+

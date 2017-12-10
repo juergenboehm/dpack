@@ -1,0 +1,462 @@
+#:mode=maple:
+#
+# rawsort sortiert eine Liste von Monomen nach Grad ohne Termordnung
+#
+
+rawsort := proc ( ldm )
+
+map ( x-> x[2],
+    sort (
+        map ( x-> [nops(fdifflist(x)),x],ldm),
+            (x,y)-> evalb ( x[1] > y[1] )
+        )
+    );
+end;
+
+#
+# dsortraw sortiert eine LPDE nach Monomgrad ohne Termordnung
+#
+
+dsortraw := proc(e, fs)
+
+local e1;
+
+e1 := dcollect(e, fs);
+
+sort(e1,rawsort(dindets(e1,fs)));
+
+end;
+
+#
+# dsort sortiert eine LPDE nach einer Termordnung
+#
+
+dsort := proc(e, fs)
+
+local e1, l;
+
+e1 := dcollect(e, fs);
+
+usecotes ( fs );
+
+l := map ( x-> x[2],
+        sort (
+            map ( x->[getcotes(x),x], dindets(e1,fs) ),
+            (x, y) -> not mleq ( x[1], y[1], _cotevars )
+            )
+        );
+
+
+sort( e1, l );
+
+end;
+
+#
+# sortiert eine Liste von Monomen nach einer Termordnung
+#
+
+dsortterms := proc(tl, fs)
+
+local l;
+global _cotevars;
+
+usecotes ( fs );
+
+l := map ( x-> x[2],
+        sort (
+            map ( x->[getcotes(x),x], tl ),
+            (x, y) -> not mleq ( x[1], y[1], _cotevars )
+            )
+        );
+
+RETURN ( l );
+
+end;
+#
+#
+#
+
+dsorteps := proc(tl, fs)
+
+local l, l2;
+global _cotevars;
+
+usecotes ( fs );
+
+l := sorteps (
+            map ( x->[getcotes(x),x], tl ),
+            (x, y) -> not mleq ( x[1], y[1], _cotevars )
+            );
+
+l2 := map ( x-> x[2], l[2] );
+
+RETURN ( [l[1],l2] );
+
+end;
+
+#
+# sortiert eine Liste und ermittelt das signum der Permutation
+#
+
+sorteps := proc ( la, leq )
+
+local e, i, j, j0, l;
+
+l := la;
+
+e := 1;
+
+for i from 1 to nops ( l ) - 1 do
+
+	j0 := i;
+
+	for j from i+1 to nops ( l ) do
+	
+		if leq ( l[j], l[j0] ) then
+		
+			j0 := j;
+			
+		fi;
+		
+	od;
+	
+	l := subsop ( i=l[j0],j0=l[i], l );
+	
+	e := e * (-1)^(j0-i);
+	
+od;
+
+[e,l];
+
+end;
+
+
+#
+# sortiert eine allgemeine Liste, wobei die Funktion fun aus jedem
+# Element ein Monom ermittelt, und dann nach einer Termordnung für diese
+# Monome sortiert.
+# typisches Beispiel: 
+# Eine Liste von Paaren [ ...,[ai,bi],... ], wobei bi immer
+# ein Monom ist und fun gleich z->z[2]
+#
+
+dsortxt := proc ( xtl, fs, fun )
+
+local xtl1;
+global  _cotevars;
+
+usecotes ( fs );
+
+xtl1 := map ( (X,F)->[X,getcotes(F(X))], xtl, fun );
+
+map ( x->x[1],
+	sort ( xtl1, (x,y)->not mleq ( x[2],y[2], _cotevars ) ) );
+	
+end;
+
+
+#
+#
+#
+#
+
+fdindetssort := proc ( e, fs )
+
+local dits;
+
+dits := dindets ( e, fs );
+
+if nops( dits ) > 0 then
+
+	usecotes ( fs );
+
+	dits := map ( x->x[2],
+
+				sort (
+
+					map ( x->[getcotes(x),x], dits ),
+						(x,y)->not mleq ( x[1], y[1], _cotevars )));
+
+fi;
+
+
+RETURN ( dits );
+
+end:
+
+#
+# dsortlist sortiert in einer Liste von linearen DGL jedes Element in sich und dann
+# die ganze Liste nach dem fuehrenden Term
+#
+
+dsortlist := proc ( l, fs )
+
+local l1;
+
+usecotes( fs );
+
+l1 := map ( (x,y)->dsort(x,y), l, fs );
+
+l1 := map ( x->x[2],
+			sort ( 
+				map( (x,y)->[getcotes(dlterm(x,y)),x], l1, fs ),
+				(x,y)->not mleq (x[1],y[1], _cotevars )
+				)
+		);
+
+RETURN ( l1 );
+
+end:
+
+#
+#
+#
+
+dsortjbtypes := proc ( jbtypel, fs )
+
+local jbtl, leqfn1;
+
+jbtl := jbtypel;
+
+jbtl := map ( (x,y)->dsortterms ( x, y ), jbtl, fs );
+
+usecotes ( fs );
+
+leqfn1 := (a,b)->lexleq ( a, b, (x,y)-> not mleq( getcotes(x), getcotes(y), _cotevars ));
+
+jbtl := sort ( jbtl, leqfn1 );
+
+end;
+
+#
+#
+#
+
+
+
+############################################################################
+#
+# Vergleichsrelationen
+#
+
+cmpcodefn := proc ( leqfn )
+
+local res;
+
+res := subs ( LEQFN = leqfn,
+
+	proc ( e1, e2 )
+	
+		if e1 = e2 then
+		
+			3;
+			
+		else
+		
+			if LEQFN ( e1, e2 ) then
+			
+				1;
+				
+			else
+			
+				2;
+				
+			fi;
+			
+		fi;
+		
+	end
+	
+	);
+	
+eval ( res );
+
+end;
+
+#
+#
+#
+
+monleq := proc ( m1, m2, vars, ord )
+
+evalb ( type ( m1/m2, constant) or (m2 = op(1, sort (m1+m2, vars, ord ) ) ) );
+
+end;
+
+#
+#
+#
+
+mleq := proc(m1, m2, v)
+
+evalb((m1 = m2) or (m1 = op(2, sort( m1 + m2, v, plex))) )
+
+end;
+
+#
+#
+#
+
+vleq := proc ( v1, v2 )
+
+local v,i;
+ 
+v := [seq ( x||i, i = 1..nops(v1) ) ];
+
+mleq ( convert ( v1, monomial ), convert ( v2, monomial ), v );
+
+end;
+
+#
+# lexleq vergleicht zwei Listen lexikographisch mit Vergleichsfunktion ff
+# fuer die Elemente
+#
+
+lexleq := proc ( l1, l2, leqf )
+
+local leqf1,
+		tst;
+
+
+tst := zip ( (xx,yy)->[xx,yy], l1, l2 );
+
+tst := pruneleft ( xx->evalb(xx[1]=xx[2]), tst );
+
+if nops ( tst ) = 0 then
+
+	RETURN ( evalb ( nops (l1 ) <= nops (l2 ) ) );
+
+else
+
+	RETURN ( leqf ( tst[1][1], tst[1][2] ) );
+
+fi; 
+
+end;
+
+#
+#
+#
+
+lexless:= proc( e1, e2 )
+
+lexorder(e1,e2 ) and ( e1 <> e2 );
+end;
+
+#
+# exprleq ist eine Vergleichsfuktion fuer allgemeine
+# algebraische Ausdruecke.
+#
+
+exprleq := proc ( e1, e2 )
+
+local e1n,
+		e1d,
+		e2n,
+		e2d;
+
+e1n := numer ( e1 );
+e1d := denom ( e1 );
+
+e2n := numer ( e2 );
+e2d := denom ( e2 );
+
+lexleq ( [e1n, e1d], [e2n, e2d], exprleq1 );
+
+end;
+
+#
+# exprleq1 vergleicht Ausdruecke ohne Nenner
+#
+
+exprleq1 := proc ( e1, e2 )
+
+local e11,
+		e21;
+
+e11 := exprnormalize ( e1 );
+
+e21 := exprnormalize ( e2 );
+
+lexorder ( convert ( e11, name ), convert ( e21, name ) );
+
+end;
+
+#
+#
+###########################################################################
+
+exprnormalize := proc ( e )
+
+local idts,
+		res,
+		idts1,
+		newidts,
+		sl1,
+		sl2,
+		e1,
+		i;
+
+if type (e, list) then
+
+	res := map ( exprnormalize, e );
+
+elif type (e, function) then
+
+	res := exprnormalize(op ( 0, e )) (op( exprnormalize ( [op(e)] ) ));
+
+elif type (e, name) then
+
+	if type (e, indexed) then
+
+		res := exprnormalize ( op(0,e) )[op(exprnormalize( [op(e)] ) )];
+
+	else
+
+		res := e;
+
+	fi;
+
+else
+
+	idts := [op(indets ( e ))];
+
+	idts := dexprsort ( idts );
+
+	idts1 := exprnormalize ( idts );
+
+	sl1 := [ seq ( idts[i] = idts1[i], i=1..nops (idts) ) ];
+
+	e1 := subs ( sl1, e );
+
+	e1 := collect ( e1, idts1 );
+
+	e1 := sort ( e1, idts1 );
+
+	res := e1;
+
+fi;
+
+res;
+
+end;
+
+
+#
+# dexprsort sortiert eine Liste von Ausdruecken
+#
+
+
+dexprsort := proc ( el )
+
+local el1;
+
+el1 := el;
+
+el1 := map ( xx->[xx,xx], el1 );
+
+el1 := sort ( el1, (xx,yy) -> exprleq ( xx[1], yy[1] ) );
+
+el1 := map ( xx->xx[2], el1 );
+
+end;

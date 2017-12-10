@@ -1,0 +1,310 @@
+
+#
+#
+#	parmElimXP take a list eql of lpdgl in the fs and fselim.
+#	It eliminates the fselim from the eql by a lexorder Janet-Base computation,
+#	where all the fs precede all the fselim
+#	all functions are extended to virtually depend on the union of the arguments
+# 	of the fs and fselim. Missing dependencies are expressed as differential conditions
+#	diff(f(args),var)
+#	cnselim contains constants to be eliminated
+#
+#
+#
+
+
+
+parmElimXP := proc ( eql, fs, fselim, cnselim )
+
+local i, varsretain, varselim,
+	allvars, allvarsl, 
+	fsext, fselimext, cnselimext, 
+	slext, slelimext, slcnselimext, 
+	allsubsl, 
+	auxeq, 
+	ff, v, 
+	maineqs, 
+	fsa, jb;
+
+
+varsall := {};
+
+if nargs = 5 then
+
+	varsall := {op(args[5])};
+
+fi;
+
+varsretain := `union` ( seq ( {op( dgetvars ( [fs[i]] ))}, i=1..nops(fs)) );
+
+varselim := `union` ( seq ( {op( dgetvars ( [fselim[i]] ))}, i=1..nops(fselim)) );
+
+
+allvars := `union` ( varsretain, varselim, varsall );
+
+allvarsl := [op(allvars)];
+
+
+
+fsext := map ( (xx,yy)->cat(op(0,xx),EXTQQQ)(op(yy)), fs, allvarsl );
+
+fselimext := map ( (xx,yy)->cat(op(0,xx),EXTQQQ)(op(yy)), fselim, allvarsl );
+
+cnselimext := map ( (xx,yy)->cat(xx,EXTQQQ)(op(yy)), cnselim, allvarsl );
+
+
+
+slext := zip ( (xx,yy)->xx=yy, fs, fsext);
+
+slelimext := zip ( (xx,yy)->xx=yy, fselim, fselimext );
+
+slcnselimext := zip ( (xx,yy)->xx=yy, cnselim, cnselimext );
+
+
+allsubsl := [op(slext), op(slelimext), op(slcnselimext)];
+
+
+auxeq := [];
+
+for ff in [op(fs), op(fselim),op(cnselim)] do
+
+	for v in allvarsl do
+
+		if diff (ff, v ) = 0 then
+				
+			auxeq := [op(auxeq), diff(subs(allsubsl, ff),v)];
+		
+			# not particularly efficient, but short to write...
+		
+		fi;
+		
+	od;
+
+od;
+
+maineqs := subs ( allsubsl, eql );
+
+
+fsa := [op(fsext), op(fselimext), op(cnselimext)];
+
+
+
+# fsa is fsall, fsext has the functions that we want to retain after
+# lexorder janetbase computation where the fs have lowest order
+
+
+#setcotes ( fsa, lexOrder(fsa));
+setcotes ( fsa, elimOrder2(fsa, nops(fselimext)+nops(cnselimext)) );
+
+# there the lexOrder is introduced.
+
+jb := makeJanetBase ( [op(maineqs), op(auxeq)], fsa );
+
+jb := csimpJanetBase ( jb, fsa );
+
+
+jb := dselfun ( jb, fsa, fsext );
+
+# dselfun does the trick of retaining 'pure fsext' functions
+
+remcotes ( fsa );
+
+# now we substitute back fsext to fs:
+
+jb := subs ( swapeqs ( slext ), jb );
+
+jb := simplify ( jb );
+
+jb := select ( x->x<>0, jb );
+
+end;
+
+
+#
+#
+# computes the determining system of a system of dgl fnu(x^i,u^j_J) = 0
+# this algorithm does *not* depend on substituion of relations f(x^i,u^j_J) = 0
+# but works by eliminating 'dummy functions' qnu(x^i,u^j) in expressions
+# X(ext) appl fmu (x^i,u^j_J ) + sum qnu(x^i,u^j) * fnu (x^i,u^j_J ) = 0
+#
+# X(ext) appl fmu (x^i,u^j_J ) means: apply the extension of X=xi^i*d_(x^i)+eta^j*d_(u^j)
+# in an appropriate prolongation (to comprise all the fnu) to the function fmu
+#
+#
+#
+
+makeDeterminingSystemXP := proc ( deqs, varLists, fns )
+
+local i, 
+	odeflag,
+	m, n,
+	deqs1,
+	ndeqs, 
+	vBLists, varLists1, 
+	zeroI,
+	vBLists1,
+	vfini,
+	deqslist,
+	dvarslist, dvars, dvars0,
+	reslist,
+	vectfini,
+	deqsorder,
+	allvars, 
+	dummyfns,
+	variat,
+	vectfi,
+	resi,
+	erg;
+
+
+global _solvevars;
+
+if has ( [args], odetype ) then
+
+	odeflag := true;
+	
+else
+
+	odeflag := false;
+	
+fi;
+
+
+
+m := nops ( varLists[1] );
+n := nops ( varLists[2] );
+
+deqs1 := deqs;
+
+if type ( deqs1, algebraic ) then
+
+	deqs1 := [ deqs1 ];
+	
+fi;	# for convenience of input
+
+
+ndeqs := nops ( deqs1 );
+
+#
+# put the differential equation into jet-form with respect to the variables in varLists
+#
+
+deqs1 := map ( deqtoextform, deqs1, varLists );
+
+# 
+# the result is a set of pairs of list, each pair has first the deq in jet-form,
+# second a set of elements describing the dependend variables in jet-space
+# appearing in this deq in the form  [varindex,[deg1,...,degn]], e.g. [1,[2]] for 
+# y[2] when varLists is [[x],[y]]
+#
+
+
+vBLists := [[seq ( TTT.i, i = 1..m )],
+			[seq ( XXX.i, i = 1..n )] ];
+			
+varLists1 := fntoatom ( varLists );
+		
+		
+			
+zeroI := [ 0 $ m ];
+
+vBLists1 := [ vBLists[1], [seq ( makeextstr ( i, vBLists, zeroI ), i=1..n )]];			
+
+#
+# vfini is the vector descibing the displacement of the independent variables and
+# the dependent variables of zeroth degree
+#
+
+vfini := convert ( zip ( (x,y)->x*y, flatten2(vBLists), fns ), `+` );
+
+#
+# this call of dprolong initializes the `prolongation engine` for later calls
+# to `computeEtaVal`
+#
+
+dprolong ( vfini, vBLists, varLists1, 1, noforget );
+
+deqslist := map ( x->x[1], deqs1 );
+
+#
+# follows the computation of the variables appearing in the jet-form of the deqs in
+# deqslist
+#
+
+dvarslist := map ( x->x[2], deqs1 );
+
+dvars := `union` ( op ( dvarslist ) );
+
+dvars0 := select ( x->tdeg(x[2]) > 0, dvars );
+
+dvars0 := map ( (x,y)-> makeextstr ( x[1], y, x[2] ), dvars0, varLists1 );
+
+#
+# dvars0 contains the dependend variables which appear in the
+# jet-form of the deqs in deqslist excluding those of the form y[0,0,...,0]
+#
+# dvars contains these too
+#
+
+dvars := map ( (x,y)-> makeextstr ( x[1], y, x[2] ), dvars, varLists1 );
+
+
+
+reslist := [];
+
+#
+# attention : vectfini is redefined to contain only displacement with respect to the
+# independent variables
+#
+#
+
+vectfini := convert ( zip ( (x,y)->x*y, vBLists[1], [op(fns[1..m])] ), `+` );
+
+
+deqsorder := vecorder ( deqslist, varLists1 );
+
+allvars := makeextvarlist ( varLists1, deqsorder );
+
+lowvars := makeextvarlist ( varLists1, 0 );
+
+dummyfns := [seq ( QQQDUMMY ( op(lowvars) ) , i = 1..nops(deqslist) )];
+
+variat := add ( dummyfns[i] * deqslist[i], i=1..nops(deqslist) );
+
+
+for i from 1 to nops ( deqslist ) do
+
+	# now a vector decribing the infinitesimal movement is constructed with
+	# respect to only those variables that actually appear in the
+	# deq just considered
+
+	vectfi := convert (
+				map ( (x,y)->makeextstr ( x[1], y, x[2] ) * 
+								computeEtaVal (x[1],x[2]), dvarslist[i], vBLists ),
+								`+` );
+	#
+	# now it is applied ( vectfini is added for displacement of the independent
+	# variables )
+	#
+								
+	resi := vecapply ( vectfini+vectfi, vBLists, varLists1, deqslist[i] );
+	
+	resi := resi + variat;
+
+	reslist := [op(reslist), resi ];
+	
+od;
+
+
+forget ( makeDoperat );
+forget ( computeEtaVal );
+
+fns1:= vectostdform ( fns, vBLists, varLists1 );
+
+erg := parmElimXP ( reslist, fns1, dummyfns, [], allvars );
+
+erg := vectoshortform ( erg, vBLists, varLists1 );
+
+end;
+
+

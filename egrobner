@@ -1,0 +1,1081 @@
+
+
+exsimp := proc ( e, fs )
+
+local ee;
+
+global _spcoeff;
+
+if assigned ( _spcoeff ) then
+
+	ff := eval(_spcoeff);
+	
+else
+
+	ff := normal;
+	
+fi;
+
+ee := numer ( normal ( e));
+
+ee := dcollect ( ee, fs, ff );
+
+if ee = 0 then RETURN ( ee ); fi;
+
+cnte := dcontent ( ee, fs );
+
+if true or cnte <> 1 then
+
+	ee := dcollect ( ee, fs, subs (FF=ff, CNTE=cnte, xx->FF(xx/CNTE)) ); 
+
+fi;
+
+ee;
+
+end;
+
+#
+#
+#
+#
+
+etblprep := proc ( e, fs )
+
+local ee, ff;
+
+global _varskill, _fskill, _fsind;
+
+
+ee := e;
+
+lt := dlterm ( ee, fs );
+
+ltmon := fdiffprod ( lt );
+
+varse := subs ( _fskill, ltmon );
+
+fse := ltmon / varse;
+
+i := _fsind[fse];
+
+[i, ee, lt, ltmon, fse, varse];
+
+end;
+
+#
+#
+#
+
+extendslist := proc (idx, oldind )
+
+map ( (x,y)->{y,op(x)}, oldind, idx );
+
+end;
+
+
+#
+#
+#
+#
+
+monvars := proc ( e )
+
+e[5];
+
+end;
+
+#
+#
+#
+
+lcmmonij := proc ( i, j, etblii )
+
+lcm ( monvars ( etblii[i], etblii[j] ) );
+
+end;
+
+
+#
+#
+#
+#
+
+redchainpart := proc ( spr, slistsii, etblii )
+
+i := spr[1];
+j := spr[2];
+
+dmij := lcm ( monvars ( etblii[i] ), monvars ( etblii[j] ));
+
+
+for kk in [indices ( etblii )] do
+
+	kki := op ( kk );
+	
+	dmk := monvars ( etblii[kki] );
+	
+	if denom ( dmij/ dmk ) = 1 then
+	
+		res := not ( member ( {i,kki}, slistsii ) or member ( {kki,j}, slistsii ) );
+	
+		if res then
+		
+			RETURN ( true );
+			
+		fi;
+		
+	fi;
+od;
+
+RETURN ( false );
+
+end;
+
+#
+#
+#
+
+makesexpr := proc ( spr, etblii )
+
+local i, j, ee, ff, gg;
+
+global _fs;
+
+i := spr[1];
+j := spr[2];
+
+
+ee := etblii[i];
+
+ff := etblii[j];
+
+dmi := monvars ( ee );
+dmj := monvars ( ff );
+
+dmij := lcm ( dmi, dmj );
+
+dmxi := dmij / dmi;
+
+dmxj := dmij / dmj;
+
+eelcf := dlcoeff ( ee[1], _fs);
+fflcf := dlcoeff ( ff[1], _fs);
+
+
+gg := fflcf *  applymonasdiff ( dmxi, ee[1] ) + 
+	 eelcf * applymonasdiff ( dmxj, ff[1] );
+
+gg := dprecoll ( gg, _fs );
+
+end;
+
+#
+#
+#
+
+applymonasdiff := proc ( dpm, ee )
+
+local e;
+
+if dpm = 1 then RETURN ( ee ); fi;
+
+e := ee;
+
+mm := convert (dpm, multiset);
+
+for vi in mm do
+
+	e := diff ( e, vi[1] $ vi[2] );
+	
+od;
+
+e;
+
+end;
+
+#
+#
+#
+#
+
+ddcoeffs := proc(e, fs)
+
+local didts, tl, cl, cltl;
+
+didts := dindets ( e, fs );
+
+cl := coeffs(e, didts, 'tl');
+
+cltl := zip ((xx,yy)->[xx,yy],[cl],[tl]);
+
+cltl := dsortxt ( cltl, fs, zz->zz[2] );
+
+if nargs >= 3 then
+
+    assign ( args[3], map (xx->xx[2], cltl) );
+
+fi;
+
+map ( xx->xx[1], cltl );
+
+end;
+
+#
+#
+#
+
+ddprimpart := proc (e, fs )
+
+local cl, tl;
+
+if e = 0 then
+
+	e1 := 0;
+	cntnt := 1;
+	
+else
+
+	cl := ddcoeffs (e, fs, 'tl' );
+
+	cntnt := cl[1];
+	
+	for i from 2 to nops (cl) do
+	
+		if not frontend ( divide, [ cl[i], cntnt ] ) then
+		
+			cntnt := frontend ( gcd, [ cntnt, cl[i] ]  );
+			
+		fi;
+		
+		if cntnt = 1 then break; fi;
+		
+	od;
+	
+	if cntnt <> 1 then
+	
+		cl := map ((xx,yy)->normal(xx/yy), cl, cntnt);
+	
+	fi;
+	
+	e1 := convert ( zip((xx,yy)->xx*yy,cl,tl), `+` );
+	
+fi;
+
+if nargs >= 3 then assign (args[3], cntnt); fi;
+
+e1;
+	
+end;
+
+#
+#
+#
+
+
+
+reducexall := proc ( e, etbl, fs )
+
+local e1;
+
+erg := reduceA ( e, etbl, fs );
+
+if erg[1] = 0 then
+
+	RETURN ( [erg[1], erg[2]] );
+	
+fi;
+
+e1 := erg[1];
+
+reddone := erg[2];
+
+
+cl := ddcoeffs ( e1, fs, 'tl' );
+
+ekk := cl[1] * tl[1];
+
+cl := cl[2..-1];
+
+tl := tl[2..-1];
+
+
+contxx := 1;
+
+while ( nops (tl) > 0 ) do
+
+	ddprint ( `reducexall: nops(tl) = `, nops(tl) );
+
+	erest := convert ( zip((xx,yy)->xx*yy,cl,tl), `+` );
+	
+	erg := reduceB ( erest, etbl, fs, 'scale', 'tcont' );
+	
+	tcont := tcont * contxx;
+	
+	erest1 := erg[1];
+	
+	reddone := reddone or erg[2];
+	
+	if erg[2] then
+	
+		ekk := ddprimpart ( ekk, fs, 'ckk' );
+		
+		scale := scale * ckk;
+		
+		xxgcd ( scale, tcont, 'scale', 'tcont');
+		
+	fi;
+	
+	if erest1 = 0 then break; fi;
+	
+	cl := ddcoeffs ( erest1, fs, 'tl' );
+	
+	ekk := dcollect ( ekk, fs, subs ( MM=scale, zz->zz*MM ) );
+	
+	ekk := ekk + tcont * cl[1] * tl[1];
+	
+	cl := cl[2..-1];
+	
+	tl := tl[2..-1];
+	
+	contxx := tcont;
+
+od;
+
+ekk := dcollectsimp ( ekk, fs );
+
+RETURN ( [ekk, reddone] );
+
+end;
+
+#
+#
+#
+
+reduceA := proc ( e, etbl, fs )
+
+global _fsind, _fskill;
+
+e1 := ddprimpart ( e, fs );
+
+reddone := false;
+
+nullred := false;
+
+
+while true do
+
+	eht := dlterm ( e1, fs, 'ehcf' );
+
+	ddprint ( `reduceA: e1 = `, e1 );
+
+	ehtmon := fdiffprod ( eht );
+	
+	restartred := false;
+
+	ii := _fsind[normal(ehtmon/ subs(_fskill,ehtmon))];
+
+	etblii := etbl[ii];
+
+	for kk in [indices(etblii)] do
+
+		kk1 := op(kk);
+
+		htkk := etblii[kk1][3];
+		htkk1 := etblii[kk1][2];
+
+		if xdivide ( ehtmon, htkk, 'qkk' ) then
+
+			ekk := etblii[kk1][1];
+
+			hcfkk := dcoeff ( ekk, htkk1 ); 
+
+			reddone := true;
+
+			xxgcd (hcfkk, ehcf, 'm1', 'm2');
+
+			ekk1 := applymonasdiff ( qkk, ekk );
+
+			e11 := dcollectsimp ( m1 * e1 - m2 * ekk1, fs );
+
+			if e11 = 0 then
+
+				e1 := e11;
+
+				nullred := true;
+
+				break;
+
+			fi;
+
+			e11 := ddprimpart ( e11, fs );
+
+			e1 := e11;
+
+			restartred := true;
+
+			break;
+
+		fi;
+
+	od;	
+			
+	if (nullred = true) or (restartred = false) then break; fi;
+		
+od; # while
+
+[e1, reddone];
+
+end;
+
+#
+#
+#
+#
+
+reduceB := proc ( e, etbl, fs, scale, cont )
+
+local scale1, cont1, eht, ehtmon, reddone, nullred, e1,
+		restartred, ii, etblii, kk, kk1, ehcf, ppart, qkk;
+
+scale1 := 1;
+
+cont1 := 1;
+
+
+reddone := false;
+
+nullred := false;
+
+e1 := e;
+
+while true do
+
+	eht := dlterm ( e1, fs, 'ehcf' );
+
+	ehtmon := fdiffprod ( eht );
+	
+	restartred := false;
+
+	for ii from 1 to nops ( fs ) do
+
+		etblii := etbl[ii];
+
+		for kk in [indices(etblii)] do
+		
+			kk1 := op(kk);
+		
+			htkk := etblii[kk1][3];
+			htkk1 := etblii[kk1][2];
+						
+			if xdivide ( ehtmon, htkk, 'qkk' ) then
+			
+				ekk := etblii[kk1][1];
+			
+				hcfkk := dcoeff ( ekk, htkk1 ); 
+			
+				reddone := true;
+				
+				xxgcd ( hcfkk, ehcf, 'm1', 'm2' );
+				
+				ekk1 := applymonasdiff ( qkk, ekk );
+				
+				e11 := dcollectsimp ( m1 * e1 - m2 * ekk1, fs );
+				
+				scale1 := scale1 * m1;
+				
+				if e11 = 0 then
+				
+					e1 := e11;
+				
+					cont1 := 0;
+				
+					nullred := true;
+					
+					break;
+					
+				fi;
+				
+				e11 := ddprimpart ( e11, fs, 'ccont' );
+				
+				e1 := e11;
+				
+				cont1 := cont1 * ccont;
+				
+				restartred := true;
+				
+				break;
+				
+			fi;
+			
+		od;	
+		
+		if restartred = true then break; fi;
+		
+		if nullred = true then break fi;
+		
+	od; # for ii
+	
+	if (nullred = true) or (restartred = false) then break; fi;
+		
+od; # while
+
+scale := scale1;
+
+cont := cont1;
+
+[e1, reddone];
+
+end;
+
+#
+#
+#
+
+xdivide := proc ( p, d, q )
+
+res := frontend ( divide, [p, d] );
+
+if res then assign (q, normal (p/d) ); fi;
+
+res;
+
+end;
+
+#
+#
+
+xxgcd := proc ( a, b, A, B )
+
+res := frontend ( gcd, [a,b] );
+
+assign (A, normal(a/res));
+assign (B, normal(b/res));
+
+res;
+
+end;
+
+
+
+#
+#
+#
+
+dcollectsimp := proc ( e, fs )
+
+local e1;
+
+if assigned ( _spcoeff ) then
+
+	e1 := dcollect (e, fs, _spcoeff );
+	
+else
+
+	e1 := dcollect (e, fs, normal );
+	
+fi;
+
+e1;
+
+end;
+
+
+#
+#
+#
+
+sortlcm :=proc ( slistsii, etblii )
+
+res := map ( (xx,zz)->[xx, degree ( lcmmonij ( xx[1],xx[2], zz))],
+			slistsii, etblii );
+			
+res := sort (res, (x,y)->evalb(x[2] <= y[2]) );
+
+map ( xx->xx[1], res );
+
+end;
+
+
+
+#
+#
+#
+
+dgrobner := proc ( el, fs )
+
+local i, etbl, slists;
+
+global _varskill, _fskill, _fsind, _vars, _fs;
+
+
+_fs := fs;
+
+
+nfs := nops ( fs );
+
+vars := dgetvars ( fs );
+
+_vars := vars;
+
+
+_varskill := map ( xx -> xx=1, vars );
+
+_fskill := map ( xx -> xx=1, fs );
+
+_fsind := table ( [seq ( fs[i] = i, i = 1..nfs )] );
+
+
+
+
+etbl := array ( 1..nfs );
+
+etblidx := array (1..nfs);
+
+slists := array (1..nfs);
+
+for i from 1 to nfs do
+
+	etbl[i] := table ([]);
+	
+	etblidx[i] := 1;
+	
+	slists[i] := [];
+	
+od;
+
+for i from 1 to nops ( el ) do
+
+	ee := exsimp ( el[i], fs );
+
+	ee := etblprep ( ee, fs );
+
+	eerest := ee[2..-1];
+	
+	ii := ee[1];
+
+	appendetbl ( eerest, etbl, fs );
+
+	# etbl[ii][etblidx[ii]] := eerest;
+			
+	etblidx[ii] := etblidx[ii] + 1;
+	
+od;
+
+#etbl := reduceauto ( etbl, fs );
+
+#etbl := reducefinal ( etbl, fs );
+
+for ii from 1 to nfs do
+
+	idxl := [indices ( etbl[ii] )];
+	
+	slistsii := [];
+	
+	for k from 2 to nops ( idxl ) do
+	
+		for l from 1 to k-1 do
+		
+			slistsii := [op (slistsii), {op(idxl[k]),op(idxl[l])}];
+			
+		od;
+	od;
+	
+	slists[ii] := slistsii;
+	
+od;
+
+
+while true do
+
+	ddprint ( `slists = `, [seq(slists[ii],ii=1..nfs)] );
+
+	iii := 0;
+	
+	ddd := 100000000;
+
+	for ii from 1 to nfs do
+
+		if nops ( slists[ii] ) = 0 then next; fi;
+	
+		IJ := slists[ii][1];
+		
+		dd := degree ( lcmmonij ( IJ[1], IJ[2], etbl[ii] ) );
+		
+		if (dd < ddd) then
+		
+			iii := ii;
+			ddd := dd;
+			
+		fi;		
+		
+	od;
+	
+	if iii = 0 then
+	
+		break;
+		
+	fi;
+	
+	ii := iii;
+	
+	spr := slists[ii][1];
+	
+	
+	if redchainpart ( spr, slists[ii], etbl[ii] ) then
+
+		slists[ii] := slists[ii][2..-1];
+	
+		next;
+		
+	fi;
+	
+	gg := makesexpr ( spr, etbl[ii] );
+	
+	erg := reducexall ( gg, etbl, fs );
+	
+	gg := erg[1];
+	
+	if gg <> 0 then
+	
+		gg := etblprep ( gg, fs );
+		
+		jj := gg[1];
+		
+		ggrest := gg[2..-1];
+
+
+		eidxjj := 1 + max ( 0, op(map(op,[indices(etbl[jj])])));
+
+		sslnew := extendslist ( eidxjj, sort([indices ( etbl[jj] )],
+		
+			(xx,yy)->evalb(xx[1]<=yy[1])) );
+
+		etbl[jj][eidxjj] := ggrest;
+
+
+		slists[jj] := [op(slists[jj]), op(sslnew)];
+		
+		slists[jj] := sortlcm ( slists[jj], etbl[jj] );
+		
+	fi;
+	
+	slists[ii] := slists[ii][2..-1];
+		
+od;
+
+#etbl := reduceauto ( etbl, fs );
+
+#etbl := reducefinal ( etbl, fs );
+
+
+res := [];
+
+for i from 1 to nfs do
+
+	res := [op(res), op(map ((ii,aa)->aa[op(ii)], [indices(etbl[i])], etbl[i] ) )];
+	
+od;
+
+res := map ( x->x[1], res );
+
+res;
+
+end;
+
+#
+#
+
+ddprint := proc ()
+
+if _grobnerdebug = true then
+
+	print ( args );
+	
+fi;
+
+end;
+
+#
+#
+#
+#
+#
+
+getremetblfirst := proc ( etbl, fs )
+
+local ii, idxl, idxmin, idxmax;
+
+for ii from 1 to nops ( fs ) do
+
+	idxl := [indices(etbl[ii])];
+	
+	if nops ( idxl ) > 0 then
+	
+		idxl := map ( op, idxl );
+		
+		idxmin := min ( op(idxl) );
+		
+		idxmax := max ( op(idxl) );
+		
+		res := etbl[ii][idxmin];
+		
+		etbl[ii][idxmin] := evaln ( etbl[ii][idxmin] );
+		
+		RETURN ( res );
+		
+	fi;
+	
+od; 
+	
+RETURN ( FAIL );
+
+end;
+
+#
+#
+#
+
+appendetbl := proc ( etblelm, etbl, fs )
+
+global _fsind;
+
+ii := _fsind[etblelm[4]];
+
+idxl := [indices(etbl[ii])];
+
+idxm := 1 + max (0, max ( op ( map (op, idxl) ) ) );
+
+
+etbl[ii][idxm] := etblelm;
+
+end;
+
+
+#
+#
+#
+#
+
+reduceauto := proc ( etbl, fs )
+
+local etblP, nfs;
+
+nfs := nops ( fs );
+
+etblP := table([seq(i=table([]),i=1..nfs)]);
+
+while true do
+
+	hh := getremetblfirst ( etbl, fs );
+	
+	if hh = FAIL then break; fi;
+	
+	hhe := hh[1];
+	
+	erg := reducexall ( hhe, etblP, fs );
+	
+	hhe1 := erg[1];
+	
+	if hhe1 <> 0 then
+	
+		hhelem := etblprep ( hhe1, fs );
+		
+		ii := hhelem[1];
+		
+		hhelem := hhelem[2..-1];
+		
+		hhht := monvars ( hhelem );
+		
+		etblPii := etblP[ii];
+		
+		for idx in [indices(etblPii)] do
+		
+			if divide ( monvars ( etblPii[op(idx)] ), hhht ) then
+			
+				appendetbl ( etblPii[op(idx)], etbl, fs );
+				
+				etblPii[op(idx)] := evaln ( etblPii[op(idx)] );
+				
+			fi;
+			
+		od;
+		
+		appendetbl ( hhelem, etblP, fs );
+	
+	fi;
+
+od;
+
+eval ( etblP );
+
+end;
+
+#
+#
+#
+
+reducefinal := proc ( etbl, fs )
+
+local nfs, etblB, i, ii, etblii;
+
+nfs := nops ( fs );
+
+etblB := table([seq(i=table([]),i=1..nfs)]);
+
+
+
+for ii from 1 to nfs do
+
+	etblii := etbl[ii];
+	
+	for idx in [indices(etblii)] do
+	
+		eidx := etblii[op(idx)];
+		
+		etbl[ii][op(idx)] := evaln ( etbl[ii][op(idx)] );
+		
+		erg := reducexall ( eidx[1], etbl, fs );
+
+		eidx1 := erg[1];
+		
+		if eidx1 <> 0 then
+		
+			eidx1elm := etblprep ( eidx1, fs );
+		
+			eidx1elm := eidx1elm[2..-1];
+		
+			appendetbl ( eidx1elm, etblB, fs );
+		
+		fi;
+		
+		etbl[ii][op(idx)] := eidx;
+		
+	od;
+	
+od;
+
+for ii from 1 to nfs do
+
+	etblBii := etblB[ii];
+	
+	etblBlist := convert ( etblBii, list );
+	
+	etblBlist := dsortxt ( etblBlist, fs, xx->xx[2] );
+	
+	for i from 1 to nops (etblBlist) do
+	
+		etblB[ii][i] := etblBlist[i];
+		
+	od; 
+od;
+
+eval ( etblB );
+
+end;
+
+
+
+
+#
+
+#
+#
+#
+#
+#
+
+makeJanetBaseXP := proc ( elist1, fs )
+
+local i, insolv, elist;
+
+global _crtbl, _slistlen, _assumelist, _asslist, _verbose, _insolvJanet;
+
+
+if not assigned ( forget ) then
+
+    readlib ( forget );
+    
+fi;
+
+if not assigned ( _verbose ) then
+
+	_verbose := false;
+	
+fi;
+
+
+if assigned ( _spprocess ) then
+
+	ddprint ( `special processing activated` );
+	
+fi;
+
+makeSlist ( elist1, fs );
+
+doSautoreduce ();
+
+eqids := doScompact ();
+
+
+
+elist := [seq ( _flist[i], i = 1.._slistlen )];
+
+elist := dgrobner ( elist, fs );
+
+makeSlist ( elist, fs );
+
+
+
+doSautoreduce ();
+
+eqids := doScompact ();
+
+
+insolv := checkInsolvability ();
+
+
+_insolvJanet := insolv;
+
+debugprint ( `insolv = `, insolv );
+
+[seq ( _flist[i], i = 1.._slistlen )];
+
+end;
+
+#
+#
+#
+
+
+makeJanetBaseXPXX := proc ( elist1, fs )
+
+local i, insolv, elist;
+
+global _crtbl, _slistlen, _assumelist, _asslist, _verbose, _insolvJanet;
+
+
+if not assigned ( forget ) then
+
+    readlib ( forget );
+    
+fi;
+
+if not assigned ( _verbose ) then
+
+	_verbose := false;
+	
+fi;
+
+
+if assigned ( _spprocess ) then
+
+	ddprint ( `special processing activated` );
+	
+fi;
+
+
+elist := dgrobner ( elist1, fs );
+
+
+end;
+

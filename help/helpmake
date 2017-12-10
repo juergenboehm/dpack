@@ -1,0 +1,70 @@
+
+#readlib(makehelp);
+
+
+BASEDIR := "/home/juergen/";
+
+MAPLEDIR := "maple/";
+
+PACKAGESDIR := "packages/";
+
+DPACKDIR := "dpack/";
+
+HELPDIR := "help/";
+
+HELPHDB := "maple.hdb";
+
+HDBPATH := cat( BASEDIR, MAPLEDIR, PACKAGESDIR, DPACKDIR, HELPDIR, HELPHDB );
+
+makehelp (  `dcoeff`  , 
+`dcoeff.hlp` , HDBPATH ): 
+makehelp (  `dcoeffs`  , 
+`dcoeffs.hlp` , HDBPATH ): 
+makehelp (  `dcollect`  , 
+`dcollect.hlp` , HDBPATH ): 
+makehelp (  `dcontent`  , 
+`dcontent.hlp` , HDBPATH ): 
+makehelp (  `dextract`  , 
+`dextract.hlp` , HDBPATH ): 
+makehelp (  `dindets`  , 
+`dindets.hlp` , HDBPATH ): 
+makehelp (  `dpack`  , 
+`dpack.hlp` , HDBPATH ): 
+makehelp (  `dprolong`  , 
+`dprolong.hlp` , HDBPATH ): 
+makehelp (  `dsort`  , 
+`dsort.hlp` , HDBPATH ): 
+makehelp (  `dstructConst`  , 
+`dstructConst.hlp` , HDBPATH ): 
+makehelp (  `dxmakeJanetBase`  , 
+`dxmakeJanetBase.hlp` , HDBPATH ): 
+makehelp (  `getliealg`  , 
+`getliealg.hlp` , HDBPATH ): 
+makehelp (  `iginit`  , 
+`iginit.hlp` , HDBPATH ): 
+makehelp (  `invariantEquation`  , 
+`invariantEquation.hlp` , HDBPATH ): 
+makehelp (  `inverseGrpBase`  , 
+`inverseGrpBase.hlp` , HDBPATH ): 
+makehelp (  `lowerEquation`  , 
+`lowerEquation.hlp` , HDBPATH ): 
+makehelp (  `makeCommBase`  , 
+`makeCommBase.hlp` , HDBPATH ): 
+makehelp (  `makeDeterminingSystem`  , 
+`makeDeterminingSystem.hlp` , HDBPATH ): 
+makehelp (  `makeJanetBase`  , 
+`makeJanetBase.hlp` , HDBPATH ): 
+makehelp (  `parmElim`  , 
+`parmElim.hlp` , HDBPATH ): 
+makehelp (  `solvableRad`  , 
+`solvableRad.hlp` , HDBPATH ): 
+makehelp (  `structConst`  , 
+`structConst.hlp` , HDBPATH ): 
+makehelp (  `vectfToDeq`  , 
+`vectfToDeq.hlp` , HDBPATH ): 
+makehelp (  `vliebrack`  , 
+`vliebrack.hlp` , HDBPATH ): 
+makehelp (  `vliesubs`  , 
+`vliesubs.hlp` , HDBPATH ): 
+
+

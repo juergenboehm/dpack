@@ -1,0 +1,295 @@
+
+remdep ( [xi, eta, c[1], b[1]] );
+
+depend ( [xi,eta], [x,y] );
+
+
+####################################################################################
+#
+#   Group g 3, 20
+#
+#
+
+
+KNOWNSOLS_3_20 := [1, SIGMA];
+
+
+
+dcancoord_g3_20_ffff := proc ( jb, fs )
+
+local	fs1,
+		jb1,
+		b13v, cc, sl, jbakt, cco,
+		xx00v,
+		yy00v,
+		c1v,
+		sxybyx,
+		sxybyy,
+		ff,
+		rsys,
+		loes,
+		res;
+
+
+fs1 := [xi, eta];
+
+jb1 := dchangefs ( jb, fs, fs1 );
+
+
+
+b13v := dresolve ( [3, 20, ffff], jb1, fs1, b[1](x,y) + 3 );
+
+# wenn b13v verschwindet liegt ein besonderer Unterfall vor
+# der anscheinend nur durch einen vorgeschalteten Koordinatenwechsel
+# behandelt werden kann.
+
+if b13v = 0 then
+
+	cc := 1;
+
+	while true do
+
+		sl := [x = x + cc * y, y = y];
+
+		jbakt := dvsubs ( jb1, fs1, sl );
+
+		jbakt := makeJanetBase ( jbakt, fs1 );
+
+		jbakt := csimpJanetBase ( jbakt, fs1 );
+
+		b13v := dresolve ( [3, 20, ffff], jbakt, fs1, b[1](x,y) + 3 );
+		
+		c1v := traperror ( dresolve ( [3, 20, ffff], jbakt, fs1, 1/c[1](x,y) ));
+
+		if b13v <> 0 and (c1v <> 0 or type ( c1v, string )) then
+			
+			break;
+
+		fi;
+
+		cc := cc + 1;
+
+	od;
+
+	res := dcancoord_g3_20_ffff ( jbakt, fs1 );
+
+	cco := res[2];
+
+	sl := [x=x-cc*y, y=y];
+
+	cco := dnormal ( subs (sl, cco) );
+
+	RETURN ( [ [], cco, [] ] );
+ 
+
+fi;
+
+c1v := dresolve ( [3, 20, ffff], jb1, fs1, c[1](x,y) );
+
+
+# berechne sigma
+
+if c1v <> 0 then   # if sx <> 0
+
+	sxybyx := dgetresolve ( [3, 20, ffff], jb1, fs1, ID_SXYBYX );
+
+	xx00v := intbyx ( sxybyx, [x, y] );
+
+else
+
+	sxybyy := dgetresolve ( [3, 20, tfff], jb1, fs1, ID_SXYBYY );
+
+	xx00v := intbyy ( sxybyy, [x, y] );
+
+fi;
+
+
+
+
+# berechne rho ( die Loesungen des homogenen Teils von rsys sind 1, sigma );
+
+
+ff := RRX ( x, y );
+
+if c1v <> 0 then  # if sx <> 0 
+
+	rsys := dgetresolve ( [3, 20, ffff], jb1, fs1, ID_RSYS );
+
+else
+
+	rsys := dgetresolve ( [3, 20, tfff], jb1, fs1, ID_RSYS );
+
+fi;
+
+rsys := subs ( SIGMA (x, y) = xx00v, rsys );
+
+rsys := normevalval ( rsys );
+
+loes := xpdesolve ( rsys, [ff], basis );
+
+loes := xpdegensol ( loes, subs ( SIGMA = xx00v, KNOWNSOLS_3_20 ), inhom );
+
+yy00v := subs ( loes, ff );
+
+
+
+res := dnormal ( [xx00v, yy00v] );
+
+
+res := [ [], res, [] ];
+
+end;
+
+#
+#
+#
+#
+
+dcancoord_g3_20_ffff_1 := proc ( jb, fs )
+
+local	fs1,
+		jb1,
+		xx00v,
+		yy00v,
+		c1v,
+		sxybyx,
+		ff,
+		rsys,
+		loes,
+		res;
+
+
+fs1 := [xi, eta];
+
+jb1 := dchangefs ( jb, fs, fs1 );
+
+
+# berechne sigma
+
+sxybyx := dgetresolve ( [3, 20, ffff, 1], jb1, fs1, ID_SXYBYX );
+
+xx00v := intbyx ( sxybyx, [x, y] );
+
+
+
+# berechne rho ( die Loesungen des homogenen Teils von rsys sind 1, sigma );
+
+
+ff := RRX ( x, y );
+
+rsys := dgetresolve ( [3, 20, ffff, 1], jb1, fs1, ID_RSYS );
+
+
+rsys := subs ( SIGMA (x, y) = xx00v, rsys );
+
+rsys := normevalval ( rsys );
+
+loes := xpdesolve ( rsys, [ff], basis );
+
+loes := xpdegensol ( loes, subs ( SIGMA = xx00v, KNOWNSOLS_3_20 ), inhom );
+
+yy00v := subs ( loes, ff );
+
+
+
+res := dnormal ( [xx00v, yy00v] );
+
+
+res := [ [], res, [] ];
+
+end;
+
+#
+#
+#
+
+
+tempforgetdep ();
+
+
+cancoordsetup_g3_20 := proc ()
+
+local sxybyx,
+		sxybyy,
+		res;
+
+
+# Fall ffff
+
+
+iginits ( [3,20,ffff] );
+
+
+sxybyx := igreduce ( [3, 20, ffff], [sxx/sx, sxy/sx, sy/sx] );
+
+igsaveexpr ( ID_SXYBYX, sxybyx );
+
+
+res := igcoeffbase ( [3,20,ffff] );
+
+res := [res[2], res[4]];
+
+res := eq2expr ( res );
+
+res := subs ( sigma (x,y) = SIGMA (x, y), rho (x,y) = RRX (x, y), res );
+
+igsaveexpr ( ID_RSYS, res );
+
+
+
+# Unterfall tfff
+
+iginits ( [3, 20, tfff] );
+
+
+
+sxybyy := igreduce ( [3, 20, tfff], [syx/sy, syy/sy, sx/sy] );
+
+igsaveexpr ( ID_SXYBYY, sxybyy );
+
+
+res := igcoeffbase ( [3,20,tfff] );
+
+res := [res[2], res[4]];
+
+res := eq2expr ( res );
+
+res := subs ( sigma (x,y) = SIGMA (x, y), rho (x,y) = RRX (x, y), res );
+
+igsaveexpr ( ID_RSYS, res );
+
+#
+# Fall 3, 20, ffff, 1
+#
+
+# Fall ffff
+
+
+iginits ( [3, 20, ffff, 1] );
+
+
+sxybyx := igreduce ( [3, 20, ffff, 1], [sxx/sx, sxy/sx, sy/sx] );
+
+igsaveexpr ( ID_SXYBYX, sxybyx );
+
+
+res := igcoeffbase ( [3, 20, ffff, 1] );
+
+res := [res[2], res[4]];
+
+res := eq2expr ( res );
+
+res := subs ( sigma (x,y) = SIGMA (x, y), rho (x,y) = RRX (x, y), res );
+
+igsaveexpr ( ID_RSYS, res );
+
+# Der Unterfall sx = 0 tritt hier nicht auf, da er sy=0 oder rx=0 nach sich
+# ziehen wuerde. Auch sy = 0 kann nicht auftreten.
+
+end;
+
+restoredep();
+
+
+
+

@@ -1,0 +1,47 @@
+
+FUNCTION: vliesubs - computes the representation of vector-fields after a change
+                     of coordinates
+    
+CALLING SEQUENCE:
+   vliesubs(vfl, vB, varsubs)
+      
+PARAMETERS:
+   vfl      - a list of expressions
+   vB       - a list of variables
+   varsubs  - a list of equations
+         
+SYNOPSIS:   
+- The first argument is a list of vector-fields in the notation explained in
+  the help to vectfToDeq and vliebrack.
+  
+- vB is the list of auxiliary indeterminates used in the abovementioned
+  representation - note that on the contrary to e.g. vectfToDeq there are no
+  default values for vB or the variables here.
+  
+- varsubs is a list of equations of the form
+
+    variable = f(x,y,z,... )
+    
+  The variables on the left sides of the equations must be the old coordinates,
+  in which the vector-fields in vfl are given, the right sides are the functions,
+  by which these old coordinates have to be replaced.
+  
+  CAUTION: The functions on the right must depend on the variables of the left
+           sides, that is, the names of the variables remain unchanged, which
+           might be a bit uncommon, thinking for example of
+           
+                x = r * cos(phi),   y= r * sin(phi)
+                
+            which must be written as
+            
+                x = x * cos(y),     y= x * sin(y)
+                
+            ( or change x,y )
+            
+- The function vliesubs returns the vectorfields in the new coordinates.
+
+  
+EXAMPLES:   
+      
+SEE ALSO: vectfToDeq
+

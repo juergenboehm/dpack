@@ -1,0 +1,410 @@
+##########################################################################################
+#
+#	ZWEI ROUTINEN ZUM FLATTEN VON LISTEN
+#	flatten1: FLATTET ERSTE EBENE
+#	flatten2: FLATTET TOTAL
+
+
+flatten1 := proc ( l )
+
+local i, res;
+
+res := [];
+
+for i from 1 to nops ( l ) do
+
+	res := [op(res), op(l[i])];
+
+od;
+
+RETURN ( res );
+
+end:
+
+#
+#
+
+flatten2 := proc ( l )
+
+local l1;
+
+if not type ( l, list ) then
+
+	RETURN ( l );
+	
+else
+
+	l1 := map ( proc ( x ) 
+					local x1;
+					option operator;
+					x1 := flatten2(x);
+					if type ( x1, list ) then
+						x1 := op(x1)
+					fi;
+					x1;
+					end, l );
+					
+	RETURN ( l1 );
+	
+fi;
+
+end:
+
+#####################################################################################
+
+#
+#
+#
+#
+#
+	
+outer := proc ( ll, f )
+
+local l1, res, e;
+
+if nops ( ll ) = 1 then
+
+	RETURN ( [op(ll[1])] );
+	
+else
+
+	l1 := outer ( [op(ll[2..nops(ll)])], f );
+ # update to V4
+	
+	res := [];
+	
+	for e in ll[1] do
+	
+		res := [op(res), op(map( (x,y, ff)->ff(y,x), l1, e, f ))];
+		
+	od;
+	
+	RETURN ( res );
+	
+fi;
+
+
+
+end:
+
+#
+#
+#
+
+pruneleft := proc ( ff, a1 :: list )
+
+local i, aa;
+
+for i from 1 to nops ( a1 ) do
+
+	aa := [a1[i],op([args[3..-1]])];
+		
+	if ff ( op(aa) ) then
+	
+		next;
+		
+	else
+	
+		break;
+		
+	fi;
+	
+od;
+
+a1[i..-1];
+
+end;
+#
+#
+
+splitlist := proc ( ff, a1 :: list )
+
+local i, aa, l1, l2;
+
+l1 := [];
+l2 := [];
+
+for i from 1 to nops ( a1 ) do
+
+	aa := [a1[i],op([args[3..-1]])];
+		
+	if ff ( op(aa) ) then
+	
+		l1 := [op(l1), a1[i]];
+		
+	else
+	
+		l2 := [op(l2), a1[i]];
+		
+	fi;
+	
+od;
+
+[l1, l2];
+
+end;
+
+#
+#
+#
+
+mapall := proc ()
+
+if type ( args[2], list ) then
+
+	if nargs > 2 then
+	
+		map ( (xx, ff, yy) -> mapall ( ff, xx, yy ), args[2], args[1], args[3..nargs] );
+	
+	else
+	
+		map ( (xx, ff) -> mapall ( ff, xx ), args[2], args[1] );
+		
+	fi;
+	
+else
+
+	if nargs > 2 then
+
+		args[1](args[2],args[3..nargs]);
+
+	else
+	
+		args[1](args[2]);
+		
+	fi;
+	
+
+	
+fi;
+
+end:
+
+#
+#
+#
+
+listparallel := proc ( l1, l2 ) 
+
+zip ( (x,y)->[x,y], l1, l2 ); 
+
+end;
+
+#
+# removedouble ( (x,y)->f(x,y), liste ) betrachtet in einer Liste alle
+# Elemente x,y als aequivalent, die f(x,y)=true haben, und laesst von jeder
+# Aeqivalenzklasse nur ein Element stehen
+#
+#
+
+removedouble := proc ( f, l )
+
+local res,
+		l1, tt;
+
+res := [];
+
+l1 := l;
+
+while nops ( l1 ) > 0 do
+
+	tt := l1[1];
+	
+	res := [op(res), tt];
+	
+	l1 := remove ( f, l1[2..-1], tt );
+	
+od;
+
+res;
+
+end;
+
+#
+#
+#
+
+equivclasses := proc ( f, l )
+
+local res, e, i;
+
+res:= [];
+
+for e in l do
+
+	i := firstpos ( (x,y)->selectfirst(f,x,y)<>FAIL, res, e );
+	
+	if i = FAIL then
+	
+		res := [op(res),[e]];
+		
+	else
+	
+		res := subsop(i=[op(op(i,res)),e], res);
+		
+	fi;
+	
+od;
+
+res;
+
+end;
+
+
+
+#
+#
+#
+
+listsubtract := proc ( l1, l2, ff )
+
+local res, i, j,
+		tst;
+
+res := [];
+
+for i from 1 to nops ( l1 ) do
+
+	tst := l1[i];
+
+	for j from 1 to nops ( l2 ) do
+
+		if ff ( tst, l2[j] ) then
+
+			break;
+		
+		fi;
+		
+	od;
+
+	if j = nops ( l2 ) + 1 then
+
+		res := [op(res), tst];
+
+	fi;
+
+od;
+
+res;
+
+end;
+
+#
+#
+#   listminus ( ll1, ll2 )
+#   Input: two lists ll1, ll2 of names
+#   Output: a list of elements by which must be added to ll2 to get ll1
+#           if possible, FAIL else
+#
+#
+
+listminus := proc ( l1, l2 )
+
+local l11, l21, m;
+
+l11 := convert ( l1, `*` );
+l21 := convert ( l2, `*` );
+
+m := l11/l21;
+
+if denom ( m ) <> 1 then
+
+    FAIL;
+
+elif numer ( m ) = 1  then
+
+    [];
+
+else
+
+    mon2ms ( m );
+
+fi;
+end;
+
+#
+#
+#
+#
+
+reverse := proc ( l :: list )
+
+local i;
+
+[seq(l[-i],i=1..nops(l))];
+
+end;
+
+#
+#
+
+arraytolist := proc ( A )
+
+local ind;
+
+ind := [indices(A)];
+
+ind := sort ( ind, (xx,yy)-> vleq ( xx, yy ) );
+
+map ( (x,y)->y[op(x)], ind, A );
+
+end;
+
+#
+#
+#
+
+selectfirst := proc ()
+
+local res;
+
+res := select ( args );
+
+if nops ( res ) > 0 then res[1] else FAIL; fi;
+
+end;
+
+#
+#
+#
+
+firstpos := proc ( ff, l )
+
+local i,
+		aktarg;
+
+for i from 1 to nops ( l ) do
+
+	aktarg := l[i], args[3..-1];
+	
+	if evalb ( ff ( aktarg ) ) then 
+	
+		break;
+		
+	fi;
+	
+od;
+
+if i = nops ( l ) + 1 then
+
+	RETURN ( FAIL );
+	
+else
+
+	RETURN ( i );
+	
+fi;
+
+end;
+
+#
+#
+#
+
+listify := proc ( e )
+
+if nargs = 1 and type (e, list ) then RETURN ( e ); fi;
+
+RETURN ( [args] );
+
+end;

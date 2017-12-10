@@ -1,0 +1,47 @@
+
+FUNCTION: structConst - computes the structure constants of an algebra of
+                        vectorfields
+
+    
+CALLING SEQUENCE:
+   structConst(vfList, vars)
+   structConst(vfList, vars, vB)
+      
+PARAMETERS:
+   vfList   - a list of expressions
+   vars     - a list of variables
+   vB       - (optional) a list of variables
+         
+SYNOPSIS:   
+- vfList is a list of vectorfields in the notation explained in vectfToDeq or
+  vliebrack.
+  
+- The vars which are the space-coordinates of the vectorfields are given in 
+  vars, the auxiliary indeterminates in the optional argument vB. Default is 
+  p, q, that is a vectorfield in the plane.
+  Obviously vB and vars must have the same number of elements.
+ 
+- The vectorfields in vfList must form a lie-algebra under the lie-bracket 
+  ( this is not checked ) otherwise errors result or the answer is meaningless.
+  
+- The result is a table of three indices, giving the structure constants, that 
+  is, if 
+  
+     vfList = [X1,...,Xn]
+     
+  then the result is C[i,j,k] with 1 <= i,j,k <= n and the relation
+  
+     ((Xi,Xj)) = sum C[i,j,k] * Xk
+               k=1..n
+  
+  ((Xi,Xj)) meaning the lie-bracket of Xi, Xj.
+
+- It is possible that the correct result will not be found, usually because the 
+  expressions giving the vectorfields are too complicated to solve automatically
+  for the C[i,j,k] in the defining equation above
+
+  
+EXAMPLES:   
+      
+SEE ALSO: vectfToDeq
+

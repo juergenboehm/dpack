@@ -1,0 +1,548 @@
+
+
+remdep ( [xi, eta, sigma, rho] );
+
+depend ( [xi, eta, sigma, rho], [x,y] );
+
+
+#
+#
+#
+#
+
+touppername := proc ( s )
+
+local l1, r, c, i;
+
+l1 := `ABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789/`;
+
+r := ``;
+
+for i from 1 to length ( s ) do
+
+	c := substring ( s, i );
+	c := substring ( l1, searchtext ( c, l1 ) );
+	
+	r := cat ( r, c );
+	
+od;
+
+r;
+
+end;
+
+#
+#
+#
+#
+
+stringtobool := proc ( s )
+
+local i, res, c;
+
+res := [];
+
+for i from 1 to length ( s ) do
+
+	c := substring ( s, i );
+	
+	if c = `f` then
+	
+		res := [op(res), false];
+		
+	elif c = `t` then
+	
+		res := [op(res), true];
+		
+	else
+	
+		res := [op(res), FAIL];
+		
+	fi;
+	
+od;
+
+res;
+
+end;
+
+#
+#
+#
+
+booltostring := proc ( bl )
+
+local s;
+
+s := map ( proc ( x ) option operator;
+			if x then `t`; else `f`; fi; end, bl );
+			
+s := cat ( op(s) );
+
+end;
+
+#
+#
+#
+#
+
+read cat ( DPACKPATH, `grouplist` );
+
+#
+#
+
+casetofun := proc ( casebool, xfun, yfun )
+
+local vars,
+		varsxf, varsyf,
+		sl;
+
+vars := [op(xfun)];
+
+varsxf := zip ( (x,y)->[x,y], vars, casebool[1..2] );
+
+varsxf := remove ( x->x[2]=true, varsxf );
+
+varsxf := map ( x->x[1], varsxf );
+
+sl := [op(0,xfun)(op(varsxf))];
+
+varsyf := zip ( (x,y)->[x,y], vars, casebool[3..4] );
+
+varsyf := remove ( x->x[2]=true, varsyf );
+
+varsyf := map ( x->x[1], varsyf );
+
+sl := [op(sl), op(0,yfun)(op(varsyf))];
+
+sl;
+
+end;
+
+#
+#
+
+casetoderiv := proc ( casebool, xfun, yfun )
+
+local vars,
+		fl,
+		res;
+
+vars := dgetvars ( [xfun] );
+
+fl := casetofun ( casebool, xfun, yfun );
+
+res := select ( x -> x <> 0, outer ( [fl, vars], (xx,yy)->diff(xx,yy) ) );
+
+res := subs ( fl[1] = xfun, fl[2] = yfun, res );
+
+end;
+
+#
+#
+#
+
+checkderivs := proc ( case, xsubs, ysubs )
+
+local tst,
+		f, g;
+
+tst :=casetoderiv ( map(xx->not(xx),stringtobool ( case )), f(x,y), g(x,y) );
+
+tst := normal ( eval ( value ( subs ( f(x,y) = xsubs, g(x,y) = ysubs, tst ) ) ) );
+
+tst := select ( xx -> xx <> 0, tst );
+
+if nops ( tst ) > 0 then
+
+	false;
+
+else
+
+	true;
+
+fi;
+
+end;
+
+#
+#
+#
+#
+
+getJanetBaseIndices := proc ( typinfo )
+
+local res,
+		indl,
+		erg1, erg2,
+		ii, ff,
+		JBSFILE;
+
+global _jbaselist;
+
+JBSFILE := makeJBSFILENAME ( typinfo );
+
+if not fileExists ( JBSFILE ) then
+
+	print ( `Error: jbsfile doesn't exist` );
+	
+	RETURN ( FAIL );
+	
+fi;
+
+						
+tempforgetdep ();
+
+read JBSFILE;
+
+restoredep ();
+
+res := _jbaselist;
+
+indl := indices ( res );
+
+erg1 := [];
+erg2 := [];
+
+for ii in indl do
+
+	if has ( res[op(ii)], POINTER ) then
+	
+		erg2 := [op(erg2), ii];
+		
+	else
+	
+		erg1 := [op(erg1), ii];
+		
+	fi;
+	
+od;
+
+ff := proc ( x ) option operator;
+		if nops ( x ) = 2 then
+			[booltostring(x[2])];
+			
+		else
+		
+			[booltostring(x[2]), x[3]];
+			
+		fi; end;
+		
+erg1 := map ( ff, erg1 );
+erg2 := map ( ff, erg2 );
+
+ 
+[erg1, erg2];
+
+end;
+
+#
+#
+#
+
+getGenJanetBaseLead := proc ( typinfo )
+
+local oldtyp,
+		res,
+		newtyp;
+
+oldtyp := typinfo;
+
+while true do
+
+	res := getGenJanetBase ( oldtyp, 'newcase' );
+
+	newtyp := changecase ( oldtyp, getcase(oldtyp), newcase );
+
+	if oldtyp = newtyp then
+
+		break;
+
+	fi;
+
+	oldtyp := newtyp;
+
+od;
+
+res;
+
+end;
+
+
+#
+#
+#
+
+getGenJanetBase := proc ( typinfo )
+
+local 	matchlist,
+		typinfo1,
+		liedim, lienr, subtypnr, case,
+		speclabel,
+		templ, s,
+		JBSFILE,
+		casebool,
+		case1bool,
+		slcase,
+		ind, indl,
+		res, res1;
+
+global _jbaselist, sig, rh, x, y;
+
+
+liedim := getliedim ( typinfo );
+lienr := getlienr ( typinfo );
+
+case := getcase ( typinfo );
+speclabel := getspeclabel ( typinfo );
+
+casebool := stringtobool ( case );
+
+if nargs = 2 then
+
+	assign ( args[2], booltostring ( casebool ) );
+	
+fi;
+
+JBSFILE := makeJBSFILENAME ( typinfo );
+
+
+if not fileExists ( JBSFILE ) then
+
+	print ( `Error: jbsfile doesn't exist` );
+	
+	RETURN ( FAIL );
+	
+fi;
+
+						
+tempforgetdep ();
+
+read JBSFILE;
+
+restoredep ();
+
+res:=_jbaselist;
+ 
+ind := lienr, casebool;
+
+if speclabel <> FAIL then
+
+	ind := ind, speclabel;
+	
+	indl := [indices ( res )];
+	
+	ind := select ( (x,y)->x[1..-2]=y, indl, [ind]);
+	
+	ind := op(op(ind));	
+fi;
+ 
+res1 := res[ind];
+
+while has ( res1, POINTER ) do
+
+	case1bool := op ( res1 );
+	
+	if nargs = 2 then
+	
+		assign ( args[2], booltostring( case1bool ) );
+		
+	fi;
+		
+	ind := lienr, case1bool;
+
+	if speclabel <> FAIL then
+
+		ind := ind, speclabel;
+
+		indl := [indices ( res )];
+
+		ind := select ( (x,y)->x[1..3]=y, indl, [ind]);
+
+		ind := op(op(ind));	
+
+	fi;
+	
+	res1 := res[ind];
+	
+	res1 := eval(value(
+			subs ( zip ( (x,y)->x=y, casetofun ( case1bool, sig(x,y), rh(x,y) ),
+									 casetofun ( casebool, sig(x,y), rh(x,y) ) ),
+									 res1 ) ));
+		
+od;	
+		
+res1;
+	
+end;
+
+#
+#
+
+getEqsubsl := proc ( typinfo, fs )
+
+local res,
+		res1,
+		tst,
+		oldcase,
+		leadcase,
+		typinfo1,
+		i;
+
+oldcase := getcase ( typinfo );
+
+res := getGenJanetBase ( typinfo, 'leadcase' );
+
+res1 := res;
+
+typinfo1 := typinfo;
+
+while leadcase <> oldcase do
+
+	typinfo1 := changecase ( typinfo1, oldcase, leadcase );
+
+	oldcase := leadcase;
+
+	res1 := getGenJanetBase ( typinfo1, 'leadcase' );
+		
+od;
+
+tst := cAnalyzeEqListX ( res1, fs, nolead );
+
+tst := map ( xx->xx[1], tst );
+
+res := [seq ( dmatch ( tst[i], res[i], [xi, eta] ), i = 1..nops ( tst ) )];
+
+res := subs ( [sig(x,y) = sigma, rh(x,y) = rho, sig(x) = sigma, sig(y) = sigma,
+rh(x) = rho, rh(y) = rho], res );
+
+res := map ( xx->xx[2..-1], res );
+
+res := flatten2 ( res );
+
+end;
+
+#
+#
+
+getdxaddlist := proc ( typinfo, xf, yf )
+
+local cs,
+		dxaddlist,
+		oldcotes;
+
+cs := getcase ( typinfo );
+
+cs := stringtobool ( cs );
+
+dxaddlist := casetoderiv ( map ( xx -> not(xx), cs ), xf, yf );
+
+dxaddlist := [ op(dxaddlist), 
+				op ( getaddRelations ( typinfo, xf, yf ) ) ];
+
+oldcotes := setcotes ( [xf, yf], totDegOrder ( [xf, yf] ));
+
+dxaddlist := map ( proc ( eq, fs )
+				 		local dxidts, dlm;
+						dxidts := dxindets ( eq, fs );
+						dlm := dxidts[1];
+						dlm = frontend ( solve, [eq, dlm] ); end, dxaddlist, [xf, yf] );
+
+
+setcotes ( [xf, yf], oldcotes );
+
+dxaddlist;
+
+end;
+
+#
+#
+
+getaddRelations := proc ( typinfo, xf, yf )
+
+local res;
+
+global _addrelations;
+
+if assigned ( _addrelations[typinfo] ) then
+
+	res := subs ( sigma = xf, rho = yf, _addrelations[typinfo] );
+	
+else
+
+	res := [];
+	
+fi;
+
+end;
+
+#
+#
+
+getassertlist := proc ( typinfo, xf, yf )
+
+local vars, X, Y,
+		cs,
+		fl,
+		res;
+
+vars := dgetvars ( [xf] );
+
+X := vars[1];
+
+Y := vars[2];
+
+cs := getcase ( typinfo );
+
+cs := stringtobool ( cs );
+
+fl := casetofun ( cs, xf, yf );
+
+res := [ diff (fl[1], X) * diff ( fl[2], Y ) - diff ( fl[1], Y ) * diff ( fl[2], X ) ];
+
+res := subs ( fl[1] = xf, fl[2] = yf, res );
+
+res := [op(res),
+			op( casetoderiv ( cs, xf, yf ) ) ];
+			
+res := [op(res), xf, yf, xf - yf ];
+
+if assigned ( _extraass[typinfo] ) then
+
+	res := [op(res), op(subs (sigma=xf, rho=yf, _extraass[typinfo] )) ];
+	
+fi;
+
+res;
+
+end;
+
+
+
+#
+#
+
+_addrelations := table ( [] );
+
+_addrelations[[3,7,ffff,1]] := [diff(sigma,x)*diff(rho,y)-c*diff(rho,x)*diff(sigma,y)];
+
+_addrelations[[[3,7,ffff,1],[c=-1]]] := [diff(sigma,x)*diff(rho,y)+diff(rho,x)*diff(sigma,y)];
+
+_addrelations[[3,10,ffff,1]] := [diff(sigma,x)*diff(rho,y)+diff(sigma,y)*diff(rho,x)];
+
+_addrelations[[3,20,ffff,1]] := [diff(rho,x)*diff(sigma,y)-
+									diff(sigma,x)*diff(rho,y)+diff(sigma,x)*diff(sigma,y)];
+#
+#
+									
+_extraass := table ( [] );
+
+_extraass[[3,7,ffff]] := [diff(sigma,x)*diff(rho,y)-c*diff(rho,x)*diff(sigma,y)];
+
+_extraass[[[3,7,ffff],[c=-1]]] := [diff(sigma,x)*diff(rho,y)+diff(rho,x)*diff(sigma,y)];
+
+_extraass[[3,10,ffff]] := [diff(sigma,x)*diff(rho,y)+diff(sigma,y)*diff(rho,x)];
+
+_extraass[[3,20,ffff]] := [diff(rho,x)*diff(sigma,y)-
+									diff(sigma,x)*diff(rho,y)+diff(sigma,x)*diff(sigma,y)];
+

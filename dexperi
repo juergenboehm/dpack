@@ -1,0 +1,185 @@
+
+derivedGrp := proc ( vflist )
+
+local vars1, vB1, C, n, dimlie, aa, rowakt, i, j, k, erg;
+
+if nops ( vflist ) = 0 then
+
+	RETURN ( [] );
+	
+fi;
+
+
+if nargs < 3 then
+
+	vB1 := [p,q];
+	
+else
+
+	vB1 := args[3];
+	
+fi;
+
+if nargs < 2 then
+
+	vars1 := [x,y];
+	
+else
+
+	vars1 := args[2];
+	
+fi;
+
+dimlie := nops ( vflist );
+n := nops ( vars );
+
+C := structConst ( vflist, vars1, vB1 );
+
+aa := matrix ( dimlie * ( dimlie - 1 ) / 2, dimlie );
+
+rowakt := 1;
+
+for i from 1 to dimlie - 1 do
+for j from i+1 to dimlie do
+
+	for k from 1 to dimlie do
+	
+		aa[rowakt,k] := C[i,j,k];
+		
+	od;
+
+	rowakt := rowakt + 1;
+		
+od; od;
+ 
+
+erg := linalg[rowspace] ( aa );
+
+erg := map( x->convert( x, list ), [op(erg)] );
+
+erg := sort ( erg, (x,y)-> not vleq ( x, y) );
+
+map ( (xx,vfl)->convert( zip((x,y)->x*y, xx, vfl ), `+` ), 
+			erg, vflist );
+end;
+
+#
+#
+#
+#
+
+
+derivedSer := proc ( vflist )
+
+local vB1, vars1, resl, vfl0, vfl1;
+
+if nargs < 3 then
+
+	vB1 := [p,q];
+	
+else
+
+	vB1 := args[3];
+	
+fi;
+
+if nargs < 2 then
+
+	vars1 := [x,y];
+	
+else
+
+	vars1 := args[2];
+	
+fi;
+
+resl := [];
+
+vfl0 := vflist;
+
+while true do
+
+	resl := [op(resl), vfl0];
+
+	vfl1 := derivedGrp ( vfl0, vars1, vB1 );
+	
+	if vfl1 = vfl0 then
+	
+		break;
+		
+	fi;
+	
+	vfl0 := vfl1;
+	
+od;
+
+resl;
+
+end;
+
+
+#
+#
+#
+
+dtrans := proc ( eql, deq )
+
+local X, Y, U, V,
+	sl, rsnew, deq1;
+
+X := lhs ( eql[1] );
+Y := lhs ( eql[2] );
+
+sl := [ X = U, Y = V(U)];
+
+rsnew := subs ( sl, map ( rhs, eql ) );
+
+deq1 := vsubs ( [U], [ X = rsnew[1] ], [Y(X) = rsnew[2] ], deq, extsubs );
+
+# deq1 := convert ( deq1, diff );
+
+deq1 := normal ( eval ( value ( deq1 ) ) );
+
+if not has ( [args], full ) then
+
+	deq1 := numer ( deq1 );
+	
+fi;
+
+deq1 := subs ( [V(U) = Y(X), U = X ], deq1 );
+
+deq1 := dxcollect ( deq1, [Y(X)] );
+
+end;
+
+
+#
+#
+#
+
+
+dresolveRoot := proc ( typinfo, jb, fs, e )
+
+local e1;
+
+if not type ( e, list ) then
+
+	e1 := [e];
+	
+else
+
+	e1 := e;
+	
+fi;
+
+e1 := convert(e1, RootOf);
+
+e1 := dresolve ( typinfo, jb, fs, e1 );
+
+e1 := convert ( e1, RootOf );
+
+e1 := allvalues ( e1 );
+
+e1 := normal ( [e1] );
+
+end;

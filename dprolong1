@@ -1,0 +1,1133 @@
+
+dprolong1 := proc ( vec, vBLists1, varLists1, ord )
+
+local res,
+	varLists,
+	vBLists,
+	m, n,
+	zeroI,
+	k,
+	dop,
+	xival, etaval,
+	p,
+	v1,
+	indeps, deps,
+	i, l,
+	aa,
+	Il,
+	Il0,
+	Ii,
+	ll, 
+	Ila,
+	II,
+	e,
+	s,
+	vres;
+
+global _dop, _aa;
+
+
+if type ( vec, list ) then
+
+	res := map ( procname, vec, VBLists1, varLists1, ord );
+	
+	RETURN ( res );
+	
+fi;
+
+
+
+varLists := varLists1;
+
+vBLists := vBLists1;
+
+
+m := nops ( varLists[1] );
+
+n := nops ( varLists[2] );
+
+zeroI := [0 $ m];
+
+
+for k from 1 to m do
+
+	_dop[k] := subs ( Diff = diff, makeDoperat ( k, varLists, ord ));
+
+	dop[k] := eval ( _dop[k] );
+
+od;
+
+v1 := vectostdform ( vec, vBLists, varLists );
+
+v1 := veccollectX ( v1, vBLists );
+
+indeps := varLists[1];
+
+deps := varLists[2];
+
+for i from 1 to m do
+
+	xival[i] := coeff ( v1, vBLists[1][i] );
+	
+od;
+
+for i from 1 to n do
+
+	etaval[i] := coeff ( v1, vBLists[2][i][op(zeroI)] );
+	
+od;
+
+
+for l from 1 to n do
+
+	aa[l] := etaval[l] -
+		
+		add ( xival[p] * makeextstr ( l, varLists, addi ( zeroI, p ) ),
+
+				p = 1..m );
+
+
+od;
+
+
+s := 0;
+
+
+if nargs >= 5 then
+	
+	Ila := args[5];
+		
+else
+	
+	Ila := [];
+
+	Il0 := indexlstleq ( ord, m );
+
+	Il0 := Il[2..-1];
+
+	for l from 1 to n do
+
+		Il := Il0;
+
+		Il := map ( (x,y) -> [y,x], Il, l );
+
+		Ila := [op(Il), op(Ila)];
+
+
+	od;	
+
+fi;
+
+
+for II in Ila do
+
+	ll := II[1];
+
+	_aa := aa[ll];
+
+	Ii := II[2]; 
+
+	e := dopapply ( Ii, _aa );
+
+	e := e + add ( 
+
+		dop[p] ( makeextstr ( ll, varLists, Ii )) * xival[p], p=1..m );
+
+	if assigned ( _prolongrels ) then
+
+		e := tdsubs ( _prolongrels, e );
+
+	fi;
+
+	if assigned ( _prolongrelsv ) then
+
+		e := normevalval ( subs ( _prolongrelsv, e ) );
+
+	fi;
+
+	s := s + normevalval(e) * makeextstr ( ll, vBLists, Ii );
+
+od;
+		
+
+vres := v1 + s;
+
+end;
+
+#
+#
+#
+
+dopapply := proc ( Ii, e )
+
+local e1,
+		nu, i;
+
+global _dopappcache;
+
+
+e1 := e;
+
+for nu from 1 to nops ( Ii ) do
+
+	for i from 1 to Ii[nu] do
+	
+		e1 := normevalval ( _dop[nu] ( e1 ) );
+		
+	od;
+
+od;
+
+e1;
+
+end;
+
+
+#
+#
+
+dprolong := proc ( vec, vBLists1, varLists1, order )
+
+local vBInd,vBDep,
+		indvars,
+		m,
+		depvars,
+		n,
+		xiT,etaT,
+		vec1,
+		zeroI,
+		sl,
+		a,
+		i,k,
+		dDo,
+		l,
+		erg,
+		ord,
+		maxorder,
+		minorder,
+		Ilist,Ii,
+		vBLists,varLists,
+		slvar,slvar1,
+		vBEl;
+
+
+global _xiTable, _etaTable, _varLists, _dDkxiTable;
+
+
+if type ( vec, list ) then
+
+	RETURN ( 
+	map ( dprolong, args )
+	);
+fi;
+
+
+vBLists := vBLists1;
+varLists := varLists1;
+
+_varLists := varLists;
+
+vBInd := vBLists[1];
+vBDep := vectostdform ( vBLists[2], vBLists, varLists );
+
+indvars := varLists[1];
+m := nops ( indvars );
+
+depvars := varLists[2];
+n := nops ( depvars );
+
+
+vec1 := vectostdform ( vec, vBLists, varLists );
+
+vec1 := veccollectX ( vec1, vBLists );
+
+#slvar := [];
+#slvar1 := [];
+
+zeroI := [ 0 $ m ];
+
+#for a from 1 to n do
+#
+#	slvar := [op(slvar), varLists[2][a] = makeextstr ( a, varLists, zeroI ) ];
+#	slvar1 := [op(slvar1), vBLists[2][a] = makeextstr ( a, vBLists, zeroI ) ];
+#od;
+
+
+# vec1 := subs ( slvar, vec1 );
+
+
+for i from 1 to m do
+
+	_xiTable[i] := coeff ( vec1, vBInd[i] );
+	
+od;
+
+_etaTable := table ( [] );
+
+if type ( order, integer ) then
+
+	minorder := 1;
+	maxorder := order;
+
+	for a from 1 to n do
+
+		_etaTable[a] := coeff ( vec1, vBDep[a] );
+
+	od;
+
+elif type ( order, list(integer) ) then
+
+	minorder := order[1] + 1;
+	maxorder := order[2];
+	
+	
+	for a from 1 to n do
+	
+		_etaTable[a] := coeff ( vec1, vBDep[a] );
+		
+	od;
+	
+	for ord from 1 to minorder - 1 do
+	
+		Ilist := indexlsteq ( ord, m );
+		
+		for Ii in Ilist do
+		
+			for a from 1 to n do
+			
+				_etaTable[a,Ii] := coeff ( vec1, makeextstr(a,vBLists,Ii) );
+				
+			od;
+			
+		od;
+		
+	od;	
+			
+fi;
+
+
+forget ( makeDoperat );
+forget ( computeEtaVal );
+
+
+for k from 1 to m do
+	
+	dDo := makeDoperat ( k, varLists, maxorder );
+	
+	for l from 1 to m do
+	
+		_dDkxiTable[k,l] := normal ( value ( dDo ( _xiTable[l] )));
+		
+	od;
+	
+od;
+
+
+erg := vec1;
+
+# erg := subs ( slvar1, erg );
+
+if nargs <= 4 or not type ( args[5], list ) then
+
+	for ord from minorder to maxorder do
+
+		Ilist := indexlsteq ( ord, m );
+
+		for a from 1 to n do
+
+		for Ii in Ilist do
+
+			erg := erg +
+
+					makeextstr ( a, vBLists, Ii ) * computeEtaVal ( a, Ii );
+
+		od;
+		od;
+
+	od;
+
+elif type ( args[5], list ) then
+
+	for vBEl in args[5] do
+	
+		a := vBEl[1];
+		Ii := vBEl[2];
+		
+		erg := erg + makeextstr ( a, vBLists, Ii ) * computeEtaVal ( a, Ii );
+					
+	od;
+
+fi;
+
+
+#sl := map ( z->rhs(z)=lhs(z), sl );
+
+#erg := subs ( sl, erg );
+
+forget ( makeDoperat );
+
+if not has ([args], noforget ) then
+	forget ( computeEtaVal );
+fi;
+
+forget ( indexlsteq );
+forget ( indexlstleq );
+
+RETURN ( erg );
+
+end:
+
+#
+# nur fuer nicht extendierte Vektoren
+#
+
+veccollect := proc ( vec, vBLists )
+
+local ff,vBL;
+
+if nargs = 3 then
+
+	ff := args[3];
+	
+else
+
+	ff := z->normal ( z );
+
+fi;
+
+vBL := flatstrstr ( vBLists );
+
+lincollect ( vec, vBL, ff );
+
+end:
+
+#
+#
+
+
+computeEtaVal := proc ( a, Ii )
+
+local m,k,J,ordJ,dDk,etaaJ,erg,s,l, res;
+
+global _xiTable, _etaTable, _varLists, _dDkxiTable, _prolongrels, _prolongrelsv;
+
+option remember;
+
+m := nops ( _varLists[1] );
+
+if iszerol ( Ii ) then
+
+	RETURN ( _etaTable[a] );
+	
+fi;
+
+if assigned ( _etaTable[a,Ii] ) then
+
+	RETURN ( _etaTable[a,Ii] );
+	
+fi;
+
+k := firstnonzero ( Ii );
+
+J := addik ( Ii, k, -1 );
+
+ordJ := tdeg ( J );
+
+dDk := makeDoperat ( k, _varLists, ordJ );
+
+etaaJ := computeEtaVal ( a, J );
+
+erg := normal ( value ( dDk ( etaaJ )));
+
+s := 0;
+
+for l from 1 to m do
+
+	s := s + makeextstr ( a, _varLists, addi ( J, l ) ) * _dDkxiTable[k,l];
+	
+od;
+
+res := normal ( erg - s );
+
+if assigned ( _prolongrels ) then
+
+	res := tdsubs ( _prolongrels, res );
+
+fi;
+
+if assigned ( _prolongrelsv ) then
+
+	res := normevalval ( subs ( _prolongrelsv, res ) );
+
+fi;
+
+res;
+
+end:
+
+
+#
+# generate operator of total differentiation by independent variable number k
+#
+
+makeDoperat := proc ( k, varLists, order )
+
+local m,n,Ilist,dD,a,Ii;
+
+option remember;
+
+m := nops ( varLists[1] );
+n := nops ( varLists[2] );
+
+Ilist := indexlstleq ( order, m );
+
+dD := 0;
+
+for a from 1 to n do
+
+	for Ii in Ilist do
+	
+		dD := dD +
+		
+			makeextstr ( a, varLists, addi ( Ii, k ) ) *
+			
+				Diff( zzz, makeextstr ( a, varLists, Ii ) );
+				
+	od;
+od;
+
+dD := dD +
+
+		Diff ( zzz, varLists[1][k] );
+		
+unapply ( dD, zzz );
+
+end:
+
+
+#
+#
+#
+
+makevbaselist := proc ( vBLists, order )
+
+local m,n,Il,extvBList,a;
+
+m := nops(vBLists[1]);
+n := nops(vBLists[2]);
+
+
+Il := indexlstleq ( order, m, 0 );
+
+extvBList := [];
+
+for a from 1 to n do
+
+	extvBList := [op(extvBList),
+				op ( map ( (II, aa, vBL ) -> makeextstr ( aa, vBL, II ), Il, a, vBLists )) ];
+			
+od;
+
+forget ( indexlstleq );
+
+RETURN ( [vBLists[1],[ op(extvBList) ]] );
+
+end:
+
+#
+#
+#
+
+
+makeextvarlist := proc ( varLists, order )
+
+flatstrstr ( makevbaselist ( varLists, order ) );
+
+end:
+
+#
+#
+
+
+makegenericfun := proc ( fn, varLists, order )
+
+local funargs,fn1;
+
+funargs := makeextvarlist ( varLists, order );
+
+if has ( [args], 'dep' ) then
+
+	remdep ( fn );
+	
+	if type ( fn, function ) then
+	
+		fn1 := op(0,fn );
+		
+	else
+	
+		fn1 := fn;
+		
+	fi;
+	
+	depend ( fn1 , funargs );
+
+	RETURN ( fn1 ( op(funargs) ) );
+
+fi;
+
+RETURN ( fn ( op(funargs) ) );
+
+end:
+
+
+#
+#
+#
+#
+
+`type/extstr` := proc ( estr, strstr )
+
+evalb(
+(type ( estr, name ) and member ( estr, flatstrstr ( strstr ) )) or
+(type ( estr, indexed ) and member ( op ( 0, estr ), strstr[2] ) and
+	type ( [op(estr)], list(integer) ) and nops ( [op(estr)] ) = nops ( strstr[1] ) )
+);
+
+end;
+
+
+#`type/vecindet` := proc ( idt, vBLists )
+#
+#evalb ( (type ( idt, name ) and has ( vBLists, idt )) or
+#		(type ( idt, indexed ) and member ( op(0,idt), vBLists[2] ) ) );
+#		
+#end;
+
+`type/vecindet` := eval ( `type/extstr` );
+
+#
+#
+
+`type/vecbaseindet` := proc ( idt, vBLists )
+
+evalb ( (type ( idt, name ) and member ( idt, flatstrstr ( vBLists ) ) )
+		or 
+		( type (idt, vecindet(vBLists) ) and
+			vectdeg ( idt ) = 0 ) );
+
+end;
+
+#
+#
+
+`type/vecdepindet` := proc ( idt, vBLists )
+
+evalb ( type ( idt, vecindet ( vBLists ) ) and not member ( idt, vBLists[1] ) );
+
+end;
+
+#
+#
+
+`type/vecindepindet` := proc ( idt, vBLists )
+
+evalb ( type ( idt, vecindet ( vBLists ) ) and member ( idt, vBLists[1] ) );
+
+end;
+
+#
+#
+
+`type/shortformindet` := proc ( idt, vBLists )
+
+evalb ( (type ( idt, vecdepindet ( vBLists ) ) and ( 
+			member ( idt, vBLists[2] ) or vectdeg ( idt ) > 0 ) )
+		or
+		( type (idt, vecindepindet ( vBLists ) ) ) );
+
+end;
+
+#
+#
+
+`type/vecindexed` := proc ( idt, vBLists )
+
+evalb ( 
+type ( idt, indexed ) and not member ( idt, flatstrstr ( vBLists ) ) );
+
+end;
+
+#
+#
+#
+
+`type/vecnobaseindet` := proc ( idt, vBLists )
+
+evalb ( type ( idt, vecindet(vBLists) ) and not type ( idt, vecbaseindet(vBLists) ) );
+
+end;
+
+
+####################################################################################
+#
+# Die folgenden Routinen wechseln zwischen Kurzform und Standardform
+# wobei die Standardform z.B. durch xi(x,y[0])*p + eta(x,y[0])*q[0] + ... gegeben ist,
+# waehrend die Kurzform xi(x,y) * p + eta ( x,y ) * q +... lautet.
+#
+
+#
+# vidtstostdform und vidtstoshortform erzeugen Substitutionslisten.
+# beachte bei vidtstostdform die Erzeugung der Schutzsubstitution slprot
+#.
+
+vidtstostdform := proc ( vidtsl, strstrlist )
+
+local 	n,
+		zI,
+		v1, v2,
+		slprot, sl;
+
+n := nops ( strstrlist[1] );
+zI := [0 $ n];
+
+v1 := select ( (x,y)->type( x, vecbaseindet(y) ) and type (x, vecdepindet(y))
+						and type ( x, shortformindet(y) ),
+						 vidtsl, strstrlist);
+v2 := remove ( member, vidtsl, v1 );
+
+slprot := map ( x->x=nameprotect(x), v2 );
+sl := map ( (x,y)->x=x[op(y)], v1, zI );
+
+[slprot, sl];
+
+end;
+
+#
+#
+#
+
+vidtstoshortform := proc ( vidtsl, strstrlist )
+
+local 	n,
+		zI,
+		testl,
+		v1,
+		sl;
+
+n := nops ( strstrlist[1] );
+zI := [0 $ n];
+
+testl := map ( (x,y)-> x[op(y)], strstrlist[2], zI );
+
+v1 := select ( member, vidtsl, testl );
+
+sl := map ( x->x=op(0,x), v1 );
+
+end;
+
+#
+#
+#
+
+vectostdform := proc ( vec, vBLists, varLists )
+
+local 	vidts,
+		vidtsvar,
+		sll1, sll2,
+		vec1;
+
+vidts := [op(vecindets ( vec, vBLists ))];
+vidtsvar := [op(vecindets ( vec, varLists ))];
+
+sll1 := vidtstostdform ( vidts, vBLists );
+
+sll2 := vidtstostdform ( vidtsvar, varLists );
+
+vec1 := subs ( sll1[1], sll2[1], vec );
+
+vec1 := subs ( sll1[2], sll2[2], vec1 );
+
+vec1 := subs ( swapeqs ( sll1[1] ), swapeqs ( sll2[1] ), vec1 );
+
+vec1;
+
+end;
+
+#
+#
+
+vectoshortform := proc ( vec, vBLists, varLists )
+
+local	vidts,
+		vidtsvar,
+		sll1, sll2;
+		
+vidts := [op(vecindets ( vec, vBLists ) )];
+vidtsvar := [op(vecindets ( vec, varLists ) )];
+
+sll1 := vidtstoshortform ( vidts, vBLists );
+sll2 := vidtstoshortform ( vidtsvar, varLists );
+
+subs ( op(sll1), op(sll2), vec );
+
+end;
+
+#
+#
+#
+####################################################################################
+
+
+
+vecindets := proc ( vec, vBLists )
+
+local idts;
+
+idts := indets ( vec );
+
+idts := select ( (x,y) -> type ( x, vecindet(y) ), 
+								idts, vBLists );
+
+end:
+
+#
+#
+#
+
+vidtssort0 := proc ( vidts, vBLists )
+
+local tstl, zI, i;
+
+tstl := vBLists[1];
+
+zI := [0 $ nops ( vBLists[1] ) ];
+
+tstl := [op(tstl), seq ( op([vBLists[2][i],vBLists[2][i][zI]]), i = 1..nops ( vBLists[2] ) )];
+ 
+tstl := select ( member, tstl, vidts );
+
+end;
+
+#
+#
+
+vidtssort := proc ( vidts1, vBLists )
+
+local vidts,vbl,erg,a,adderg;
+ 
+vidts := vidts1;
+
+vbl := flatstrstr ( vBLists );
+
+# sortiere die Elemente 0-ter Ordnung aus
+
+erg := select ( (x,y) -> type ( x, vecbaseindet ( y ) ), vidts, vBLists );
+
+erg := vidtssort0 ( erg, vBLists );
+
+# vidts enthaelt dann nur die mit Ordnung >=1:
+
+vidts := vidts minus {op(erg)};
+
+# nun fuer alle abhaengigen indets:
+
+for a from 1 to nops ( vBLists[2] ) do
+
+	adderg := select ( (x,y)->  vecname(x) = y, vidts, vBLists[2][a] );
+
+	adderg := sort ( [op(adderg)], (x,y)->vleq(indlist(x), indlist(y)) );
+
+	erg := [op(erg), op(adderg)];
+
+od;
+
+RETURN ( erg );
+
+end:
+
+#
+#
+
+vecindetssort := proc ( vec, vBLists )
+
+vidtssort ( vecindets ( vec, vBLists ), vBLists );
+
+end:
+
+#
+#
+#
+
+vidtsorder := proc ( vidts, vBLists )
+
+local maxold, maxnew, vidtsa, a, vidts1;
+
+maxold := 0;
+
+vidts1 := select ( (x,y)->type (x, vecnobaseindet(y)), vidts, vBLists );
+
+for a from 1 to nops ( vBLists[2] ) do
+
+	vidtsa := select ( (x,y)-> vecname(x) = y, vidts1, vBLists[2][a]);
+
+	maxnew := max ( op( map ( x->vectdeg(x), vidtsa )) );
+
+	if maxnew > maxold then
+		maxold := maxnew;
+	fi;
+	
+od;
+
+maxold;
+end:
+
+#
+#
+#
+
+vecorder := proc ( vec, vBLists )
+
+local vidts;
+
+vidts := vecindets ( vec, vBLists );
+
+vidtsorder ( vidts, vBLists );
+
+end;
+
+
+#
+# auch fuer extendierte Vektoren
+#
+
+veccollectX := proc ( vec, vBLists )
+
+local fn,vidts,vec1;
+
+global _vidtssort;
+
+if nargs >= 3 then
+
+	fn := args[3];
+	
+else
+
+	fn := z->normal(z);
+	
+fi;
+
+vidts := vecindets ( vec, vBLists );
+
+vidts := vidtssort ( vidts, vBLists );
+
+_vidtssort := vidts;
+
+
+vec1 := lincollect ( vec, vidts, fn );
+vec1 := sort ( vec1, vidts );
+
+end:
+
+#
+#
+
+veccoeffs := proc ( vec, vBLists )
+
+local vidts,vec1;
+
+vidts := vecindetssort ( vec, vBLists );
+
+vec1 := lincollect ( vec, vidts );
+
+if nargs = 3 then
+
+	coeffs ( vec1, vidts, args[3] );
+	
+else
+
+	coeffs ( vec1, vidts );
+	
+fi;
+
+end:
+
+#
+#
+
+vecterms := proc ( vec, vBLists )
+
+local cfs, trms;
+
+cfs := veccoeffs ( vec, vBLists, 'trms' );
+
+if nargs = 3 then
+
+	assign ( args[3], cfs );
+	
+fi;
+
+trms;
+
+end:
+
+#
+#
+#
+#
+
+
+vecapply := proc ( vec, vBLists, varLists, f )
+
+local vec1,vcfs,vtrms,erg,i, res,
+		veca, fa,
+		fl,
+		ergl,
+		f1,
+		sl,
+		dop,
+		vtrmsvar;
+
+if type ( vec, list ) then
+
+	res := map ( (vv, x, y, z) -> vecapply ( vv, x, y, z ), vec, vBLists, varLists, f );
+
+	RETURN ( res );
+
+fi;
+
+# vec1 := veccollectX ( vec, vBLists );
+
+#vcfs := veccoeffs ( vec, vBLists, 'vtrms' );
+
+
+
+#vcfs := [vcfs];
+#vtrms := [vtrms];
+
+vtrms := [op(vecindets ( vec, vBLists ))];
+
+erg := 0;
+
+vtrmsvar := map ( (x,y,z)->convertextstr (x, y, z), vtrms, vBLists, varLists );
+
+sl := zip ( (x,y)->x=Diff(UUU,y), vtrms, vtrmsvar );
+
+dop := unapply ( subs ( Diff = diff, subs ( sl, vec )), UUU );
+
+fl := listify ( f );
+
+ergl := [];
+
+for f1 in fl do
+
+	#for i from 1 to nops ( vcfs ) do
+
+	#	erg := erg + vcfs[i] * diff(f1, convertextstr(vtrms[i],vBLists,varLists) );
+
+	#od;
+
+	erg := normal ( eval ( dop ( f1 ) ) );
+
+	ergl := [op(ergl), erg];
+
+od;
+
+if not type ( f, list ) then ergl := ergl[1]; fi;
+
+normal ( ergl );
+	
+end:
+
+#
+#
+
+vecwrapper := proc ( ff, vfl, vBLists, varLists, ord )
+
+local vB,
+		vars;
+
+vB := makevbaselist ( vBLists, ord );
+
+vB := flatstrstr ( vB );
+
+vars := makeextvarlist ( varLists, ord );
+
+# vars := flatstrstr ( vars );
+
+ff ( vfl, vars, vB, args[6..-1] );
+
+end;
+
+#
+#
+
+vecwrapper2 := proc ( ff, vfl, vBLists, varLists, ord )
+
+local vB,
+		vars;
+
+vB := makevbaselist ( vBLists, ord );
+
+vB := vB[2];
+
+vars := makevbaselist ( varLists, ord );
+
+vars := vars[2];
+
+ff ( vfl, vars, vB, args[6..-1] );
+
+end;
+
+#
+#
+#
+
+veccasesubs := proc ( casestr, vnames, ord, m )
+
+local	casebool,
+		idxl,
+		vnam,
+		idx,
+		n,
+		sl,
+		i, j;
+
+casebool := stringtobool ( casestr );
+
+n := nops ( casebool ) / m;
+
+idxl := indexlstleq ( ord, m );
+
+sl := [];
+
+for vnam in vnames do
+
+	for idx in idxl do
+	
+		for i from 1 to n do  # i Nummer der Funktion
+		
+			for j from 1 to m do  # Nummer der Variablen
+			
+				if casebool[(i-1)*m+j] then
+				
+					if idx[j] >= 1 then
+					
+						sl := [op(sl), makeextstr(vnam[i],[],idx)];
+						
+					fi;
+					
+				fi;
+				
+			od;
+		
+		od;	
+				
+	od;
+	
+od;
+
+map( xx -> xx = 0, sl );
+
+end;
+
+

@@ -1,0 +1,198 @@
+#
+#
+#  dsubs1, substitutes subst for dmonom in e together with all
+#  relations of the form diff(dmonom,vars)=diff(subs,vars)
+#
+
+
+pairsgeq :=proc ( e1, e2 )
+
+RETURN ( evalb ( op(1,e1) >= op(1,e2) ) );
+
+end;
+
+# prepareidtlist prepares a list of indeterminates ( l1 ) given by dsubs1
+# by removing all elements that are not diffmonoms to the function fname ( too
+# given by dsubs1 ) and sorting the remaining downwards in total degree order
+#
+
+prepareidtlist := proc ( l1, fname )
+
+local l, n, i, fn, v, reslist, reslist1;
+
+l:=l1;
+
+
+n := nops ( l );
+
+
+reslist := map ( x->difflist(x), l );
+reslist := zip ( (x,y)->[x,y], reslist, l );
+reslist := select ( (x,y)->x[1][1]=y, 
+			select ( x->x[1] <> FAIL, reslist ), fname );
+reslist := map ( x->[nops(x[1])-1,x[2]], reslist );
+
+reslist1 := reslist;
+
+
+reslist := op ( reslist1 );
+
+reslist := sort ( [reslist], pairsgeq );
+
+reslist := [ seq ( reslist[i][2],i=1..nops(reslist) ) ];
+
+RETURN ( reslist );
+
+end;
+
+
+#
+#
+
+dsubs1 := proc ( dmonom, subst, e1 )
+
+global _resflag;
+
+local e, fdmonom, vars, idtlist, i;
+
+e := e1;
+
+# e := expand ( eval ( value ( e )));
+
+e := eval ( value ( e ));
+
+fdmonom := fdifflist ( dmonom )[1];
+
+idtlist := prepareidtlist ([op(indets ( e ))], fdmonom );
+
+_resflag := false;
+
+for i from 1 to nops ( idtlist ) do
+
+    vars := diffcompare ( idtlist[i], dmonom );
+
+    if evalb ( vars = FAIL ) then
+        next;
+    fi;
+
+	_resflag := true;
+
+    if vars = [] then
+        e := subs ( dmonom=subst, e );
+    else
+        vars := op ( vars );
+        e := subs ( diff(dmonom,vars) = diff(subst,vars), e );
+    fi;
+od;
+
+RETURN ( e );
+end;
+
+#
+#
+#
+#
+#
+#
+#
+
+
+dsubs := proc ()
+
+global _resflag;
+
+local i, e, substeq, aktarg, resflag;
+
+if nargs < 2 then
+    ERROR ( `invalid arguments` );
+fi;
+
+if not type ( [[args[1..nargs-1]], args[nargs]], dsubsargs ) then
+    ERROR ( `invalid arguments` );
+fi;
+
+e := args[nargs];
+
+resflag := false;
+
+for i from 1 to nargs-1 do
+
+    aktarg := args[i];
+
+    e := dsubs1 ( lhs(aktarg), rhs ( aktarg ), e );
+
+	resflag := resflag or _resflag;
+
+od;
+
+_resflag := resflag;
+
+RETURN ( e );
+
+end;
+
+
+`type/dsubsargs` := [ dsubssublist, algebraic ]:
+
+`type/dsubssublist` := list ( dsubseq ):
+
+`type/dsubseq` :=  diffmonom = algebraic :
+
+
+
+
+#
+#
+#
+#
+
+tdsubs := proc ( slist, e )
+
+global _resflag;
+
+local e1, e2, fChanged;
+
+if nops ( slist ) = 0 then
+
+	RETURN ( e );
+	
+fi;
+
+
+if type ( e, list ) then
+
+	RETURN ( map ( (x,y)->tdsubs(y,x), e, slist ) );
+	
+fi;
+
+e1:=e;
+
+fChanged := false;
+
+
+while true do
+
+    e2 := dsubs ( op(slist), e1 );
+
+	if _resflag = false then
+	
+		_resflag := fChanged;
+
+		RETURN ( e1 );
+		
+	fi;
+    
+    e2 := dsimplify(eval(value(e2)));
+
+    if ( e1 <> e2 ) then
+
+        fChanged := true;
+
+    fi;
+
+    e1 := e2;
+od;
+
+RETURN ( e2 );
+end;
+

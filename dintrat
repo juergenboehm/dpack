@@ -1,0 +1,524 @@
+
+#
+#
+#
+#
+#
+#
+
+convert(1/x, parfrac, x, true );
+
+#
+#
+#
+
+
+xsqrfree := proc ( sqfl, x )
+
+local c, sl, xpp, xpn, xpx, cx, slr;
+
+global dummy;
+
+c := sqfl[1];
+
+sl := sqfl[2];
+
+sl := splitlist ( (x,y)->ldegree(x[1],y)=degree(x[1],y), sl, x );
+
+xpp := sl[1];
+
+xpn := eval ( condev2 ( nops ( xpp ) > 0, 'xpp[1][2]', 0 ));
+
+xpx := eval ( condev2 ( nops ( xpp ) > 0, 'xpp[1][1]', 1 ));
+
+cx := (xpx / x^xpn);
+
+slr := sl[2]; 
+
+dummy := 0;
+
+slr := map ( proc ( x, v ) local l, p; global dummy;
+
+				p := x[1];
+
+				l := ldegree(p,v);
+
+				if l > 0 then dummy := dummy + l*x[2]; fi;
+
+				[normal(p/v^l),x[2]]; end, slr, x );
+
+if dummy + xpn > 0 then
+
+	slr := [[x, dummy + xpn], op(slr)];
+	
+fi;
+
+# [c*cx^xpn, slr];
+
+[c, slr];
+
+end;
+
+
+#
+#
+#
+
+
+intrat1 := proc (f,x)
+
+local mysqrfree, mynormal, cf, fd2, fdp, dd, s1, res2, ai,
+		fn, fd, q, r1, dnsl, den, rr,  r, r2, res, r1i, r1r, qi, i, islogopt;
+
+global dummy;
+
+islogopt := evalb ( has ([args[3..-1]], islog ) );
+
+fn := numer ( f );
+
+fd := denom ( f );
+
+q := quo ( fn, fd, x,  'r' );
+
+qi := int ( q, x );
+
+if _intratalg = true then
+
+	mysqrfree := proc ( ) evala ( Sqrfree ( args ) ) end;
+	
+else
+
+	mysqrfree := sqrfree;
+	
+fi;
+
+
+if _intratalg = true then
+
+	mynormal := proc ( ) evala ( Normal ( args ) ) end;
+	
+else
+
+	mynormal := normal;
+	
+fi;
+
+s1 := 1;
+
+if r <> 0 then 
+	
+	fd := mysqrfree ( fd, x );
+	
+	fd := xsqrfree ( fd, x );
+	
+	cf := fd[1];
+	
+	fd2 := fd[2];
+	
+	fdp := mul ( fd2[i][1]^fd2[i][2], i=1..nops(fd2) );
+	
+
+	r1 := r/fdp;
+		
+	r1 := convert ( r/fdp, parfrac, x, true  );
+		
+	r1 := eval(condev2 ( type ( r1, `+` ), 'convert ( r1, list )', '[r1]' ));
+
+	r1 := map ( x->[numer(x),denom(x)], r1 );
+
+	dnsl := map ( x->x[1], fd2 );	
+									
+	r1i := 0;
+	r1r := 0;
+
+	for den in dnsl do
+	
+		dd := degree ( den, x );
+	
+		rr := select ( (a,b,v)->not has(denom(normal(a[2]/b)),v), r1, den, x );
+				
+		rr := map ( (x,y,v)-> [x[1],x[2],degree(x[2],v)/y], rr, dd, x );
+		
+		rr := map ( (x,d)-> [x[1]/(x[2]/(d^x[3])),x[3]], rr, den ); 
+		
+		# x[2]/d^x[3] should be always equal to 1
+		
+		
+		rr := sort ( rr, (x,y)->evalb(x[2]<y[2]) );
+
+		res := intratrec ( rr, den, x );
+		
+		r1i := r1i + res[1];
+		
+		r1r := r1r + res[2];
+
+		res2 := res[2];
+
+		ai := normal ( res2 / cf * den / diff ( den, x ) );
+
+		if type ( ai, integer )  and s1 <> FAIL then
+
+			s1 := s1 * den^ai;
+
+		else
+
+			s1 := FAIL;
+
+		fi; 
+
+		
+	od;
+	
+	r1i := r1i/cf;
+	
+	r1r := r1r/cf;
+
+else
+
+	r1r := 0;
+	r1i := 0;
+	
+fi;
+
+if islogopt<>true then
+
+	[qi+r1i, r1r];
+
+else
+
+# s1 ist FAIL oder diff(s1,x)/s1 = r1r
+
+	[qi+r1i, r1r, s1];
+
+fi;
+
+							
+end;
+
+#
+#
+#
+
+intratrec := proc ( Ala, Ba, x)
+
+local mygcdex, mynormal,
+		B, B1, A, A11, A12, ri, c, c1, Al, d, A1, res, s, t;
+
+global _intratalg;
+
+if _intratalg = true then
+
+	mygcdex := proc ( ) evala ( Gcdex ( args ) ) end;
+	
+else
+
+	mygcdex := gcdex;
+	
+fi;
+
+if _intratalg = true then
+
+	mynormal := proc ( ) evala ( Normal ( args ) ) end;
+	
+else
+
+	mynormal := normal;
+	
+fi;
+
+
+Al := Ala;
+
+d := Al[-1][2];
+
+A := Al[-1][1];
+
+Al := Al[1..-2];
+
+ri := 0;
+
+
+B := Ba;
+
+A := collect ( A, x, mynormal );
+
+B := collect ( B, x, mynormal );
+
+B1 := diff ( B, x );
+
+B1 := collect ( B1, x, normal );
+
+mygcdex ( B, B1, x, 's', 't' );
+
+
+while d > 1 do
+	
+	#mygcdex ( B, B1, A, x, 'c', 'c1' );
+
+	c := collect ( s*A, x, mynormal );
+	
+	c1 := collect ( t*A, x, mynormal );
+
+	if nops ( Al ) > 0 and Al[-1][2] = d-1 then
+
+		A1 := c-diff(c1,x)*(-1/(d-1))+Al[-1][1];
+		
+		Al := Al[1..-2];
+
+	else
+	
+		A1 := c-diff(c1,x)*(-1/(d-1));
+
+	fi;
+
+	A1 := collect ( A1, x, mynormal );
+
+	ri := ri + c1 * (-1)/(d-1) * 1/B^(d-1);
+
+	A11 := quo ( A1, B^(d-1), x, 'A12' );
+	
+	A11 := collect ( A11, x, mynormal );
+
+	ri := ri + int ( A11, x );
+
+	A := collect ( A12, x, mynormal );
+		
+	d := d-1;
+	
+od;
+
+res := [ri, A/B];
+
+end;
+
+#
+#
+#
+
+killzero := proc ( r, x )
+
+local rn, rd, d;
+
+rn := numer ( r );
+rd := denom ( r );
+
+d := degree ( rd, x );
+
+normal ( (rn - coeff ( rn, x, d ) *x^d ) / rd );
+
+end;
+
+#
+#
+#
+
+intrat := proc ( fa, x )
+
+local g, f1, f, radflg;
+
+global _intratalg;
+
+f := normal ( fa );
+
+if not type ( f, ratpoly ( ratpoly, x ) ) then
+
+	_intratalg := true;
+
+	if not has ( RootOf, f ) then
+
+			radflg := true;
+			
+	fi;
+
+	f1 := convert ( f, RootOf );
+	
+else
+
+	_intratalg := false;
+
+	f1 := f;
+	
+fi;
+
+g := intrat1 ( f1, x );
+
+if radflg = true then
+
+	g := convert ( g, radical );
+	
+fi;
+
+
+if g[2] <> 0 then
+
+	RETURN ( FAIL );
+	
+else
+
+	RETURN ( g[1] );
+	
+fi;
+
+end;
+
+#
+#
+#
+
+intlog := proc ( fa, x )
+
+local g, f1, f, radflg;
+
+global _intratalg;
+
+f := normal ( fa );
+
+if not type ( f, ratpoly ( ratpoly, x ) ) then
+
+	_intratalg := true;
+
+	if not has ( RootOf, f ) then
+
+			radflg := true;
+			
+	fi;
+
+	f1 := convert ( f, RootOf );
+	
+else
+
+	_intratalg := false;
+
+	f1 := f;
+	
+fi;
+
+g := intrat1 ( f1, x, islog );
+
+if radflg = true then
+
+	g := convert ( g, radical );
+	
+fi;
+
+
+if g[1] <> 0 or g[3] = FAIL then
+
+	RETURN ( FAIL );
+	
+else
+
+	RETURN ( g[3] );
+	
+fi;
+
+end;
+
+#
+#
+#
+#
+#
+
+intratv := proc ( fl, vl )
+
+local g, res, P1, R1, x1, fl2n, J;
+
+if nops ( vl ) = 1 then
+
+	res := intrat ( fl[1], vl[1] );
+	
+	RETURN ( res );
+		
+fi;
+
+P1 := fl[1];
+
+x1 := vl[1];
+
+R1 := intrat ( P1, x1 );
+
+if R1 = FAIL then
+		RETURN ( FAIL ); fi;
+
+if not type ( R1, ratpoly ( anything, vl ) ) then
+		RETURN (FAIL); fi;
+
+fl2n := listparallel ( fl[2..-1], vl[2..-1] );
+
+fl2n := map ( (x,y)->dnormal(x[1]-diff(y,x[2])), fl2n, R1 );
+
+J := intratv ( fl2n, vl[2..-1] );
+
+if J = FAIL then
+			RETURN (FAIL) fi;
+
+res := R1 + J;
+
+RETURN ( res );
+
+end;
+
+
+#
+#
+#
+#
+#
+
+
+intlogv := proc (fl, vl )
+
+local g, res, P1, R1, x1, fl2n, J;
+
+if nops (vl ) = 1 then
+
+	res := intlog ( fl[1], vl[1] );
+
+	RETURN ( res );
+
+fi;
+
+P1 := fl[1];
+
+x1 := vl[1];
+
+R1 := intlog ( P1, x1 );
+
+if R1 = FAIL then
+		RETURN ( FAIL ); fi;
+
+
+if not type ( R1, ratpoly (anything, vl ) ) then
+		RETURN ( FAIL ); fi;
+
+
+fl2n := listparallel ( fl[2..-1], vl[2..-1] );
+
+fl2n := map ( (x,y)->dnormal(x[1]-diff(y,x[2])/y), fl2n, R1 );
+
+J := intlogv ( fl2n, vl[2..-1] );
+
+if J = FAIL then
+			RETURN ( FAIL ); fi;
+
+
+res := R1 * J;
+
+RETURN ( res );
+
+end;
+
+#
+#
+#
+
+
+
+
+
+
+
+
+
+

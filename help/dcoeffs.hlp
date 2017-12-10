@@ -1,0 +1,27 @@
+
+FUNCTION: dcoeffs - Extracts the sequence of coefficients in a linear partial
+                    differential equation ( LPDE )
+      
+CALLING SEQUENCE:
+   dcoeffs(e, fs)
+   dcoeffs(e, fs, `t`)
+      
+PARAMETERS:
+   e    - an expression
+   fs   - a list of functions of the same independent variables
+   t    - an optional variable name
+      
+SYNOPSIS:   
+- The function dcoeffs considers e as a LPDE in the functions given in fs 
+  and returns a sequence of its coefficients.
+   
+- The expression e must be in collected form, see dcollect.
+   
+- A quoted name may be specified as an optional third argument. It will be
+  assigned a sequence of differential monomials, that corresponds to the
+  sequence of coefficients returned.
+      
+EXAMPLES:   
+      
+SEE ALSO: dterms
+

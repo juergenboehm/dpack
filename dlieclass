@@ -1,0 +1,338 @@
+#
+#
+#
+
+janbasToeqsys := proc ( jb, fs )
+
+local eq, ht, cl, resl;
+
+resl := [];
+
+for eq in jb do
+
+	ht := dlterm ( eq, fs, 'cl' );
+	
+	resl := [op(resl), ht = normal ( (-eq + ( cl * ht )) / cl )];
+	
+od;
+
+resl;
+
+end;
+
+#
+#
+#
+
+firstinop := proc ( e, oper )
+
+if type ( e, oper ) then
+
+	op ( 1, e );
+	
+else
+
+	e;
+	
+fi;
+
+end;
+
+#
+#
+#
+#
+
+
+reduceTestExpr := proc ( te, jb, fs )
+
+local eqsys, testexpr;
+
+eqsys := janbasToeqsys ( jb, fs );
+					
+testexpr := tdsubs ( eqsys, te );
+testexpr := dcollect ( testexpr, fs, normal );
+
+end;
+
+
+
+determineSip := proc ( jb, fs )
+
+local XXI, EETA,
+		vars, testexpr, eqsys, coeffbed, res, mm, nn, reslist, resi, ergi, reslist1, i;
+
+if nops ( fs ) <> 2 then
+
+	ERROR ( `only for 2 dimensions` );
+	
+fi;
+
+vars := dgetvars ( fs );
+
+XXI := fs[1];
+EETA := fs[2];
+
+testexpr := mm^2 * diff( XXI, vars[2] ) -
+		mm * nn * (diff( XXI, vars[1] ) - diff( EETA, vars[2]) )-
+			nn^2 * diff ( EETA, vars[1] );
+			
+testexpr := reduceTestExpr ( testexpr, jb, fs );
+
+testexpr := dselect ( testexpr, fs, x->ddeg(x) = 1 );
+
+coeffbed := dcoeffs ( testexpr, fs );
+
+res := solve ( {coeffbed}, {mm, nn} );
+
+if nops ( [res] ) = 0 then
+
+	RETURN ( [] );
+	
+fi;
+
+reslist := {};
+
+for resi in [res] do
+
+	ergi := subs ( resi, [mm, nn] );
+
+	ergi := proc ( x, y ) option operator;
+				if x <> 0 then
+					[1, y/x ];
+				elif  y <> 0 then
+					[0, 1];
+				else
+					RETURN ();
+				fi; end ( ergi[1], ergi[2] );
+	
+	reslist := { op(reslist), ergi };
+
+od;
+
+reslist1 := [];
+
+for i from 1 to nops(reslist) do
+
+	resi := reslist[i];
+	if has( resi, [mm, nn] ) then
+		
+		reslist1 := [op(reslist1), [1, _alpha[i]] ];
+		
+	else
+	
+		reslist1 := [op(reslist1), resi];
+	fi;
+	
+od;
+
+reslist1;
+
+end;
+
+#
+#
+#
+#
+
+
+determineLambda := proc ( jb, fs )
+
+local XXI, EETA,
+		vars, testexpr, eqsys, coeffbed, res;
+
+if nops ( fs ) <> 2 then
+
+	ERROR ( `only for 2 dimensions` );
+	
+fi;
+
+vars := op ( fs[1] );
+
+XXI := fs[1];
+EETA := fs[2];
+
+testexpr := diff( XXI, vars[1] ) + diff ( EETA, vars[2] );
+
+testexpr := reduceTestExpr ( testexpr, jb, fs );
+
+
+
+testexpr := dselect ( testexpr, fs, x->ddeg(x) = 1 );
+
+if testexpr = 0 then
+
+	RETURN ( 1 );
+	
+else
+
+	RETURN ( 0 );
+	
+fi;			
+
+end;
+
+#
+#
+#
+
+determinesize1 := proc ( stl )
+
+local stl1, ftl, ml, size, sizei, sizeold, iold, i;
+
+if ( nops ( stl ) = 0 ) then
+
+	RETURN ( INFINITE );
+	
+fi;
+
+if nops ( stl[1] ) = 1 then
+
+	RETURN ( min ( op(map ( x->op(x), stl )) )  );
+	
+fi;
+
+stl1 := sort ( stl, (x,y) -> evalb ( x[1] <= y[1] ) );
+
+ftl := map ( x->x[1], stl1 );
+
+if ftl[1] > 0 then
+
+	RETURN ( INFINITE );
+	
+fi;
+
+ml := max ( op ( ftl ) );
+
+size := 0;
+
+sizeold := 0;
+iold := ftl[1] + 1;
+
+for i in ftl do
+
+	sizei := determinesize1 ( map ( x->x[2..-1],
+				select ( (x,y)-> x[1] <= y, stl1, i ) ) );
+				
+	size := size + sizeold * (i - iold - 1) + sizei;
+	
+	iold := i;
+	
+	sizeold := sizei;
+	
+od;
+
+if has ( sizei, INFINITE ) or sizei > 0 then
+
+	RETURN ( INFINITE );
+	
+else
+
+	size;
+	
+fi;
+
+end;
+
+#
+#
+
+determineSize := proc ( jb, fs )
+
+local eq, vars,
+		htl, htlf,
+		sizel,
+		i;
+
+vars := dgetvars(fs);
+
+vars := [seq ( vars[-i], i=1..nops(vars) )];
+
+htl := map ( x -> fdifflist(firstinop ( x, `+` )), jb );
+
+htlf := map ( (ff,h )->select ( (x,y)->x[1]=y, h, ff ), fs, htl );
+
+#
+# put diffmonomials into [i1, i2,...,in] notation, e.g. xxy -> [2,1]
+#
+
+htlf := map ( (ww, vv) -> 
+			map ( (el, vvv)-> 
+				map ( (v, e) -> numboccur ( e, v ), vvv, el[2..-1] ), ww, vv ), 
+					htlf, vars ); 
+
+
+sizel := map ( x-> determinesize1 ( x ), htlf );
+
+if has ( sizel, INFINITE ) then
+
+	INFINITE;
+	
+else
+
+	convert ( sizel, `+` );
+	
+fi;
+
+end;
+
+#
+#
+#
+
+setXIETA := proc ( fs, XXI::evaln, EETA::evaln, X::evaln, Y::evaln )
+
+local vars;
+
+XXI := fs[1];
+EETA := fs[2];
+
+vars := dgetvars ( fs );
+
+X := vars[1];
+Y := vars[2];
+
+end;
+
+#      
+#
+
+getInvars_g8 := proc ( deq, fn )
+
+local yx, yxx,
+		v,
+		deq1,
+		c0,
+		A, B, C, D,
+		phi1, phi2;
+
+v := dgetvars([fn])[1];
+
+deq1 := subs ( diff(fn, v, v) = yxx, diff(fn, v) = yx, fn = y, deq ); 
+
+c0 := coeff ( deq1, yxx );
+
+deq1 := normal (deq1 / c0);
+
+deq1 := normal (deq1 - yxx);
+
+A := frontend ( coeff, [deq1, yx, 3] );
+ 
+B := frontend ( coeff, [deq1, yx, 2] );
+
+C := frontend ( coeff, [deq1, yx, 1] );
+
+D := frontend ( coeff, [deq1, yx, 0] );
+
+phi1 := diff(D,y,y)+B*diff(D,y)-A*diff(D,x)+(diff(B,y)-2*diff(A,x))*D +
+		1/3 * diff(B,x,x) - 2/3 * diff(C,x,y) + 1/3 * C * (diff(B,x)-2*diff(C,y));
+		
+		
+phi2 := 2*A*diff(D,y)+diff(A,y)*D + 1/3 * diff(C,y,y)-2/3 * diff(B,x,y) + diff ( A,x,x)
+		- 1/3 * B *diff(C,y) + 2/3 * B * diff ( B,x ) - diff ( A, x ) * C - 
+		A * diff ( C, x );
+		
+[phi1, phi2];
+
+end;
+

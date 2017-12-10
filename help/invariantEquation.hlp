@@ -1,0 +1,26 @@
+
+FUNCTION: invariantEquation - returns the two lowest invariants of a transformation group
+                                of the plane 
+   
+CALLING SEQUENCE:
+   invariantEquation ( veclist, vBLists, varLists )
+      
+PARAMETERS:
+   veclist      - a list of expressions
+   vBLists      - a list of two lists of indeterminates
+   varLists     - a list of two lists of variables 
+      
+SYNOPSIS:   
+- veclist is a list of vectorfields in the notation described in connection with
+  'makeDeterminingSystem' and 'dprolong'. vBLists and varLists are the accompanying
+  systems of indeterminates and variables.
+  
+- The function computes the two lowest differential invariants phi1, phi2 of the lie-algebra
+  of transformations given by veclist.
+  
+- This function works only in connection with the package pdetools.
+      
+EXAMPLES:   
+      
+SEE ALSO: lowerEquation
+

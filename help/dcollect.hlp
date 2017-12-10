@@ -1,0 +1,27 @@
+
+FUNCTION: dcollect - Collect coefficients in a linear partial differential 
+                     equation ( LPDE )
+      
+CALLING SEQUENCE:
+   dcollect(e, fs)
+   dcollect(e, fs, func)
+      
+PARAMETERS:
+   e    - an expression
+   fs   - a list of functions of the same independent variables
+   func - (optional) procedure
+      
+SYNOPSIS:   
+- The function dcollect considers e as a LPDE in the functions given in fs 
+  and collects coefficients of the same differential monomial together.
+      
+- The result is not necessarily sorted, use dsort for that purpose.
+         
+- A function may be specified as an optional third argument.  It is applied to
+  the coefficients of the collected result.  Often normal or factor will be
+  used.      
+      
+EXAMPLES:   
+      
+SEE ALSO: dsort
+

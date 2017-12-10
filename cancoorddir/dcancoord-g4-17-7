@@ -1,0 +1,243 @@
+
+remdep ( [xi, eta, sigma, rho] );
+
+depend ( [xi, eta, sigma, rho], [x,y] );
+
+
+####################################################################################
+#
+#   Groups g 4, 17, 7
+#
+#
+
+
+KNOWNSOLS_4_17_7 := [1, SIGMA, SIGMA^2, SIGMA^3];
+
+
+
+dcancoord_g4_17_7_ffff := proc ( jb, fs  )
+
+local fs1,
+		jb1,
+		sxybyxy,
+		xx00v,
+		yy00v,
+		res;
+
+
+# Prolog
+
+fs1 := [xi, eta];
+
+jb1 := dchangefs ( jb, fs, fs1 );
+
+
+# berechne s aus sx, sy
+
+sxybyxy := dgetresolve ( [4,17,7,ffff], jb1, fs1, ID_SXYBYXY );
+
+xx00v := intbyx ( sxybyxy, [x, y] );
+
+
+
+# berechne r aus einer verallgem. lin. Gl. 5. Ordnung.
+
+
+yy00v := dcancoord_g4_17_7_yy00 ( jb1, fs1, [4, 17, 7, ffff], xx00v );
+
+
+res := dnormal ( [ xx00v, yy00v] );
+	
+
+res :=  [ [], res, [] ];
+
+end;
+
+#
+#
+#
+#
+
+dcancoord_g4_17_7_tfff := proc ( jb, fs  )
+
+local fs1,
+		jb1,
+		sybyxy,
+		xx00v,
+		yy00v,
+		res;
+
+
+
+# Prolog
+
+fs1 := [xi, eta];
+
+jb1 := dchangefs ( jb, fs, fs1 );
+
+
+# berechene s aus sx, sy
+
+sybyxy := dgetresolve ( [4,17,7,tfff], jb1, fs1, ID_SYBYXY );
+
+
+xx00v := intbyy ( [op(sybyxy), 0], [x, y] );
+
+
+
+# berechne r aus einer verallgem. lin. Gl. 5. Ordnung.
+
+
+yy00v := dcancoord_g4_17_7_yy00 ( jb1, fs1, [4, 17, 7, tfff], xx00v );
+
+
+res := dnormal ( [ xx00v, yy00v] );
+	
+
+res :=  [ [], res, [] ];
+
+end;
+
+#
+#
+#
+
+dcancoord_g4_17_7_ftff := proc ( jb, fs  )
+
+local fs1,
+		jb1,
+		sxbyxy,
+		xx00v,
+		yy00v,
+		res;
+
+# Prolog
+
+fs1 := [xi, eta];
+
+jb1 := dchangefs ( jb, fs, fs1 );
+
+
+# berechene s aus sx, sy
+
+sxbyxy := dgetresolve ( [4,17,7, ftff], jb1, fs1, ID_SXBYXY );
+
+xx00v := intbyx ( [op(sxbyxy), 0], [x, y] );
+
+
+
+# berechne r aus einer verallgem. lin. Gl. 5. Ordnung.
+
+
+yy00v := dcancoord_g4_17_7_yy00 ( jb1, fs1, [4, 17, 7, ftff], xx00v );
+
+
+res := dnormal ( [ xx00v, yy00v] );
+	
+
+res :=  [ [], res, [] ];
+
+end;
+
+#
+#
+#
+
+
+dcancoord_g4_17_7_yy00 := proc ( jb1, fs1, typinfo, xx00v )
+
+local rsys, ff, loes, yy00v;
+
+# berechne r aus einer verallgem. lin. Gl. 5. Ordnung.
+
+rsys := dgetsavedexpr ( typinfo, ID_RSYS );
+
+ff := RRX ( x, y );
+
+rsys := dresolve ( typinfo, jb1, fs1, rsys );
+
+loes := xpdesolve ( rsys, [ff], basis );
+
+loes := xpdegensol ( loes, subs ( SIGMA = xx00v, KNOWNSOLS_4_17_7 ) );
+
+
+yy00v := rhs ( loes[1] );
+
+
+end;
+
+
+
+
+
+
+cancoordsetup_g4_17_7 := proc ( )
+
+local	sxybyxy,
+		sxbyxy,
+		sybyxy,
+		uu,
+		res;
+
+iginits ( [4, 17, 7, ffff] );
+
+sxybyxy := igreduce ( [4, 17, 7, ffff], [sxx/sx, sxy/sx, sy/sx] );
+
+igsaveexpr ( ID_SXYBYXY, sxybyxy );
+
+uu := igtostdform ( r );
+
+
+res := igcoeffbase ( [4, 17, 7, ffff] );
+
+res := res[3..-1];
+
+res := eq2expr ( res );
+
+res := subs ( rho = RRX ( x, y ), res );
+
+igsaveexpr ( ID_RSYS, res );
+
+
+
+iginits ( [4,17,7, tfff] );
+
+sybyxy := igreduce ( [4,17,7, tfff], [syx/sy, syy/sy] );
+
+igsaveexpr ( ID_SYBYXY, sybyxy );
+
+uu := igtostdform ( r );
+
+
+res := igcoeffbase ( [4,17,7, tfff] );
+
+res := res[3..-1];
+
+res := eq2expr ( res );
+
+res := subs ( rho = RRX ( x, y ), res );
+
+igsaveexpr ( ID_RSYS, res );
+
+
+iginits ( [4,17,7, ftff] );
+
+sxbyxy := igreduce ( [4,17,7, ftff], [sxx/sx, sxy/sx] );
+
+igsaveexpr ( ID_SXBYXY, sxbyxy );
+
+uu := igtostdform ( r );;
+
+
+res := igcoeffbase ( [4,17,7, ftff] );
+
+res := res[3..-1];
+
+res := eq2expr ( res );
+
+res := subs ( rho = RRX ( x, y ), res );
+
+igsaveexpr ( ID_RSYS, res );
+
+
+end;

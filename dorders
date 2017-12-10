@@ -1,0 +1,394 @@
+
+#
+#
+#
+#
+
+totDegOrder := proc ( fs )
+
+local m, n, mat, zl, i, vars;
+
+vars := dgetvars ( fs );
+
+n := nops ( fs );
+m := nops ( vars );
+
+mat := [];
+
+mat := [ op(mat), [op(fs),op(vars)] ];
+
+zl := [ 0$n,1$m ];
+
+mat := [op(mat), zl];
+
+zl := [ seq ( i, i=1..n ), 0$m ];
+
+mat := [op(mat), zl];
+
+for i from 1 to m do
+
+    zl := [ 0$n, 0$(m-i),1,0$(i-1)];
+    mat := [op(mat), zl];
+    
+od;
+
+RETURN ( mat );
+
+end;
+
+#
+#
+#
+
+revtotDegOrder := proc ( fs )
+
+local m, n, mat, zl, i, vars;
+
+vars := dgetvars ( fs );
+
+n := nops ( fs );
+m := nops ( vars );
+
+mat := [];
+
+mat := [ op(mat), [op(fs),op(vars)] ];
+
+zl := [ 0$n,1$m ];
+
+mat := [op(mat), zl];
+
+zl := [ seq ( i, i=1..n ), 0$m ];
+
+mat := [op(mat), zl];
+
+for i from 1 to m do
+
+    zl := [ 0$n, 1$(m-i),0,1$(i-1)];
+    mat := [op(mat), zl];
+    
+od;
+
+RETURN ( mat );
+
+end;
+
+#
+#
+#
+
+lexOrder := proc ( fs )
+
+local m, n, mat, zl, i, vars;
+
+vars := dgetvars ( fs );
+
+n := nops ( fs );
+m := nops ( vars );
+
+
+mat := [];
+
+mat := [ op(mat), [op(fs),op(vars)] ];
+
+zl := [ seq ( i, `i` = 1..n ), 0 $m ];
+
+mat := [op(mat), zl];
+
+for i from 1 to m do
+
+    zl := [ 0$n, 0$(m-i),1,0$(i-1)];
+    mat := [op(mat), zl];
+    
+od;
+
+RETURN ( mat );
+
+end;
+
+#
+#
+#
+
+
+lexOrderA := proc ( fs, nfs, mvar )
+
+local m, n, mat, zl, i, vars;
+
+vars := dgetvars ( fs );
+
+n := nops ( fs );
+m := nops ( vars );
+
+
+mat := [];
+
+mat := [ op(mat), [op(fs),op(vars)] ];
+
+zl := [ 1 $ (nfs-1),0, 1 $ (n-nfs), 0 $ m ];
+
+mat := [op(mat), zl];
+
+zl := [ 0 $ n, 1 $ (mvar-1), 0, 1 $ (m-mvar)];
+
+mat := [op(mat), zl];
+
+zl := [ 0 $ n, 1 $ m ];
+
+mat := [op(mat), zl];
+
+zl := [ seq ( i, `i` = 1..n ), 0 $m ];
+
+mat := [op(mat), zl];
+
+for i from 1 to m do
+
+    zl := [ 0$n, 0$(i-1),1,0$(m-i)];
+    mat := [op(mat), zl];
+    
+od;
+
+RETURN ( mat );
+
+end;
+
+#
+#
+#
+
+elimOrder := proc ( fs )
+
+local m, n, mat, zl, i, vars;
+
+vars := dgetvars ( fs );
+
+n := nops ( fs );
+m := nops ( vars );
+
+mat := [];
+
+mat := [ op(mat), [op(fs),op(vars)] ];
+
+zl := [ 0$n,0$(m-1),1 ];
+
+mat := [op(mat), zl];
+
+zl := [ 0$n,1$m ];
+
+mat := [op(mat), zl];
+
+zl := [ seq ( i, i=1..n ), 0$m ];
+
+mat := [op(mat), zl];
+
+for i from 1 to m do
+
+    zl := [ 0$n, 0$(m-i),1,0$(i-1)];
+    mat := [op(mat), zl];
+    
+od;
+
+RETURN ( mat );
+
+end;
+
+
+#
+# 
+#
+
+elimOrder2 := proc ( fs, k )
+
+local m, n, mat, zl, i, vars;
+
+vars := dgetvars ( fs );
+
+n := nops ( fs );
+m := nops ( vars );
+
+mat := [];
+
+mat := [ op(mat), [op(fs),op(vars)] ];
+
+zl := [ 0$(n-k),1$k,0$m ];
+
+mat := [op(mat), zl];
+
+zl := [ 0$n,1$m ];
+
+mat := [op(mat), zl];
+
+zl := [ seq ( i, i=1..n ), 0$m ];
+
+mat := [op(mat), zl];
+
+for i from 1 to m do
+
+    zl := [ 0$n, 0$(m-i),1,0$(i-1)];
+    mat := [op(mat), zl];
+    
+od;
+
+RETURN ( mat );
+
+end;
+
+#
+#
+#
+
+
+elimOrder3 := proc ( fs, k )
+
+local m, n, mat, zl, i, vars;
+
+vars := dgetvars ( fs );
+
+n := nops ( fs );
+m := nops ( vars );
+
+mat := [];
+
+mat := [ op(mat), [op(fs),op(vars)] ];
+
+zl := [ 0$n,1$k,0$(m-k) ];
+
+mat := [op(mat), zl];
+
+zl := [ 0$n,1$m ];
+
+mat := [op(mat), zl];
+
+zl := [ seq ( i, i=1..n ), 0$m ];
+
+mat := [op(mat), zl];
+
+for i from 1 to m do
+
+    zl := [ 0$n, 0$(m-i),1,0$(i-1)];
+    mat := [op(mat), zl];
+    
+od;
+
+RETURN ( mat );
+
+end;
+
+#
+#
+
+#
+#
+#
+
+totDegOrderPde := proc ( fs )
+
+local m, n, mat, zl, i, vars;
+
+vars := dgetvars ( fs );
+
+n := nops ( fs );
+m := nops ( vars );
+
+
+mat := [];
+
+mat := [ op(mat), [op(fs),op(vars)] ];
+
+zl := [ seq ( i, `i` = 1..n ), 0 $m ];
+
+mat := [op(mat), zl];
+
+zl := [ 0 $ n, 1 $m ];
+
+mat := [op(mat), zl];
+
+for i from 1 to m do
+
+    zl := [ 0$n, 0$(m-i),1,0$(i-1)];
+    mat := [op(mat), zl];
+    
+od;
+
+RETURN ( mat );
+
+end;
+
+
+#
+#
+#
+#
+
+PdeOrder := proc ( fs )
+
+local vars,
+		n, m,
+		PdeOrderProc;
+
+vars := [op(fs[1])];
+
+n := nops ( vars );
+m := nops ( fs );
+
+
+	PdeOrderProc := proc ( dmp )
+
+	local nn, res,
+			fn,
+			dm,
+			i, j;
+
+	global _cotevars;
+
+	if not type ( dmp, list ) then
+
+		dm := mon2ms ( dmp );
+		fn := select ( member, dm, FS );
+		dm := [op(fn), op(remove( member, dm, FS ))]; 
+
+	else
+
+		dm := dmp;
+
+	fi;
+
+	nn := nops ( dm );
+
+	if dm[1] <> FS[1] then
+
+		res := _cotevars[1]^(nn-1)
+
+	else
+
+		res := 1;
+
+	fi;
+
+	for i from 1 to nops ( FS ) do
+
+		if FS[i] = dm[1] then
+
+			res := res * _cotevars[2]^i;
+
+			break;
+
+		fi;
+
+	od;
+
+	for j from 1 to nops ( VARS ) do
+
+		nn := numboccur ( dm[2..-1], VARS[j] );
+		
+		res := res * _cotevars[2+j]^nn;
+		
+	od;
+
+	res;
+
+	end;
+
+[subs ( VARS = vars, FS = fs, eval(PdeOrderProc) ), n+2 ]
+
+end;
+

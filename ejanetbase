@@ -1,0 +1,622 @@
+#
+#
+
+
+ddiv := proc ( e, jba, fs )
+
+local jb,
+		rels,
+		res;
+
+jb := map ( xx->lhs(xx)-rhs(xx), jba );
+
+jb := csimpJanetBase ( jb, fs );
+
+rels := janbasToeqsys ( jb, fs );
+
+res := dtsubs ( rels, fs, e );
+
+res;
+
+end;
+
+#
+
+#
+#
+#
+
+#
+#
+#
+
+janbasdiv := proc ( jb1, jb2, fs )
+
+local n,m,
+		vars,
+		i,
+		uu,
+		fsu,
+		fst,
+		eql1, eql1a,
+		jb3,
+		jb3a,
+		res;
+
+if nargs > 3 then
+
+	uu := args[4];
+	
+else
+
+	uu := U;
+	
+fi;
+
+n := nops ( fs );
+
+m := nops ( jb2 );
+
+vars := [op(fs[1])];
+
+fsu := [seq ( ``||uu||i(op(vars)), i = 1..m )];
+
+fst := [op(fsu), op(fs)];
+
+setcotes ( fst, elimOrder2 ( fst, n ) );
+
+eql1 := zip ( (xx,yy)->xx-yy, fsu, jb2 );
+
+jb3 := map ( dcollect, [op(eql1), op(jb1)], fst, normal ); 
+
+jb3 := makeJanetBase ( jb3, fst );
+
+jb3 := map( dcollect, jb3, fst, normal );
+
+jb3 := dselfun ( jb3, fst, fsu );
+
+res := [jb3,fsu];
+
+remcotes ( fst );
+
+res;
+
+end;
+
+#
+#
+#
+#
+
+dfunansatz := proc ( termlis, cfp )
+
+local cfn,
+		cfl,
+		vars,
+		i;
+
+if type ( cfp, functionx (name) ) then
+
+	cfn := op ( 0, cfp );
+	vars := op ( cfp );
+	cfl := [seq ( ``||cfn||i(vars), i=1..nops (termlis) )];
+
+else
+
+	cfn := cfp;
+	cfl := [seq ( ``||cfn||i, i=1..nops (termlis) )];
+	
+fi;
+
+[cfl, add ( cfl[i] * termlis[i], i=1..nops (termlis) )];
+
+end;
+
+#
+#
+#
+
+applyD := proc ( rr, jba, fs )
+
+local pdvs,
+		jb,
+		rels,
+		nn,
+		sl,
+		i, j,
+		ee,
+		aa;
+
+jb := csimpJanetBase( jba, fs );
+
+pdvs := paramDerivsList ( jb, fs );
+
+rels := janbasToeqsys ( jb, fs );
+
+nn := nops ( pdvs );
+
+aa := array ( 1..nn, 1..nn );
+
+sl := zip ( (xx,yy)->xx=yy, fs, rr );
+
+for i from 1 to nn do
+
+	ee := normal ( eval ( value ( subs ( sl, pdvs[i] ) ) ) );
+
+	ee := dtsubs ( rels, fs, ee );
+	
+	ee := dcollect ( ee, fs );
+
+	for j from 1 to nn do
+
+		aa[i,j] := dcoeff ( ee, pdvs[j] );
+
+	od;
+	
+od;
+
+eval ( aa );
+
+end;
+
+#
+# Berechung von Hom ( D(fsL)/jbL, D(fsR)/jbR )
+# entspricht HomD, aber ohne Matrizen
+#
+
+EpsilonD := proc ( jbL, jbR, fsL, fsR )
+
+local 	vars,
+		varsL,
+		varsR,
+		pdvs,
+		rrl,
+		fsaa,
+		i,
+		erg,
+		sl,
+		coeffs,
+		relsL,
+		testeqs;
+
+varsL := [op(fsL[1])];
+varsR := [op(fsR[1])];
+
+vars := varsR;
+
+pdvs := paramDerivs ( jbL, fsL );
+pdvs := paramDerivsApply ( pdvs, fsL );
+pdvs := flatten2 ( pdvs );
+
+rrl := [];
+
+fsaa := [];
+
+for i from 1 to nops ( fsR ) do
+
+	erg := dfunansatz ( pdvs, ``||aa||i||b ( op(vars) ) );
+	
+	fsaa := [op(fsaa), op(erg[1])];
+	
+	rrl := [op(rrl), erg[2] ];
+
+od;
+
+sl := zip ( (xx,yy)->xx=yy, fsR, rrl );
+
+testeqs := normal ( eval ( value ( subs ( sl, jbR ) ) ) );
+
+# testeqs ist Rr
+
+# here the condition is Rr w = 0 for Lw = 0
+
+relsL := janbasToeqsys ( jbL, fsL );
+
+testeqs := dtsubs ( relsL, fsL, testeqs );
+
+testeqs := map ( dcollect, testeqs, fsL, normal );
+
+coeffs := map ( dcoeffs, testeqs, fsL );
+
+[rrl, coeffs, fsaa];
+
+end;
+
+#
+#
+#
+
+DiffmatD := proc ( jb, fs, vars )
+
+local n,
+	jb1,
+	pdvs,
+	rels,
+	v,
+	B,
+	i, j,
+	pd,
+	erg;
+
+jb1 := csimpJanetBase ( jb, fs );
+
+pdvs := paramDerivsList ( jb1, fs );
+
+n := nops ( pdvs );
+
+rels := janbasToeqsys ( jb1, fs );
+
+erg := [];
+
+for v in vars do
+
+	B := array (1..n,1..n);
+	
+	for i from 1 to n do
+	
+		pd := pdvs[i];
+		
+		pd := diff ( pd, v );
+		
+		pd := dtsubs ( rels, fs, pd );
+	
+		pd := dcollect ( pd, fs );
+	
+		for j from 1 to n do
+		
+			B[i,j] := normal ( dcoeff ( pd, pdvs[j] ) );
+			
+		od;
+		
+	od;
+	
+	erg := [op(erg), evalm ( B ) ];
+	
+od;
+
+erg; 
+
+end;
+
+#
+# Berechnung der Bedingungen fuer die
+# Matrizen A, die einen Homomorphismus A : D^p/jb1 -> D^q/jb2
+# vermitteln.
+#
+
+HomD := proc ( jb1a, fs1, jb2a, fs2 )
+
+local jb1, jb2,
+		vars,
+		pdvs1,
+		pdvs2,
+		mm,
+		nn,
+		Bl1, Bl2,
+		i, j,
+		iv,
+		v,
+		erg,
+		RR,
+		R1,
+		M,
+		condit,
+		fsr;
+
+vars := [op(fs1[1])];
+
+jb1 := csimpJanetBase ( jb1a, fs1 );
+
+jb2 := csimpJanetBase ( jb2a, fs2 );
+
+pdvs1 := paramDerivsList ( jb1, fs1 );
+
+pdvs2 := paramDerivsList ( jb2, fs2 );
+
+mm := nops ( pdvs1 );
+nn := nops ( pdvs2 );
+
+RR := array ( 1..nn, 1..mm );
+
+for i from 1 to nn do
+	for j from 1 to mm do
+		
+		RR[i,j] := ``||RR||i||X||j ( op(vars) );
+		
+	od;
+od;
+
+fsr := arraytolist ( RR );
+
+erg := [];
+
+Bl1 := DiffmatD ( jb1, fs1, vars );
+Bl2 := DiffmatD ( jb2, fs2, vars );
+
+for iv from 1 to nops (vars) do
+
+	v := vars[iv];
+
+	R1 := map ( diff, RR, v );
+	
+	M := evalm ( R1 - Bl2[iv] &* RR + RR &* Bl1[iv] );
+	
+	M := map ( normal, M );
+	
+	erg := [op(erg), evalm(M)];
+	
+od;
+
+condit := flatten2 ( map ( arraytolist, erg ) );
+
+[evalm(RR), erg, condit, fsr];
+
+end;
+
+#
+#
+#
+
+#
+# hom ist eine Janetbasis in fs1, die den Nullraum von (jb1,fs1) in den
+# Nullraum von (jb2,fs2) abbildet. MaphomD ermittelt die zugehoerige
+# Abbildungsmatrix der D-Module
+#
+#
+
+MaphomD := proc ( jb1, fs1, jb2, fs2, hom )
+
+local jb1a, jb2a,
+		pdvs1, pdvs2,
+		m, n,
+		rels1, rels2,
+		hom1,
+		i,j,
+		h1, h11,
+		Mhom,
+		rels;
+
+jb1a := csimpJanetBase ( jb1, fs1 );
+jb2a := csimpJanetBase ( jb2, fs2 );
+
+pdvs1 := paramDerivsList ( jb1a, fs1 );
+
+pdvs2 := paramDerivsList ( jb2a, fs2 );
+
+m := nops ( pdvs1 );
+n := nops ( pdvs2 );
+
+Mhom := array ( 1..n, 1..m );
+
+
+rels1 := janbasToeqsys ( jb1, fs1 );
+
+hom1 := dtsubs ( rels1, fs1, hom );
+
+hom1 := zip ( (xx,yy)->xx=yy, fs2, hom1 );
+
+rels2 := janbasToeqsys ( jb2, fs2 );
+
+for j from 1 to n do
+
+	h1 := pdvs2[j];
+
+	h1 := dtsubs ( hom1, fs2, h1 );
+
+	h1 := dtsubs ( rels1, fs1, h1 );
+
+	for i from 1 to m do
+
+#		rels := zip ( (x,y)->x=y, pdvs1, [0 $ (i-1), 1, 0 $ (m-i)] );
+
+#		h11 := normal ( eval ( value ( subs ( rels, h1 ) ) ) );
+
+		h11 := normal ( dcoeff ( h1, pdvs1[i] ) );
+
+		Mhom[j,i] := h11;
+
+	od;
+
+od;
+	
+evalm ( Mhom );
+
+end;
+
+
+#
+#
+#
+
+MixedEquationD := proc ( jbfa, jbRa, fs )
+
+local jbf, jbR,
+		uu,
+		res,
+		fsu,
+		varsu,
+		jbL,
+		erg,
+		RR,
+		rr,
+		mixedcond;
+
+jbf := csimpJanetBase ( jbfa, fs );
+jbR := csimpJanetBase ( jbRa, fs );
+
+uu := UUQ;
+
+res := janbasdiv ( jbf, jbR, fs, uu );
+
+fsu := res[2];
+
+varsu := [op(fsu[1])];
+
+setcotes ( fsu, totDegOrder ( fsu ) );
+
+jbL := res[1];
+
+jbL := csimpJanetBase ( jbL, fsu );
+
+
+erg := HomD ( jbL, fsu, jbf, fs );
+
+rr := erg[1];
+
+RR := MaphomD ( jbf, fs, jbL, fsu, jbR );
+
+mixedcond := arraytolist(evalm ( RR &* rr - &* () ));
+
+erg := subsop ( 3 = [op(erg[3]), op(mixedcond)], erg );
+
+erg;
+
+end;
+
+
+
+#
+#
+#
+#
+
+makemixedEquation1 := proc ( jbfa, jbR, fs )
+
+local uu,
+		jbf,
+		rr,
+		vars, varsu,
+		res,
+		i,
+		fsu, fsaa,
+		jbL,
+		pdvs,
+		fsr,
+		rrl,
+		sl,
+		testeqs,
+		relsL,
+		erg,
+		coeffs;
+
+jbf := csimpJanetBase ( jbfa, fs );
+
+vars := [op(fs[1])];
+
+uu := UUUQ;
+
+rr := RRRQ;
+
+res := janbasdiv ( jbf, jbR, fs, uu );
+
+fsu := res[2];
+
+varsu := [op(fsu[1])];
+
+setcotes ( fsu, totDegOrder ( fsu ) );
+
+jbL := res[1];
+
+jbL := csimpJanetBase ( jbL, fsu );
+
+pdvs := paramDerivs ( jbL, fsu );
+
+pdvs := paramDerivsApply ( pdvs, fsu );
+
+pdvs := flatten2 ( pdvs );
+
+fsr := [seq ( ``||rr||i(op(varsu)), i=1..nops(fs) ) ];
+
+rrl := [];
+
+fsaa := [];
+
+for i from 1 to nops ( fs ) do
+
+	erg := dfunansatz ( pdvs, ``||aa||i||b ( op(vars) ) );
+	
+	fsaa := [op(fsaa), op(erg[1])];
+	
+	rrl := [op(rrl), erg[2] ];
+
+od;
+
+sl := zip ( (xx,yy)->xx=yy, fs, rrl );
+
+testeqs := normal ( eval ( value ( subs ( sl, jbR ) ) ) );
+
+# testeqs ist Rr
+
+testeqs := zip ( (xx,yy)->xx-yy, testeqs, fsu );
+
+# this means Rr w = w for all w with Lw = 0
+
+relsL := janbasToeqsys ( jbL, fsu );
+
+testeqs := dtsubs ( relsL, fsu, testeqs );
+
+testeqs := map ( dcollect, testeqs, fsu, normal );
+
+coeffs := map ( dcoeffs, testeqs, fsu );
+
+[rrl, coeffs, fsaa, fsu, jbL];
+
+end;
+
+#
+#
+#
+
+
+makemixedEquation2 := proc ( jbf, jbL, rrloes, fsu, fs )
+
+local pdvs,
+		vars,
+		erg,
+		cfl,
+		R2gen,
+		sl,
+		R2ans,
+		relsL,
+		cfbed,
+		loes,
+		loesbase;
+
+vars := [op(fs[1])];
+
+pdvs := paramDerivs1 ( jbf, fs );
+
+pdvs := paramDerivsApply ( pdvs, fs );
+
+pdvs := flatten2 ( pdvs );
+ 
+erg := dfunansatz ( pdvs, ``||bb );
+
+cfl := erg[1];
+
+R2gen := erg[2];
+
+sl := zip ( (xx,yy)->xx=yy, fs, rrloes );
+
+R2ans := normal ( eval ( value ( subs ( sl, R2gen ) ) ) );
+
+relsL := janbasToeqsys ( jbL, fsu );
+
+R2ans := dtsubs ( relsL, fsu, R2ans );
+
+R2ans := numer ( normal ( R2ans ) );
+
+R2ans := map ( dcollect, R2ans, fsu, normal );
+
+cfbed := [dcoeffs( R2ans, fsu )];
+
+loes := solve ( {op(cfbed)}, {op(cfl)} );
+
+loesbase := solbase ( loes );
+
+erg := map ( (xx,yy)->subs (xx, yy ), loesbase, R2gen );
+
+erg;
+
+end;
+

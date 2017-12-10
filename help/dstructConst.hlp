@@ -1,0 +1,47 @@
+
+FUNCTION: dstructConst - to a given Janet-Base representation of a lie-algebra 
+                         of vectorfields this function computes the structure
+                         constants of the lie-algebra
+
+CALLING SEQUENCE:
+   dstructConst(jb, fs)
+      
+PARAMETERS:
+   jb   - a list of expressions
+   fs   - a list of functions of the same independent variables
+      
+SYNOPSIS:   
+- The expressions in jb must be a Janet-Base consisting of monic linear 
+  homogeneous partial differential equations ( LPDEs ) in the functions in fs 
+  with a finite dimensional solution space, which is additionally a lie-algebra
+  under the lie-bracket.
+  
+  Such systems of LPDEs arise for example as Determining Systems of the 
+  symmetries of a differential equation.
+  
+  CAUTION : note the requirement for finite-dimensionality of the algebra and
+            monicity of the equations ( that is the coefficient of the leading
+            differential monomial must be 1 ).
+            
+- The structure constants which are obtained are not constants in general but
+  functions depending on the same variables on which the functions in fs depend,
+  that are sought as solutions of the DEs which are given in jb.
+  
+  They give a valid aggregate of structure constants on each place, where they
+  are all defined, and so can be thought of as a family of structure constants
+  depending on the place.
+  
+- Note that it is not necessary to be able to solve the DEs in the Janet-Base
+  for obtaining the structure constants.
+  
+- For details about this algorithm, see :
+
+        G.J. Reid, I.G. Lisle and A. Boulton
+        Algorithmic Determination of Commutation Relations for Lie Symmetry
+        Algebras of PDEs
+        
+
+EXAMPLES:   
+      
+SEE ALSO: makeCommBase, solvableRad
+

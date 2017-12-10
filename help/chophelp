@@ -1,0 +1,59 @@
+#!/usr/bin/perl -w
+
+
+while ( <> ) {
+	
+	if ( /^FUNCTION\S*\s*(\w*)\W.*$/ ) {
+
+		print STDOUT $_ ;
+		print STDOUT $1, "\n";
+
+		
+		open AKTHELPFILE, ">$1.hlp" or die;
+		
+		print AKTHELPFILE "\n";
+		print AKTHELPFILE $_;
+
+		while ( <> ) {
+
+			print AKTHELPFILE $_;
+		
+			if ( /CALL.*/ ) {
+				last;				
+			};
+			
+			if ( /^\s*(\w*)\s*-.*$/ ) {
+				print STDOUT $1, "\n";
+				
+			};
+		};
+		
+		while ( <> ) {
+
+			if ( /SEE ALSO.*/ ) {
+			
+				print AKTHELPFILE $_;
+				
+				while ( <> ) {
+
+					print AKTHELPFILE $_;
+
+					if ( /^\s*$/ ) {
+						last;
+					};
+				};
+				
+				last;
+				
+			} else {
+				
+				print AKTHELPFILE $_;
+			
+			};
+		};
+	};
+
+	
+};
+
+close AKTHELPFILE;

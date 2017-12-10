@@ -1,0 +1,298 @@
+lpdesolvesysold := proc ( eqset, fn )
+
+local vars,n,partloes,i,newvars,j,loes1,jdet,sl,sl1,eqsnew,newfun,eqsnew1,
+        loessys,cc,varorder,orderlist,eqset1,nequ,lsteq,loes;
+ 
+global _xvers, _verbose;
+
+vars := [op ( fn )];
+n := nops ( vars );
+
+if nargs = 3 then
+
+	partloes := args[3];
+
+	for i from 1 to n do
+
+		newvars := [seq ( WW.j.QQ.n, j=1..n ) ];
+
+		loes1 := [partloes, op(vars[1..i-1]), op(vars[i+1..n])];
+
+		jdet := linalg[det](linalg[jacobian](loes1,vars));
+
+		if normal ( jdet ) = 0 then
+
+			next;
+
+		fi;
+
+		sl := zip ( (x,y)-> x = y, newvars, loes1 );
+
+		sl1 := solve3 ( {op(sl)}, {op(vars)} );
+
+		if nops ( [sl1] ) = 0 then
+		
+			next;
+			
+		fi;
+		
+		if nops ( sl1 ) < n then
+
+			next;
+
+		fi;
+
+		sl1 := [op(sl1)];
+
+
+		eqsnew := eqset;
+
+		newfun := FF ( op(newvars[2..n]) );
+
+		eqsnew1 := vsubs ( newvars, sl1, [fn=newfun], eqsnew, extsubs );
+	
+		eqsnew1 := value ( dDtodiff ( eqsnew1 ) );
+
+		eqsnew1 := pdeloessimp ( eqsnew1 );
+
+		eqsnew1 := select ( x->x<>0, eqsnew1 );
+
+
+		loessys := lpdesolvesys ( eqsnew1, newfun );
+
+		if nops ( loessys ) = 0 then
+
+			next;
+
+		fi;
+
+		loessys := subs ( sl, loessys );
+
+		loessys := pdeloessimp ( loessys );
+
+		RETURN ( loessys );
+	
+	od;
+
+	RETURN ( [] );
+
+fi;		
+	
+cc := 0;	
+
+varorder := [seq( n+1-i, i=1..n)];
+
+
+
+while true do
+
+	cc := cc + 1;
+
+	if cc = n + 1 then RETURN ([]); fi;
+
+	print ( varorder, cc );
+
+	orderlist := [[1, 0 $ n], [0, op(varorder)]];
+
+	orderlist := [[fn,op(fn)], op(orderlist) ];
+
+
+	varorder := [op(varorder[2..n]),varorder[1]];
+
+	loes := [];
+
+	setcotes ( [fn], orderlist );
+
+	_xvers := true;
+
+	eqset1 := makeJanetBase ( eqset, [fn] );
+
+	eqset1 := csimpJanetBase ( eqset1, [fn] );
+
+	remcotes ( [fn] );
+
+	
+# 	elemdiffeqs := select ( type, eqset1, elemdiff(fn) );
+# 	
+# 	elemdiffeqs := [];
+# 	
+# 	if nops ( elemdiffeqs ) > 0 then
+# 
+# 		eqset1 := remove ( type, eqset1, elemdiff(fn) );
+# 
+# 		eqset1 := [op(eqset1), op(elemdiffeqs)];
+# 
+# 	else
+# 
+# 		rateqs := splitlist ( type, eqset1, isrational );
+# 
+# 		# eqset1 := [op(rateqs[1]),op(rateqs[2])];
+# 
+# 	fi;
+
+	nequ := nops ( eqset1 );
+
+	cnt := 0;
+	
+	eqset1 := [op(eqset1[2..-1]),eqset1[1]];
+
+	loes := [];
+
+	while cnt < 1 do
+
+		eqset1 := [eqset1[-1],op(eqset1[1..-2])];
+
+		cnt := cnt + 1;
+		
+		lsteq := eqset1[nequ];
+	
+		if n > 1 then
+
+			# loes := wrap_pdsolve ( pdsolve, lsteq, fn );
+
+			loes := pdsolve3 ( lsteq, fn );
+
+			if nops ( [loes] ) = 0 or
+					has ([loes], [Int, int, Intat, intat]) then
+
+				loes := [];
+			
+				next;
+
+			fi;
+
+			loes := wrap_pdsolve (build,  loes );
+
+			if nops ( [loes] ) = 0 or 
+						has ( [loes], [Int, int, Intat, intat] ) then
+
+				loes := [];
+
+				next;
+
+			fi;
+
+			# print ( loes );
+
+			if not type ( loes, function(name) = function ( algebraic ) ) then
+
+				loes := [];
+			
+				next;
+
+			fi;
+
+			if assigned ( _spfunlpde ) then
+
+				loes := _spfunlpde ( loes );
+
+			fi;
+
+			loes := [op(rhs(loes))];
+			
+			break;
+
+		else
+
+			loes := dsolve ( lsteq, fn );
+
+			if nops ( [loes] ) = 0 or rhs(loes) = _C1 then
+
+				loes := [];
+				
+				next;
+
+			fi;
+
+			loes := [rhs(loes)];	
+			
+			break;
+
+		fi;
+
+	od;
+
+	if loes = [] then next; fi;
+
+	loes := pdeloessimp ( loes );
+
+	if nequ = 1 then
+
+		RETURN ( loes );
+
+	else
+
+		for i from 1 to n do
+
+			newvars := [seq ( WW.j.QQ.n, j=1..n ) ];
+
+			loes1 := [op(loes), vars[i]];
+
+			jdet := linalg[det](linalg[jacobian](loes1,vars));
+
+			if normal ( jdet ) = 0 then
+
+				next;
+
+			fi;
+
+			sl := zip ( (x,y)-> x = y, newvars, loes1 );
+
+			sl1 := solve3 ( {op(sl)}, {op(vars)} );
+
+
+			if nops ( [sl1] ) = 0 then
+
+				next;
+
+			fi;
+
+
+			if nops ( sl1 ) < n then
+
+				next;
+
+			fi;
+
+			sl1 := [op(sl1)];
+
+
+			eqsnew := [op(eqset1[1..nequ-1])];
+
+			newfun := FF ( op(newvars[1..n-1]) );
+
+			eqsnew1 := vsubs ( newvars, sl1, [fn=newfun], eqsnew, extsubs );
+
+			eqsnew1 := value ( dDtodiff ( eqsnew1 ) );
+
+			eqsnew1 := pdeloessimp ( eqsnew1 );
+
+			eqsnew1 := select ( x->x<>0, eqsnew1 );
+
+
+			loessys := lpdesolvesys ( eqsnew1, newfun );
+
+			if nops ( loessys ) = 0 then
+
+				next;
+
+			fi;
+
+			loessys := subs ( sl, loessys );
+
+			loessys := pdeloessimp ( loessys );
+
+			RETURN ( loessys );
+
+		od;
+
+		RETURN ( [] );
+
+	fi;
+
+
+od;
+
+RETURN ( [] );
+
+end:
