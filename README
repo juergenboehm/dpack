@@ -3,11 +3,11 @@
 
 0. Generalities
 
-   dpack v 0.1.0 (06/Aug/2003)
+   dpack v 0.1.0.1 (11/Dec/2017)
 
    by Jürgen Böhm <jboehm@gmx.net>
 
-   dpack is copyright 1996-2003 by Jürgen Böhm
+   dpack is copyright 1996-2017 by Jürgen Böhm
    There is no warranty; not even an implied warranty
    for merchantability or fitness for any particular purpose.
 
@@ -45,18 +45,16 @@
    
    if they don't exist yet.
    
-   2. copy dpack.tar.gz into /home/yourname/maple/packages
-   3. cd /home/yourname/maple/packages
-   4. gunzip dpack.tar.gz
-   5. tar -xvf dpack.tar
+   2. cd /home/yourname/maple/packages
+   3. git clone https://github.com/juergenboehm/dpack.git
    
    Now a subdirectory dpack exists in /home/yourname/maple/packages
    cd into this directory.
    
-   6. Open the file readdpack into an editor of your choice.
-   7. Replace /home/juergen/maple at the beginning of readdpack by
+   4. Open the file readdpack into an editor of your choice.
+   5. Replace /home/juergen/maple at the beginning of readdpack by
    /home/yourname/maple
-   8. Now the distribution is ready to be used in maple.
+   6. Now the distribution is ready to be used in maple.
    
    For using it, enter at any time in your maple session the command:
    
