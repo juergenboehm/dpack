@@ -1,4 +1,4 @@
-#
+#:mode=maple:
 #
 
 pdeloessimp := proc ( e )
@@ -599,10 +599,17 @@ end;
 #
 
 
+#
+# can probably be replaced by solve(..)
+#
 
 solve3 := proc ()
 
 local fd;
+
+# switch off old code
+return solve(args);
+
 
 fd := fopen ( testfile, WRITE );
 
@@ -626,6 +633,9 @@ RETURN ( xxxxx );
 end;
 
 #
+#
+
+# seemingly not used anymore
 #
 
 pdsolve3 := proc (eql, fn)
@@ -652,6 +662,9 @@ RETURN ( xxxxx );
 end;
 
 #
+#
+
+# seemingly not used anymore
 #
 
 build3 := proc ( loes )
@@ -681,6 +694,9 @@ end;
 #
 #
 
+# seemingly not used anymore
+#
+
 simplify3 := proc ( )
 
 local fd;
@@ -705,6 +721,9 @@ end;
 
 #
 #
+#
+
+# seemingly not used anymore
 #
 
 makeJanetBase3 := proc ( eql, fs, order )

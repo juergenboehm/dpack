@@ -1,3 +1,4 @@
+#:mode=maple:
 #
 #	Initialisierungen die vor dem Einlesen des Paketes 'class' getroffen
 #	werden muessen
@@ -366,7 +367,11 @@ writeto ( _outfile );
 
 interface ( screenwidth = 94 );
 
-lprintx ( `\\documentstyle[german, twocolumn, a4, fullpage]{article}` );
+lprintx ( `\\documentclass[twocolumn]{article}` );
+lprintx ( `\\usepackage[utf8]{inputenc}` );
+lprintx ( `\\usepackage[german]{babel}` );
+lprintx ( `\\usepackage{fullpage}` );
+
 lprintx ();
 lprintx ();
 
@@ -2619,6 +2624,7 @@ if nargs > 1 then
 	
 else
 
+	# default location to write recognizer code to
 	progrfname := cat( MAPLEHOME, `/packages/dpack4/recog/recogifs` );
 	
 fi;

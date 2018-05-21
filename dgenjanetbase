@@ -1,3 +1,5 @@
+#:mode=maple:
+
 
 
 remdep ( [xi, eta, sigma, rho] );

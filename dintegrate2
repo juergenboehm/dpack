@@ -1,3 +1,4 @@
+#:mode=maple:
 
 getdepvar := proc ( fn ) op ( 0, fn ) end;
 getindepvar := proc ( fn ) op ( fn ) end;

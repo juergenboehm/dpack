@@ -1,5 +1,5 @@
-#:mode=maple:
-
+# :mode=maple:
+#
 
 dsimplify := proc ()
 
@@ -158,8 +158,7 @@ end;
 
 coeffslin := proc ( e, vars )
 
-local e1,
-		i;
+local e1, i;
 
 e1 := collect ( e, vars );
 
@@ -291,7 +290,7 @@ end;
 #	total degree : tdeg ( [k1,..kn] ) = k1+...+kn
 #
 
-tdeg := proc ( J )
+tdegfun := proc ( J )
 
 convert ( J, `+` );
 

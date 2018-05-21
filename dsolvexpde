@@ -1,3 +1,5 @@
+#:mode=maple:
+#
 
 
 uniqueName := proc ( un )

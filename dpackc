@@ -1,6 +1,5 @@
 #:mode=maple:
 #
-#
 #	dpackc - Ein Paket fuer Differentialgleichungen
 #
 #	v 0.6 , Jul 1998
@@ -79,9 +78,16 @@ if type ( e, `+` ) then
 elif type ( e, `*` ) then
 
     p := select ( (x,y)->(not has(x,y)), e, fs );
-
-    e1 := dprecoll ( e/p, fs );
-
+    
+    if p <> 1 then
+	
+		e1 := dprecoll ( e/p, fs );
+	else
+	
+		e1 := e;
+	fi;
+		
+		
     if type ( e1, `+` ) then
 
         map ( (x,y)-> x * y, e1, p )
@@ -2067,6 +2073,15 @@ end;
 #
 #
 
+
+
+#
+#
+#
+
+
+
+
 makeJanetBase := proc ( elist, fs )
 
 local i, insolv;
@@ -2075,7 +2090,6 @@ global _crtbl, _slistlen, _assumelist, _asslist, _verbose, _insolvJanet;
 
 if not assigned ( forget ) then
 
-### WARNING: persistent store makes one-argument readlib obsolete
     readlib ( forget );
     
 fi;
@@ -2093,6 +2107,7 @@ if assigned ( _spprocess ) then
 fi;
 
 makeSlist ( elist, fs );
+
 insolv := makeJanetBase1 ();
 
 _insolvJanet := insolv;
@@ -2116,10 +2131,8 @@ end;
 #
 #
 #
-
-
 #
-#
+
 
 makeJanetBase1 := proc ()
 
@@ -2292,6 +2305,7 @@ end;
 # jetzt auch fuer n > 2 immer alle Integrabilitaetsbedingungen gefunden werden.
 # Diese Aenderungen sind enthalten ab v. 0.50
 #
+#
 
 
 makeIntgrbCond := proc ()
@@ -2377,47 +2391,17 @@ syzEqX ( L1, nops(vars), [], []  );
 
 end;
 
+########################################################################################################################
+#
+# Mai 2018: Ein neues syzEqPair herausfaktorisiert aus syzEqX
 #
 #
 
+syzEqPair := proc (ii, jj, newentry)
+
+local dp1, dp2, dp3, dm1, dm2, ee, vars, ff, gg;
 
 
-#
-#
-#
-#
-
-syzEqX := proc ( L1, n, a, b )
-
-local L, ii, jj, pair, slist,
-		dp1, dp2, dp3, dm1, dm2, ee, vars, ff, gg;
-
-       
-global _spfun, _newentry;
-
-
-
-if nops ( L1 ) = 1 then
-
-	RETURN ( L1 );
-	
-fi;
-
-
-L := map ( x->[x[1],x[2]], L1 );
-
-
-slist := grobnersyz3 ( L );
-
-# slist := remove ( x->nops ( x ) = 1, {op(slist)} );
-
-
-for pair in slist do
-
-	
-	ii := pair[1];
-
-    jj := pair[2];
 
     dp1 := subs( _fskill, _tllist[ii] );
     dp2 := subs( _fskill, _tllist[jj] );
@@ -2492,10 +2476,56 @@ for pair in slist do
 
     # debugprint ( `IGB entry = `, gg );
 
-    makeSentry ( gg, _fs, _newentry );
+    makeSentry ( gg, _fs, newentry );
 
-    _newentry := _newentry + 1;
+
+
+end;
+
+
+
+#
+#############################################################################################################################
+#
+#
+
+
+
+
+
+syzEqX := proc ( L1, n, a, b )
+
+local L, ii, jj, pair, slist,
+		dp1, dp2, dp3, dm1, dm2, ee, vars, ff, gg;
+
+       
+global _spfun, _newentry;
+
+
+
+if nops ( L1 ) = 1 then
+
+	RETURN ( L1 );
+	
+fi;
+
+
+L := map ( x->[x[1],x[2]], L1 );
+
+
+slist := grobnersyz3 ( L );
+
+
+for pair in slist do
+	
+	ii := pair[1];
+
+    jj := pair[2];
     
+    syzEqPair(ii, jj, _newentry);
+    
+    _newentry := _newentry + 1
+
 od;
 
 end;
@@ -2535,9 +2565,7 @@ tt := l2 - l1;
 tt := map ( proc (x) if x < 0 then -1; elif x > 0 then 1 else 0; fi; end, tt );
 
 evalb ( not has ( tt, -1 ) and has ( tt, 1 ) );
-#evalb ( not has ( tt, -1 ) );
 
-### WARNING: `tt` is implicitly declared local
 end;
 
 #
@@ -2552,10 +2580,8 @@ tt := l2 - l1;
 
 tt := map ( proc (x) if x < 0 then -1; elif x > 0 then 1 else 0; fi; end, tt );
 
-#evalb ( not has ( tt, -1 ) and has ( tt, 1 ) );
 evalb ( not has ( tt, -1 ) );
 
-### WARNING: `tt` is implicitly declared local
 end;
 
 #
@@ -2659,12 +2685,6 @@ od;
 
 C;			
 
-### WARNING: `conntab` is implicitly declared local
-### WARNING: `reduced` is implicitly declared local
-### WARNING: `k` is implicitly declared local
-### WARNING: `dmkj` is implicitly declared local
-### WARNING: `ctij` is implicitly declared local
-### WARNING: `bb` is implicitly declared local
 end;
 
 #
@@ -2780,12 +2800,6 @@ od;
 
 C;			
 
-### WARNING: `conntab` is implicitly declared local
-### WARNING: `partoftab` is implicitly declared local
-### WARNING: `k` is implicitly declared local
-### WARNING: `ctij` is implicitly declared local
-### WARNING: `pp` is implicitly declared local
-### WARNING: `bb` is implicitly declared local
 end;
 
 #

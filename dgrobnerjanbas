@@ -1,0 +1,968 @@
+#:mode=maple:
+
+#
+# jb, 2018
+#
+# makeJanetBaseGr ist die am üblichen Gröbnerbasisalgorithmus ausgerichtete
+# Variante der Janet-Basen-Berechnung
+#
+#
+
+
+makeJanetBaseGr := proc ( elist, fs )
+
+local i, insolv;
+
+global _crtbl, _slistlen, _assumelist, _asslist, _verbose, _insolvJanet;
+
+if not assigned ( forget ) then
+
+    readlib ( forget );
+    
+fi;
+
+if not assigned ( _verbose ) then
+
+	_verbose := false;
+	
+fi;
+
+if assigned ( _spprocess ) then
+
+	print ( `special processing activated` );
+	
+fi;
+
+makeSlist ( elist, fs );
+
+insolv := makeJanetBase11 ();
+
+_insolvJanet := insolv;
+
+debugprint ( `insolv = `, insolv );
+
+_crtbl := table ();
+
+for i from 1 to _slistlen do
+
+	_assumelist := _assumelist union _asslist[i];
+	
+od;
+
+[seq ( _flist[i], i = 1.._slistlen )];
+
+
+end;
+
+#
+#
+#
+#
+
+makeJanetBase11 := proc()
+
+local ii, jj, i, j, L, aa, pair, bbcrit, insolv, old_xvers,
+	time_red_igb, time_red_finish, number_spairs, number_spairs_red_zero, n_elem_igb_reds, taux;
+
+global _nnx, _slistlen, _makeJanetBase11_info, _reduceIntgrbCond1_info, _xvers;
+
+time_red_igb := 0;
+time_red_finish := 0;
+number_spairs := 0;
+number_spairs_red_zero := 0;
+n_elem_igb_reds := 0;
+
+ii := 1;
+jj := _slistlen;
+
+_nnx := 1;
+
+L := [];
+
+
+# fill initial syzygy list
+
+for i from 2 to _slistlen do
+	L := updatePairs(L, i);
+od;
+
+aa := _slistlen + 1;
+
+
+while nops(L) > 0 do
+
+	pair := L[1];
+		
+	ii := pair[1];
+	jj := pair[2];
+	
+	L := L[2..-1];
+		
+	
+	syzEqPair(ii, jj, aa);
+	
+	number_spairs := number_spairs + 1;
+	
+	
+	_slistlen := _slistlen + 1;
+		
+	taux := time();
+	reduceIntgrbCond1( aa, aa);
+	time_red_igb := time_red_igb + time() - taux;
+	
+	n_elem_igb_reds := n_elem_igb_reds + _reduceIntgrbCond1_info[1];
+	
+	
+	
+	if _flist[aa] <> 0 then
+		
+		L := updatePairs(L, aa);
+		
+		debugprint("new igb: aa = ", aa, "(ii, jj) = ", ii, jj);
+		
+		aa := aa + 1;
+	else
+		number_spairs_red_zero := number_spairs_red_zero + 1;
+		
+		debugprint("igb reduced to zero: aa = ", aa, "(ii, jj) = ", ii, jj);
+	fi;
+	
+	_slistlen := aa - 1;
+
+od;
+
+taux := time();
+
+if _xvers = true then
+	doSautoreduce();
+else
+	doSautoreduce11();
+fi;
+
+time_red_finish := time_red_finish + time() - taux;
+
+doScompact();
+
+insolv := checkInsolvability();
+
+
+_makeJanetBase11_info := [time_red_igb, time_red_finish, number_spairs, number_spairs_red_zero, n_elem_igb_reds];
+
+	
+return(insolv);	
+
+end;
+
+
+
+#
+#
+#
+# Gebauer-Möller-Algorithmus
+#
+#
+#
+
+updatePairs := proc (L, t)
+
+local L1, L2, tfun, i; 
+
+L1 := [];
+
+tfun := getfun(_tllist[t]);
+
+for i from 1 to t - 1 do
+	if getfun(_tllist[i]) = tfun then
+		L1 := [op(L1), [i,t]]
+	fi;
+od;
+
+
+L2 := cancelLBt(L, t);
+
+L1 := cancelL1M( L1 );
+
+
+L2 := [op(L2), op(L1)];
+
+return L2;
+
+end;
+
+#
+#
+# Cancel-Strategie M in L1
+# gefolgt von Cancel-Strategie "Typ" = sortieren nach "Typ des Leitterms"
+# siehe Gebauer-Möller, Algorithmus 4.4
+#
+
+cancelL1M := proc (L1)
+
+local Lres, a, ii, jj, ii1, jj1, cancel, b, Tij, Tij1, TT, TT1,
+	Lres_types, Lres_part_typ, Lres_part_typ1, typ, repr, Lres1;
+
+TT := proc(i,j) subs(_fskill, lcm(_tllist[i], _tllist[j])); end;
+TT1 := proc(i) subs(_fskill, _tllist[i]); end;
+	
+Lres := [];
+
+for a from 1 to  nops(L1) do
+
+	ii := L1[a][1];
+	jj := L1[a][2];
+	
+	Tij := lcm(_tllist[ii], _tllist[jj]);
+
+	cancel := false;
+	
+	for b from 1 to nops(L1) do
+	
+		if b = a then
+			next;
+		fi;
+				
+		ii1 := L1[b][1];
+		jj1 := L1[b][2];
+		
+		Tij1 := lcm(_tllist[ii1], _tllist[jj1]);
+		
+		if denom(Tij/Tij1) = 1 and Tij <> Tij1 then
+			cancel := true;
+			break;
+		fi;
+	od;
+		
+	if not cancel then
+		Lres := [op(Lres), L1[a]];
+	fi;
+od;
+
+
+Lres_types := {op(map(zz->TT(zz[1],zz[2]), Lres))};
+
+Lres1 := [];
+
+for typ in Lres_types do
+	
+	Lres_part_typ := select(zz->TT(zz[1],zz[2]) = typ, Lres);
+	
+	Lres_part_typ1 := select(zz->TT1(zz[1]) * TT1(zz[2]) = typ, Lres_part_typ);
+
+	if nops(Lres_part_typ1) > 0 then
+	
+		repr := Lres_part_typ1[1];
+	else
+		repr := Lres_part_typ[1];
+	fi:
+	
+	Lres1 := [op(Lres1), repr];
+od;
+
+return Lres1;
+
+end;
+
+#
+#
+# Cancel Strategie B_t in L
+#
+
+cancelLBt := proc (L, targ)
+
+local Lres, pair, ii, jj, fun_ii, fun_jj, tt, fun_tt, dmij, dmit, dmjt, cancel, TT;
+
+TT := proc(i, j) subs(_fskill, lcm(_tllist[i], _tllist[j])); end;
+
+
+Lres := [];
+
+tt := targ;
+
+fun_tt := getfun(_tllist[tt]);
+
+for pair in L do
+	
+	ii := pair[1];
+	jj := pair[2];
+	
+	fun_ii := getfun(_tllist[ii]);
+	fun_jj := getfun(_tllist[jj]);
+	
+	cancel := false;
+			
+	if (fun_tt = fun_ii and fun_tt = fun_jj) then
+	
+		dmij := TT(ii, jj);
+		dmit := TT(ii, tt);
+		dmjt := TT(jj, tt);
+		
+		if lcm(dmit, dmjt) = dmij and dmit <> dmij and dmjt <> dmij then
+			cancel := true;
+		fi;			
+	fi;
+	
+	if not cancel then
+		Lres := [op(Lres), pair];
+	fi;
+	
+od;
+
+return Lres;
+
+end;
+
+
+
+#
+# reduceIntgrbCond1:
+#
+# reduce _flist[j] with ii_from <= j <= ii_to with all _flist[i] and 1 <= i < ii_from
+#
+#
+
+reduceIntgrbCond1 := proc(ii_from, ii_to)
+
+local j, i, subsdone, n_red;
+
+global _reduceIntgrbCond1_info;
+
+if _xvers = true then
+
+	reduceIntgrbCond(ii_from - 1, ii_to);
+	_reduceIntgrbCond1_info := 1;
+	return;
+	
+fi;	
+	
+n_red := 0;
+
+for j from ii_from to ii_to do
+
+	i := 1;
+	
+	while true do
+		
+		subsdone := doSreduce11(i, j);
+		
+		n_red := n_red + 1;
+		
+		if subsdone then		
+			i := 1;
+		else
+			i := i + 1;
+		fi;
+		
+		if i = ii_from then
+		
+			break;
+		
+		fi;
+		
+	od;
+		
+od;		
+
+_reduceIntgrbCond1_info := [n_red];
+	
+end;
+
+
+#
+#
+#
+
+getfun := proc(term)
+
+return (normal(term/subs(_fskill, term)));
+
+end;
+
+
+#
+#
+
+
+
+#
+# Testroutinen
+#
+#
+#
+# wandelt eine LPDE in fs in ein Polynom um.
+#
+#
+
+convToPoly := proc(elist, fs)
+
+local ee, tl, cl, fnl, pol, DF;
+
+if type(elist, list) then
+
+	return map(convToPoly, elist, fs);
+
+fi;
+
+ee := elist;
+
+ee := dcollect(ee, fs);
+
+cl := [dcoeffs(ee, fs, 'tl')];
+
+tl := [tl];
+
+DF := proc(mon) local vs, fn; vs := diffvars( mon, 'fn'); return [[vs], fn] end;
+
+tl := map( mon -> DF(mon) , tl);
+
+fnl := {op(map(zz->zz[2], tl))};
+
+if nops(fnl) > 1 then
+
+	return FAIL;
+	
+fi;
+
+pol := convert( zip((cf,zz)->cf * convert(zz[1], `*`), cl, tl), `+` );
+
+return pol;
+
+end;
+
+
+#
+#
+# wandelt ein Polynom in eine LPDE in fun mit konstanten Koeffizienten um.
+#
+
+
+convToDeqs := proc(polylist, fun)
+
+local vars, pol, cl, tl, ee, DF;
+
+if type(polylist, list) then
+	
+	return map(convToDeqs, polylist, fun);
+fi;
+
+vars := [op(fun)];
+
+pol := polylist;
+
+pol := collect(pol, vars, distributed);
+
+cl := coeffs(pol, vars, 'tl');
+
+cl := [cl];
+tl := [tl];
+
+tl := map(zz->convert(zz, multiset), tl);
+
+DF := proc (ff, mset) 
+	local ff1, ve; 
+	if mset = [[1,1]] then 
+		return ff; 
+	else 
+		ff1 := ff; 
+		for ve in mset do 
+			ff1 := diff(ff1, ve[1]$ve[2]) 
+		od; 
+		return ff1;
+	fi;
+	end;  
+
+tl := map(zz->DF(fun, zz), tl);
+
+ee := convert( zip((cf,tt)->cf * tt, cl, tl), `+` );
+
+return ee;
+
+end;
+
+
+
+#
+# eine Testroutine
+#
+#
+
+
+
+ISS := proc (eqsl1, eqsl2, vars)
+  local is_eql, tst, eq;
+  is_eql := true;
+  for eq in eqsl1 do
+    tst:=map(zz->normal(zz/eq), eqsl2);
+    tst:=map(zz->not has(zz, vars), tst);
+    if has(tst, true) then
+      next;
+    fi;
+    is_eql := false;
+      break;
+  od;
+  return is_eql;
+end;
+
+#
+#
+#
+
+testJanBase := proc(janbasfun)
+
+local vars, kwparms, gbmethod, auxparms, 
+		fun, eqs, eqs_bas, oldcotes, deqs, deqs_bas, eqs_bas1, tgrob, tjanbas;
+
+vars:=[x,y,z,u,v];
+
+kwparms := select(zz->type(zz, name = anything), [args[2..-1]]);
+
+gbmethod := subs(kwparms, method);
+
+auxparms := subs(kwparms, parms);
+
+if auxparms = parms then
+	auxparms := [];
+fi;
+
+
+fun := f(op(vars));
+eqs:= map(zz->randpoly([op(vars), op(auxparms)], terms = zz), [3, 3, 2]);
+
+tgrob := time();
+
+if gbmethod = M2 then
+	eqs_bas := compute_gb_m2(eqs, vars, auxparms);
+elif gbmethod <> method then
+	eqs_bas := Groebner[Basis](eqs, grlex(op(reverse(vars))), method=gbmethod ):
+else
+	eqs_bas := Groebner[Basis](eqs, grlex(op(reverse(vars)))):
+fi;
+
+tgrob := time() - tgrob;
+
+if eqs_bas = TIMEOUT then
+	return TIMEOUT;
+fi;
+
+oldcotes:=setcotes([fun], totDegOrder([fun])):
+
+deqs:=convToDeqs(eqs, fun):
+
+tjanbas := time();
+deqs_bas:=janbasfun(deqs, [fun]):
+tjanbas := time() - tjanbas;
+
+eqs_bas1 := convToPoly(deqs_bas, [fun]):
+
+return [ISS(eqs_bas1, eqs_bas, vars), ISS(eqs_bas, eqs_bas1, vars), tgrob, tjanbas, eqs];
+
+end;
+
+#
+#
+# ein alternatives doSautoreduce
+#
+#
+
+doSautoreduce11 := proc()
+
+local i, j, subsdone1, subsdone;
+
+j := 1;
+
+while true do
+
+	subsdone1 := false;
+
+	for i from 1 to _slistlen do
+
+		if i = j then next; fi;
+		
+		subsdone := doSreduce(i, j);
+	
+		subsdone1 := subsdone1 or subsdone;
+	od;
+
+	if not subsdone1 then
+		
+		j := j + 1;
+		
+	else
+	
+		j := 1;
+		
+	fi;
+	
+	if j > _slistlen then break; fi;
+	
+od;
+
+end;
+
+
+#
+#
+#
+#
+# alternatives doSreduce(i, j) = reduce _flist[j] with _flist[i]
+#
+# reduziert nur das Leitmonom von _flist[j]
+#
+
+
+doSreduce11 := proc ( i, j )
+
+local e, 
+	lte, lce,
+	f,
+	tlf, clf,
+	subsdone,
+	ii, ii1,
+	vars,
+	tl, tl1, tl2,
+	jmax,
+	jj,
+	vmax, vakt,
+	dits,
+	cl,
+	subsdone1,
+	ee,
+	mm,
+	cc,
+	pp,
+	ffu,
+	cntnt,
+	cc1,
+	ass1,
+	assl,
+	newass;
+
+global _flist, _cllist, _tllist, _rlist, _tlist, _clist, _idlist,
+     _cotevars, _fs, _crtbl, _eqnid, _f, _cl, _spfun, _assumelist, _asslist;
+
+e := _flist[i];
+lte := _tllist[i];
+lce := _cllist[i];
+
+
+if _flist[i] = 0 or _flist[j] = 0 then
+
+	RETURN ( false );
+	
+fi;
+
+_assumelist := _assumelist union _asslist[i];
+
+newass := assertNotZero ( lce, _assumelist );
+
+if nops(newass) > 0 then
+
+	ass1 := [];
+
+	if _casediscuss = true then
+
+		assl := removeInconsistent ( newass );
+
+		ass1 := chooseFromList ( assl );
+		
+		print ( `chosen : `, ass1 );
+		
+	fi;
+
+	if ass1 = [] then
+
+		_assumelist := _assumelist union  newass;
+	
+	else		
+				
+		simplifySlist ( ass1 );
+			
+		RETURN ( false );		
+				
+	fi;
+
+fi;
+
+f := _flist[j];
+
+tlf := _tlist[j];
+clf := _clist[j];
+
+#printf ( `doSreduce: reduce %a with %a `, j, i );
+
+#printf ( `doSreduce: f has %a terms `, nops(clf) );
+
+
+subsdone1 := false;
+
+cc1 := {};
+
+while true do
+
+    subsdone := false;
+
+    mm := 1;
+
+	# print ( `lte = `, lte );
+	# print ( `tlf = `, tlf );
+	
+	ii := find_max_index(tlf);
+	
+	while true do
+		
+		# is lte a divisor of tlf[ii] ( as a diffmonomial ), 
+		# vars is the quotient or FAIL
+
+		vars := fdiffcomp ( lte, tlf[ii] );
+		
+		if ( vars = FAIL ) or ( f = 0 ) then
+			break;
+		fi;
+		
+		subsdone := true;
+		subsdone1 := true;
+		
+		if vars = [] then
+		
+			ee := e;
+			
+		else
+		
+			ee := diff ( e, op(vars) );
+		
+			if assigned ( _spfun ) then
+		
+				ee := _spfun ( ee );
+		
+			fi;
+		
+		fi;
+		
+		# f := lce * f - mm * clf[ii] * ee;
+		
+		# mm := mm * lce;
+		
+		f := f - clf[ii]/lce * ee;
+		
+		break;
+	
+	od;
+	
+	if (not subsdone)  then
+		break;
+	fi;
+
+	
+#
+#
+#
+
+	#printf ( `doSreduce: reduction step \n` );
+
+	if assigned ( _spcoeff ) then
+	
+		f := normal ( f );
+		f := dcollect ( f, _fs, _spcoeff );
+		
+	else
+
+    	f := normal ( f );
+    	f := dprecoll ( f, _fs );
+
+	fi;
+
+    dits := dindets ( f, _fs );
+
+	# check <> 0 assertions
+
+	cc := content ( f, dits, 'ppart' );
+	
+	cc1 := cc1 union assertNotZero ( cc, _assumelist );
+		
+	# end check
+
+	f := ppart;
+
+	if assigned ( _spcoeff ) then
+	
+		f := dcollect ( f, _fs, _spcoeff );
+		
+	fi;
+	
+    cl := [coeffs ( f, dits, 'tl' )];
+
+    tl1 := map ( x->fdiffprod(x), [tl] );
+
+    tlf := tl1;
+    clf := cl;
+
+    f := convert ( zip ( (x,y)->(x*y), [tl], clf ), `+` );
+    _f := f;
+       
+    # debugprint ( `f = `, f );
+   
+    break;
+
+od;
+
+
+#printf ( `doSreduce: left main loop; f has %a terms `, nops(clf) );
+
+if subsdone1 then
+
+    _idlist[j] := _eqnid;
+    _eqnid := _eqnid + 1;
+
+
+    _flist[j] := f;
+
+    jmax := find_max_index(tl1);
+
+    _clist[j] := clf;
+    _tlist[j] := tlf;
+
+    _cllist[j] := clf[jmax];
+
+    _tllist[j] := tl1[jmax];
+
+	_asslist[j] := cc1;
+
+fi;
+
+_crtbl[_idlist[i],_idlist[j]] := false;
+
+return subsdone1;
+
+end;
+
+
+#
+#
+#
+
+find_max_index := proc(tl1)
+
+local tl2, jj, jmax, vmax, vakt;
+
+tl2 := map ( x->getcotes2(x), tl1 );
+
+jmax := 1;
+vmax := tl2[1];
+
+for jj from 2 to nops ( tl2 ) do
+
+	vakt := tl2[jj];
+
+	if mleq ( vmax, vakt, _cotevars ) then
+
+		jmax := jj;
+		vmax := vakt;
+	fi;
+od;
+
+
+return jmax;
+
+end;
+
+
+#
+# M2 related functions
+#
+
+
+
+
+
+
+
+compute_gb_m2 := proc(eqs, vars, parms)
+
+local fd, gb_eqs, res;
+
+fd := fopen("compit.m2", WRITE);
+
+fprintf(fd, "R = QQ[%q] \n\n", op(parms) ); 
+fprintf(fd, "K = frac(R) \n\n" );
+fprintf(fd, "S = K[%q, MonomialOrder=>GLex] \n\n", op(reverse(vars)));
+
+fprintf(fd, "eqs = {%q} \n\n\n", op(eqs));
+
+fprintf(fd, "eqsgb = entries gens gb ideal eqs\n\n");
+
+fprintf(fd, "eqsgb = eqsgb_0 \n\n");
+
+fprintf(fd, "f = ""outfile"" << """"\n\n" );
+
+fprintf(fd, "f << toString(eqsgb) << endl << endl \n\n" );
+
+fprintf(fd, "f << close\n\n" );
+
+fprintf(fd, "exit\n\n" );
+
+fclose(fd);
+
+res := ssystem("timeout 10s M2 --script compit.m2");
+
+if res[1] = 124 then
+	return TIMEOUT;
+fi;
+
+fd := fopen("outfile", READ);
+
+gb_eqs := parse(readline(fd));
+
+fclose(fd);
+
+return [op(gb_eqs)];
+
+end;
+
+#
+#
+#
+#
+
+compute_gb_m2_alt := proc(eqs, vars, parms)
+
+local fd, gb_eqs, res;
+
+fd := fopen("compit.m2", WRITE);
+
+fprintf(fd, "R = QQ[%q] \n\n", op(parms) ); 
+fprintf(fd, "S = R[%q, MonomialOrder=>{Weights=>{1,1,1,1,1}] \n\n", op(reverse(vars)));
+
+fprintf(fd, "eqs = {%q} \n\n\n", op(eqs));
+
+fprintf(fd, "eqsgb = entries gens gb ideal eqs\n\n");
+
+fprintf(fd, "eqsgb = eqsgb_0 \n\n");
+
+fprintf(fd, "f = ""outfile"" << """"\n\n" );
+
+fprintf(fd, "f << toString(eqsgb) << endl << endl \n\n" );
+
+fprintf(fd, "f << close\n\n" );
+
+fprintf(fd, "exit\n\n" );
+
+fclose(fd);
+
+res := ssystem("timeout 10s M2 --script compit.m2");
+
+if res[1] = 124 then
+	return TIMEOUT;
+fi;
+
+fd := fopen("outfile", READ);
+
+gb_eqs := parse(readline(fd));
+
+fclose(fd);
+
+return [op(gb_eqs)];
+
+end;
+
+
+
+

@@ -1,4 +1,5 @@
-
+#:mode=maple:
+#
 
 exsimp := proc ( e, fs )
 

@@ -1,3 +1,5 @@
+#:mode=maple:
+
 
 MAPLEHOME := `/home/juergen/maple`:
 DPACKPATH := cat ( MAPLEHOME, `/packages/dpack/` ):
@@ -27,7 +29,7 @@ str := str[1..-6];
 str := op(foldl ((x,y)->cat(x,y),"", op(str))) ;
 
 
-printf ( "+ %12.12s +", str );
+printf ( "+ %16.16s +", str );
 
 initprintcnt := initprintcnt + 1;
 
@@ -119,6 +121,9 @@ initprint ( `dextd read` );
 
 READDPACK ( `djanetbase` );
 initprint ( `djanetbase read` );
+
+READDPACK ( `dgrobnerjanbas` );
+initprint ( `dgrobnerjanbas read` );
 
 READDPACK ( `dlie` );
 initprint ( `dlie read` );

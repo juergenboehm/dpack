@@ -1,4 +1,4 @@
-
+#:mode=maple:
 
 #
 #
@@ -117,7 +117,7 @@ dvarslist := map ( x->x[2], deqs1 );
 
 dvars := `union` ( op ( dvarslist ) );
 
-dvars0 := select ( x->tdeg(x[2]) > 0, dvars );
+dvars0 := select ( x->tdegfun(x[2]) > 0, dvars );
 
 dvars0 := map ( (x,y)-> makeextstr ( x[1], y, x[2] ), dvars0, varLists1 );
 

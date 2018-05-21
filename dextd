@@ -1,3 +1,4 @@
+#:mode=maple:
 ###############################################################################################
 #
 #	Parameter elimination routines that generate PDEs whose solution depends
@@ -42,6 +43,8 @@ while nops ( L ) > 0 do
         e1 := dsimplify ( e, symbolic );
         
     fi;
+    
+    e1 := normal(e1);
     
     
     if e1 = 0 then
@@ -302,7 +305,6 @@ end;
 #	
 #
 
-
 vectfToDeq := proc ( vfList, fs )
 
 # vfList ist die Liste der Vektorfelder.
@@ -333,14 +335,10 @@ vars := [];
 
 for i from 1 to n do
 
-	for j from 1 to nops ( eqlist ) do
-	
-		eqlist := zip ( (x,y)->[x,y],eqlist, vB );
-		eqlist := map ( (x,vfL,ii)->x[1]-coeff(vfL[ii],x[2]) *(aaa||ii),
-							eqlist, vfList1, i );
+	eqlist := zip ( (x,y)->[x,y],eqlist, vB );
+			
+	eqlist := map( zz-> zz[1] - coeff(vfList1[i], zz[2]) * (aaa||i), eqlist);
 		
-	od;
-
 	vars := [ op(vars), (aaa||i) ];
 	
 od;
@@ -350,6 +348,11 @@ res := parmElim ( eqlist, dgetvars ( fs ), vars );
 RETURN ( res );
 
 end:
+
+
+
+
+
 
 
 #
@@ -759,6 +762,17 @@ end:
 ##########################################################################################
 #
 #	EINE ROUTINE ZUM VARIABLENWECHSEL IN XI-ETA-FORMEN
+#
+# eine XI-ETA Form ist xi d/dx + eta d/dy
+#
+# allgemein haben wir:
+#
+# sum_i xi^i(xold) d/dxold^i = sum_j xibar^j(xnew) d/dxnew^j
+#
+# xold^i = xold^i(xnew)
+#
+# xold = (xold^nu), xnew = (xnew^mu), xold = F(xnew)
+#
 #
 ##########################################################################################
 

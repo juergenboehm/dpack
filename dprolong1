@@ -1,3 +1,5 @@
+#:mode=maple:
+
 
 dprolong1 := proc ( vec, vBLists1, varLists1, ord )
 
@@ -431,7 +433,7 @@ k := firstnonzero ( Ii );
 
 J := addik ( Ii, k, -1 );
 
-ordJ := tdeg ( J );
+ordJ := tdegfun ( J );
 
 dDk := makeDoperat ( k, _varLists, ordJ );
 
