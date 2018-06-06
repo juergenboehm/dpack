@@ -1,5 +1,5 @@
 
-remdep ( [xi, eta, b[1], a[2]] );
+remdep ( [xi, eta, bUNIQ[1], aUNIQ[2]] );
 
 depend ( [xi,eta], [x,y] );
 
@@ -33,7 +33,7 @@ fs1 := [xi, eta];
 
 jb1 := dchangefs ( jb, fs, fs1 );
 
-b1a2v := dresolve ( [2,25,ffff], jb1, fs1, b[1](x,y) - a[2](x,y) );
+b1a2v := dresolve ( [2,25,ffff], jb1, fs1, bUNIQ[1](x,y) - aUNIQ[2](x,y) );
 
 if b1a2v = 0 then
 

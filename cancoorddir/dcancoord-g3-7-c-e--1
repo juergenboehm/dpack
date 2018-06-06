@@ -1,5 +1,5 @@
 
-remdep ( [sigma, rho, xi, eta, c[1], d[1]] );
+remdep ( [sigma, rho, xi, eta, cUNIQ[1], dUNIQ[1]] );
 
 depend ( [sigma, rho, xi, eta], [x, y] );
 
@@ -28,11 +28,11 @@ vars := dgetvars ( fs1 );
 
 jb1 := dchangefs ( jb, fs, fs1 );
 
-crit1 := c[1](x,y);  # sx * rx
+crit1 := cUNIQ[1](x,y);  # sx * rx
 
-crit2 := d[1](x,y);  # sy * ry
+crit2 := dUNIQ[1](x,y);  # sy * ry
 
-# crit3 := 1+(1+c[1](x,y)*d[1](x,y))^(1/2); # sx * ry = 0
+# crit3 := 1+(1+cUNIQ[1](x,y)*dUNIQ[1](x,y))^(1/2); # sx * ry = 0
 
 
 crit1 := dresolve ( [[3,7,ffff],[c=-1]], jb1, fs1, crit1 );

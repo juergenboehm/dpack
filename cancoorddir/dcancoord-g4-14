@@ -1,5 +1,5 @@
 
-remdep ( [xi, eta, c[1]] );
+remdep ( [xi, eta, cUNIQ[1]] );
 
 depend ( [xi,eta], [x,y] );
 
@@ -39,7 +39,7 @@ fs1 := [xi, eta];
 jb1 := dchangefs ( jb, fs, fs1 );
 
 
-c1v := dresolve ( [4,14,ffff], jb1, fs1, c[1](x,y) );  # -sy/sx
+c1v := dresolve ( [4,14,ffff], jb1, fs1, cUNIQ[1](x,y) );  # -sy/sx
 
 if c1v = 0 then
 

@@ -2,14 +2,6 @@
 import re
 import os
 
-prog_file = 'dpackc'
-
-
-p = re.compile(u'([A-Za-z0-9_/]+)\s*:=\s*proc')
-q = re.compile(u'`type/.*')
-
-
-
 def get_line_lis(filename):
 
     f = open(filename, mode = 'r')
@@ -23,6 +15,8 @@ def get_line_lis(filename):
 
     return line_lis
 
+
+p = re.compile(u'([A-Za-z0-9_/]+)\s*:=\s*proc')
 
 
 def get_procs(line_lis):

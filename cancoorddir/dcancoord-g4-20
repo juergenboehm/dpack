@@ -1,5 +1,5 @@
 
-remdep ( [xi, eta, d[1]] );
+remdep ( [xi, eta, dUNIQ[1]] );
 
 depend ( [xi,eta], [x,y] );
 
@@ -35,7 +35,7 @@ jb1 := dchangefs ( jb, fs, fs1 );
 
 
 
-d1v := dresolve ( [4, 20, ffff], jb1, fs1, d[1](x,y) );
+d1v := dresolve ( [4, 20, ffff], jb1, fs1, dUNIQ[1](x,y) );
 
 
 # berechne sigma

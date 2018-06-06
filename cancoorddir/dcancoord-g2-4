@@ -1,5 +1,5 @@
 
-remdep ( [xi, eta, c[1]] );
+remdep ( [xi, eta, cUNIQ[1]] );
 
 depend ( [xi,eta], [x,y] );
 
@@ -27,7 +27,7 @@ jb1 := dchangefs ( jb, fs, fs1 );
 
 
 
-c1v := dresolve ( [2,4,ffff], jb1, fs1, c[1](x,y) );
+c1v := dresolve ( [2,4,ffff], jb1, fs1, cUNIQ[1](x,y) );
 
 if c1v = 0 then
 
@@ -215,7 +215,7 @@ rbyx := igreduce ( [2,4,ffff], [rxx/rx, rxy/rx, ry/rx] );
 igsaveexpr ( ID_RBYX, rbyx );
 
 
-igsaveexpr ( ID_FY, 1/c[1](x,y) );
+igsaveexpr ( ID_FY, 1/cUNIQ[1](x,y) );
 
 
 # Fall tfff
@@ -244,7 +244,7 @@ rbyy := igreduce ( [2,4,fftf], [ryx/ry, ryy/ry, rx/ry] );
 igsaveexpr ( ID_RBYY, rbyy );
 
 
-igsaveexpr ( ID_FY, 1/c[1](x,y) );
+igsaveexpr ( ID_FY, 1/cUNIQ[1](x,y) );
 
 
 # Fall fttf

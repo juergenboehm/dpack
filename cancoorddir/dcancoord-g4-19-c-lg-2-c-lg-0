@@ -1,5 +1,5 @@
 
-remdep ( [xi, eta, e[1]] );
+remdep ( [xi, eta, eUNIQ[1]] );
 
 depend ( [xi,eta], [x,y] );
 
@@ -39,7 +39,7 @@ gn := [[4,19,ffff],[c<>2, c<>0]];
 
 
 
-e1v := dresolve ( gn, jb1, fs1, e[1](x,y) );
+e1v := dresolve ( gn, jb1, fs1, eUNIQ[1](x,y) );
 
 
 # berechne sigma

@@ -506,7 +506,7 @@ vf := yy[0,0]^2*q[0,0]+2*yy[0,1]*yy[0,0]*q[0,1]+
 
 igrelinvdiscuss1 ( uu, vf, ID_EQ1, ID_EQ2 );
 
-igsaveexpr ( ID_EQ3, 1/c[1](x,y) );
+igsaveexpr ( ID_EQ3, 1/cUNIQ[1](x,y) );
 
 
 # Fall ffft
@@ -519,7 +519,7 @@ vf := yy[0,0]^2*q[0,0]+2*yy[1,0]*yy[0,0]*q[1,0]+(2*yy[1,0]^2+2*yy[2,0]*yy[0,0])*
 
 igrelinvdiscuss1 ( uu, vf, ID_EQ1, ID_EQ2 );
 
-igsaveexpr(ID_EQ3,1/c[1](x,y));
+igsaveexpr(ID_EQ3,1/cUNIQ[1](x,y));
 
 
 # Fall ftff
@@ -546,7 +546,7 @@ vf := yy[0,0]^2*q[0,0]+2*yy[0,1]*yy[0,0]*q[0,1]+(2*yy[0,1]^2+2*yy[0,2]*yy[0,0])*
 
 igrelinvdiscuss1(uu,vf,ID_EQ1,ID_EQ2);
 
-igsaveexpr ( ID_EQ3, 1/c[1](x,y) );
+igsaveexpr ( ID_EQ3, 1/cUNIQ[1](x,y) );
 
 
 # Fall fttf

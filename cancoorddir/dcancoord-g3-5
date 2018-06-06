@@ -1,5 +1,5 @@
 
-remdep ( [sigma, rho, xi, eta, c[1], b[1]] );
+remdep ( [sigma, rho, xi, eta, cUNIQ[1], bUNIQ[1]] );
 
 depend ( [sigma, rho, xi, eta], [x, y] );
 
@@ -40,7 +40,7 @@ _FFSS1 := fs1;
 
 
 
-c1v := dresolve ( [3,5,ffff], jb1, fs1, c[1](x,y) );       # sx / sy
+c1v := dresolve ( [3,5,ffff], jb1, fs1, cUNIQ[1](x,y) );       # sx / sy
 
 if c1v = 0 then
 

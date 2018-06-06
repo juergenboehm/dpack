@@ -1,5 +1,5 @@
 
-remdep ( [xi, eta], a[1], c[1], d[1]  );
+remdep ( [xi, eta], aUNIQ[1], cUNIQ[1], dUNIQ[1]  );
 
 depend ( [xi,eta], [x,y] );
 
@@ -410,7 +410,7 @@ j1 := igreduce ( [3, 10, ffff], sxx / sx - 2 * sx / (s-r) );
 igsaveexpr ( ID_J1, j1 );
 
 
-igsaveexpr ( ID_DISC, [c[1](x,y)] );
+igsaveexpr ( ID_DISC, [cUNIQ[1](x,y)] );
 
 
 

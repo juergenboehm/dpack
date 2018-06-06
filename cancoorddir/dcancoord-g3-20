@@ -1,5 +1,5 @@
 
-remdep ( [xi, eta, c[1], b[1]] );
+remdep ( [xi, eta, cUNIQ[1], bUNIQ[1]] );
 
 depend ( [xi,eta], [x,y] );
 
@@ -37,7 +37,7 @@ jb1 := dchangefs ( jb, fs, fs1 );
 
 
 
-b13v := dresolve ( [3, 20, ffff], jb1, fs1, b[1](x,y) + 3 );
+b13v := dresolve ( [3, 20, ffff], jb1, fs1, bUNIQ[1](x,y) + 3 );
 
 # wenn b13v verschwindet liegt ein besonderer Unterfall vor
 # der anscheinend nur durch einen vorgeschalteten Koordinatenwechsel
@@ -57,9 +57,9 @@ if b13v = 0 then
 
 		jbakt := csimpJanetBase ( jbakt, fs1 );
 
-		b13v := dresolve ( [3, 20, ffff], jbakt, fs1, b[1](x,y) + 3 );
+		b13v := dresolve ( [3, 20, ffff], jbakt, fs1, bUNIQ[1](x,y) + 3 );
 		
-		c1v := traperror ( dresolve ( [3, 20, ffff], jbakt, fs1, 1/c[1](x,y) ));
+		c1v := traperror ( dresolve ( [3, 20, ffff], jbakt, fs1, 1/cUNIQ[1](x,y) ));
 
 		if b13v <> 0 and (c1v <> 0 or type ( c1v, string )) then
 			
@@ -84,7 +84,7 @@ if b13v = 0 then
 
 fi;
 
-c1v := dresolve ( [3, 20, ffff], jb1, fs1, c[1](x,y) );
+c1v := dresolve ( [3, 20, ffff], jb1, fs1, cUNIQ[1](x,y) );
 
 
 # berechne sigma

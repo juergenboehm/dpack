@@ -263,7 +263,7 @@ y := vars[2];
 
 pdeeq := diff ( h, y ) - fy * diff ( h, x );
 
-loes := pdesolve ( pdeeq, h );
+loes := pdsolve ( pdeeq, h );
 
 if nops ( [loes] ) > 1 then
 
@@ -298,7 +298,7 @@ y := vars[2];
 
 pdeeq := diff ( h, x ) - fx * diff ( h, y );
 
-loes := pdesolve ( pdeeq, h );
+loes := pdsolve ( pdeeq, h );
 
 if nops ( [loes] ) > 1 then
 

@@ -1,5 +1,5 @@
 
-remdep ( [sigma, rho, xi, eta, e[1]] );
+remdep ( [sigma, rho, xi, eta, eUNIQ[1]] );
 
 depend ( [sigma, rho, xi, eta], [x, y] );
 
@@ -37,7 +37,7 @@ _JJBB1 := jb1;
 _FFSS1 := fs1;
 
 
-e1v := dresolve ( [4,6,ffff], jb1, fs1, e[1](x,y) );
+e1v := dresolve ( [4,6,ffff], jb1, fs1, eUNIQ[1](x,y) );
 
 if e1v <> 0 then
 

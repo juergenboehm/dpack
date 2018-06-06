@@ -1,5 +1,5 @@
 
-remdep ( [xi, eta, c[1], d[1], b[1]] );
+remdep ( [xi, eta, cUNIQ[1], dUNIQ[1], bUNIQ[1]] );
 
 depend ( [xi,eta], [x,y] );
 
@@ -39,9 +39,9 @@ fs1 := [xi, eta];
 
 jb1 := dchangefs ( jb, fs, fs1 );
 
-c1v := dresolve ( [4,9,ffff], jb1, fs1, c[1](x,y) ); # sx/sy
+c1v := dresolve ( [4,9,ffff], jb1, fs1, cUNIQ[1](x,y) ); # sx/sy
 
-d1v := dresolve ( [4,9,ffff], jb1, fs1, d[1](x,y) ); # ry/rx
+d1v := dresolve ( [4,9,ffff], jb1, fs1, dUNIQ[1](x,y) ); # ry/rx
 
 if c1v = 0 then
 
@@ -716,7 +716,7 @@ vf := rivs[1][1];
 
 igrelinvdiscuss1 ( uu, vf, ID_EQ1, ID_EQ2 );
 
-igsaveexpr ( ID_EQ3, 1/c[1](x,y) );
+igsaveexpr ( ID_EQ3, 1/cUNIQ[1](x,y) );
 
 
 
@@ -754,7 +754,7 @@ vf := rivs[1][1];
 
 igrelinvdiscuss1 ( uu, vf, ID_EQ1, ID_EQ2 );
 
-igsaveexpr(ID_EQ3,1/c[1](x,y));
+igsaveexpr(ID_EQ3,1/cUNIQ[1](x,y));
 
 
 
@@ -816,7 +816,7 @@ vf := rivs[1][1];
 
 igrelinvdiscuss1(uu,vf,ID_EQ1,ID_EQ2);
 
-igsaveexpr ( ID_EQ3, 1/b[1](x,y) );
+igsaveexpr ( ID_EQ3, 1/bUNIQ[1](x,y) );
 
 
 

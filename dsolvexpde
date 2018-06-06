@@ -460,8 +460,50 @@ res;
 
 end;
 
+#
+#
+# Ersatz für das früher vorhandene "ratlode(deq, fn)"
+# berechnet Basis der rationalen Lösungen fn für die ODE deq
+#
+
+ratlode := proc(deq, fn)
+
+local loes, loes0, res;
+
+loes := DEtools[ratsols](deq, fn);
+
+res := [];
+
+if type(loes, list)  then
+
+	loes0 := 0;
+
+	if nops(loes) = 2 and type(loes[1], list) then
+
+		loes0 := loes[2];
+		
+		loes := loes[1];
+		
+	fi;
+	
+	res := loes0 + add(_C[i] * loes[i], i = 1..nops(loes));
+	
+	RETURN([res]);
+	
+else
+
+	RETURN(res);
+	
+fi;
+
+end;
 
 
+
+
+#
+#
+#
 
 pdesolvesysX := proc ( eql, fnl )
 
@@ -988,17 +1030,21 @@ for mindeq in mindeql2 do
 		
 	else
 
-	#	odeloes := dsolve ( mindeqode, dummyf, explicit = true );
+#		odeloes := dsolve ( mindeqode, dummyf, explicit = true );
 
 		odeloes := ratlode ( mindeqode, dummyf );
 
 		if nops ( [odeloes] ) > 0 then
-
-			odecnsl := select ( has, odeloes[2], _C );
+		
+			odecnsl := select ( has, odeloes[1], _C );
 			
-			slcns := [seq ( odecnsl[i] = _C||i, i = 1..nops ( odecnsl ) )];
+			if nops(odecnsl) > 0 then
+				
+				slcns := [seq ( odecnsl[i] = _C||i, i = 1..nops ( odecnsl ) )];
+	
+				odeloes := subs ( slcns, odeloes[1] );
 
-			odeloes := subs ( slcns, odeloes[1] );
+			fi;
 			
 			odeloes := dummyf = odeloes;
 
@@ -1127,9 +1173,6 @@ else
 	
 fi;
 
-### WARNING: `nondeql` is implicitly declared local
-### WARNING: `fnx` is implicitly declared local
-### WARNING: `vrs` is implicitly declared local
 end;
 
 #

@@ -167,13 +167,13 @@ local dxlt,
 		res,
 		kk,
 		valiszero,
-		fctr1;
+		fctr1, t0;
 
 global _resflag, _eqnr, _eqsubsl,
 		_zeroexprl;
 
-dxlt := dxlterm ( e, fs );
-
+t0 := time[real]();		
+		
 e1 := normal ( e );
 
 e1 := numer ( e1 );
@@ -188,7 +188,6 @@ e1 := dprimpart ( e1, dxlt, 'cntnt' );
 
 e1 := dxcollect ( e1, fs );
 
-
 cntntl := frontend ( factors ,[ cntnt ] );
 
 uu := cntntl[1];
@@ -201,7 +200,9 @@ if type ( uu, constant ) then
 	
 fi;
 
+#printf("dxmakeeq: prolog time = %a ", time() - t0);
 
+t0 := time[real]();
 
 for fctr in cntntl[2] do
 
@@ -224,7 +225,7 @@ for fctr in cntntl[2] do
 		valiszero := evalb ( val = 0 );
 
 	else
-	
+			
 		val := [seq ( xtaylor ( fctr[1], _xtaylvar, _xtayln, kk ), kk=1.._xtaylk )];
 		
 		valiszero := iszerol ( val );
@@ -333,7 +334,7 @@ for fctr in cntntl[2] do
 		
 od;
 
-
+#printf("dxmakeeq: analyze time = %a \n", time() - t0);
 
 if valzero = true then
 
@@ -463,8 +464,8 @@ end;
 
 dxrecurse := proc ( e, fs, d )
 
-local dxidts,
-	e1, lm,
+local dxidts, e1n, e1d,
+	e1, lm, sel,
 	res,
 	optseq,
 	val,
@@ -479,9 +480,11 @@ local dxidts,
 	nn,
 	tl1;
 
-global _zeroexprl, _minimalspace, _doeconsubs, _coefffunl;
+global _zeroexprl, _minimalspace, _doeconsubs, _coefffunl, _eqsubsl, _eqsubsl_ext, _eqsubsl_ext_numer, _eqsubsl_ext_denom;
 
 dxidts := dxindets ( e, fs );
+
+#printf ("dxrecurse, level = %a ", d);
 
 
 if nops ( dxidts ) = 0 then
@@ -511,9 +514,16 @@ if nops ( dxidts ) = 0 then
 
 		else
 
-			ff := subs;
-			e1 := normal ( eval ( value ( subs ( _eqsubsl, e1 ) ) ) );
-
+			ff := subs;			
+						
+			e1 := normal ( eval ( value ( subs ( _eqsubsl_ext, e1 ) ) ) );
+						
+			e1 := normal ( eval ( value ( subs ( _eqsubsl_ext_denom, e1 ) ) ) );
+			
+			# e1 := normal(eval(value(subs(_eqsubsl, e1))));
+			
+			#ASSERT(not has(e1, DenomUNIQ), "DenomUNIQ not substituted error.");
+		
 		fi;
 
 		e1 := tdsubs ( _dxaddlist, e1 );
@@ -524,8 +534,8 @@ if nops ( dxidts ) = 0 then
 	else
 
 		e1 := e;
-
-		e2 := [seq ( xtaylor ( e1, _xtaylvar, _xtayln, k ), k = 1.._xtaylk ) ];
+				
+		e2 := [Threads[Seq][tasksize=1] ( xtaylor ( e1, _xtaylvar, _xtayln, k ), k = 1.._xtaylk ) ];
 
 		if iszerol ( e2 ) then
 		
@@ -592,120 +602,120 @@ fi;
 
 if d > 0 then
 
-if _superminimal <> true then
-
-	val := zip ( (x,y)->op(2,x)*y, cl, tl );
-	val := convert ( val , `+` );
-
-	val := tdsubs ( _dxaddlist, val );
-
-	val := normal ( val );
-
-
-else
+	if _superminimal <> true then
 	
-	tl1 := map ( proc(xx,vv,nn,kkm)
-					local kk;
-						[seq(xtaylor(xx,vv,nn,kk),kk=1..kkm)] end ,tl,_xtaylvar,
-																_xtayln,_xtaylk); 
-
-	val := [seq ( zip ( (x,y)->x*y, map((x,kk)->op(2,x)[kk],cl,k), 
-									map((x,kk)->x[kk], tl1, k ) ), k=1.._xtaylk ) ];
+		val := zip ( (x,y)->op(2,x)*y, cl, tl );
+		val := convert ( val , `+` );
 	
-	val := map ( xx->convert ( xx, `+` ), val );
+		val := tdsubs ( _dxaddlist, val );
 	
-	val := [seq ( xtaylor ( val[k], _xtaylvar, _xtayln, k ), k=1.._xtaylk ) ];
-		
-fi;
-
-if _superminimal <> true then
-
-	if _minimalspace = true then
-
-		val := convert ( val, horner );
-
+		val := normal ( val );
+	
+	
 	else
-
-		val := collect ( val, [op(fs), op(_cnstlist), op(_coefffunl) ], recursive, normal );
-
+		
+		tl1 := map ( proc(xx,vv,nn,kkm)
+						local kk;
+							[Threads[Seq][tasksize = 1](xtaylor(xx,vv,nn,kk),kk=1..kkm)] end ,tl,_xtaylvar,
+																	_xtayln,_xtaylk); 
+	
+		val := [Threads[Seq][tasksize=1] ( zip ( (x,y)->x*y, map((x,kk)->op(2,x)[kk],cl,k), 
+										map((x,kk)->x[kk], tl1, k ) ), k=1.._xtaylk ) ];
+		
+		val := map ( xx->convert ( xx, `+` ), val );
+		
+		val := [Threads[Seq][tasksize = 1] ( xtaylor ( val[k], _xtaylvar, _xtayln, k ), k=1.._xtaylk ) ];
+			
 	fi;
 
-fi;
-
-if _superminimal <> true then
-
-	valzero := evalb ( val = 0 );
+	if _superminimal <> true then
 	
-else
+		if _minimalspace = true then
+	
+			val := convert ( val, horner );
+	
+		else
+	
+			val := collect ( val, [op(fs), op(_cnstlist), op(_coefffunl) ], recursive, normal );
+	
+		fi;
+	
+	fi;
 
-	valzero := iszerol ( val );
+	if _superminimal <> true then
 	
-fi;
-
-
-if valzero and d > 0 then
-	
-	vvv := frontend ( factors, [e] );
-	
-	for ff in vvv[2] do
-	
-		if has ( ff[1], fs ) then
+		valzero := evalb ( val = 0 );
 		
-			if assigned ( _doeconsubs ) then
-			
-				subsf := _doeconsubs;
-				
-			else
-			
-				subsf := subs;
-				
-			fi;
+	else
+	
+		valzero := iszerol ( val );
 		
-			if not ( _superminimal = true ) then
+	fi;
+
+
+	if valzero and d > 0 then
 		
-				vv := normal ( eval ( value ( subsf ( _eqsubsl, ff[1] ) ) ) );
-				vv := tdsubs ( _dxaddlist, vv );
+		vvv := frontend ( factors, [e] );
 		
-			else
+		for ff in vvv[2] do
+		
+			if has ( ff[1], fs ) then
 			
-				vv := subs ( _eqsubsl, ff[1] );
-			
-				nn := _xtaylk;
+				if assigned ( _doeconsubs ) then
 				
-				while nn > 0 do
-				
-					vv1 := xtaylor ( vv, _xtaylvar, _xtayln, nn );
-						
-					if vv1 <> 0 then
+					subsf := _doeconsubs;
 					
-						break;
-						
-					fi;
+				else
+				
+					subsf := subs;
 					
-					nn := nn - 1;
-										
-				od;
-				
-				vv := vv1;
-													
-			fi;
-				
+				fi;
 			
-			if vv = 0 then
-
-				debugprint ( `added to _zeroexprlist` );
-				debugprint ( `length zeroexprl = `, nops ( _zeroexprl ) );
-				debugprint ( `element = `, ff[1] );
-
-				_zeroexprl := dxinserteq ( ff[1], _zeroexprl );
+				if not ( _superminimal = true ) then
+			
+					vv := normal ( eval ( value ( subsf ( _eqsubsl, ff[1] ) ) ) );
+					vv := tdsubs ( _dxaddlist, vv );
+			
+				else
 				
-			fi;			
-		fi;		
-	od;
-
-	RETURN ( DD ( 0, 0) );
+					vv := subs ( _eqsubsl, ff[1] );
+				
+					nn := _xtaylk;
+					
+					while nn > 0 do
+					
+						vv1 := xtaylor ( vv, _xtaylvar, _xtayln, nn );
+							
+						if vv1 <> 0 then
+						
+							break;
+							
+						fi;
+						
+						nn := nn - 1;
+											
+					od;
+					
+					vv := vv1;
+														
+				fi;
+					
+				
+				if vv = 0 then
 	
-fi;
+					debugprint ( `added to _zeroexprlist` );
+					debugprint ( `length zeroexprl = `, nops ( _zeroexprl ) );
+					debugprint ( `element = `, ff[1] );
+	
+					_zeroexprl := dxinserteq ( ff[1], _zeroexprl );
+					
+				fi;			
+			fi;		
+		od;
+	
+		RETURN ( DD ( 0, 0) );
+		
+	fi;
 
 fi;
 
@@ -946,7 +956,7 @@ local e1, lm1,
 	d1, d2,
 	c1, c2, c11,
 	eq1, eq2,
-	xskml;
+	xskml, t0;
 
 global _eqsubsl, _skipred, _zeroexprl, _safeskip;
 
@@ -970,7 +980,7 @@ xskml := {}; # eXtraordinary reduction SKip Monomial List
 while true do
 
 	e2 := eqeq ( eq2 );
-
+	
 	dxidts2 := dxindets ( e2, fs );
 	
 	reddone := false;
@@ -978,9 +988,9 @@ while true do
 	while nops ( dxidts2 ) > 0 do
 	
 		lm2 := dxidts2[1];
-		
+						
 		if member(lm2, xskml) and _safeskip = true then next; fi;
-		
+				
 		dxidts2 := dxidts2[2..-1];
 		
 		vars := diffcompare ( lm2, lm1 );
@@ -990,7 +1000,7 @@ while true do
 			next;
 		
 		elif vars = [] then
-		
+						
 			d1 := degree ( e1, lm1 );
 			d2 := degree ( e2, lm2 );
 			
@@ -999,6 +1009,10 @@ while true do
 				next;			
 				
 			else
+	
+				print("lm2 = ", lm2, "lm1 = ", lm1, " d2 = ", d2, " d1 = ", d1);
+						
+				t0 := time[real]();
 
 				c1 := lcoeff ( e1, lm1 );
 				c2 := lcoeff ( e2, lm1 );
@@ -1006,14 +1020,21 @@ while true do
 				e21 := c1 * e2 - c2 * lm2^(d2-d1) * e1;				
 				
 				reddone := true;
-								
+
+				#printf("dxreduce1, comp without diff time = %a ", time() - t0);
+
+				
 				eq2 := dxmakeeq ( e21, fs );
+				
+				printf("dxreduce1, comp without diff, time + dxmakeeq = %a \n", time[real]() - t0);
 				
 				break;
 				
 			fi;
 				
 		else
+				
+			t0 := time[real]();
 		
 			e11 := diff ( e1, op ( vars ));
 			
@@ -1038,13 +1059,20 @@ while true do
 			c2 := lcoeff ( e2, lm2 );
 			
 			d2 := degree ( e2, lm2 );
+
+			print("lm2 = ", lm2, "lm1 = ", lm1, " d2 = ", d2);
+
 			
 			e21 := e2 * c11 - e11 * c2 * lm11 ^ ( d2 - 1);
 				
 			reddone := true;
+			
+			#printf("dxreduce1, comp with diff time = %a ", time() - t0);
 						
 			eq2 := dxmakeeq ( e21, fs );
 			
+			printf("dxreduce1, comp with diff, time + dxmakeeq = %a \n", time[real]() - t0);
+
 			break;
 	
 		
@@ -1055,6 +1083,12 @@ while true do
 	if reddone then
 		
 		reddone1 := true;
+		
+		if eqeq(eq2) = 0 then
+			
+			RETURN( [reddone1, eq2] );
+		
+		fi;
 		
 		next;
 		
@@ -1131,6 +1165,133 @@ res := dxmakeeq ( e3, fs );
 
 end;
 
+
+#
+# eine vereinfachte Version von dxautored, das nach dem Vorbild in dgrobnerjanbas
+# arbeitet
+#
+#
+
+
+dxautoredSimple := proc ( eqlista, fs )
+
+local eqlist,ii,nn,i,
+	diterm, djterm,
+	reddone, reddone1,
+	j,jj,
+	ttt,
+	eqi,eqj,
+	erg,
+	xtral;
+
+global _eqlistakt, _onlysimple, _zeroexprl, _skipsecond, _skipfirst;
+
+eqlist := eqlista;
+
+eqlist := select ( x->eqeq(x) <> 0, eqlist );
+
+eqlist := dxsorteql ( eqlist, fs );
+
+_eqlistakt := eqlist;
+
+savestate ();
+
+
+print ( map ( x->eqlt(x), eqlist ) );
+
+
+reddone := false;
+			
+j := 1;
+
+while j <= nops(eqlist) do
+
+	_zeroexprl := {};
+	
+	print("j = ", j , "nn = ", nops(eqlist));
+	
+	reddone := false;
+	reddone1 := false;
+
+	for i from 1 to nops(eqlist) do
+		
+		if i = j then next; fi;
+	
+		eqi := eqlist[i];
+		eqj := eqlist[j];
+	
+		erg := dxreduce ( eqlist[i], eqlist[j], fs );
+		
+		reddone := erg[1];
+		
+		if reddone = INCONSIST then
+		
+			RETURN ( [ INCONSIST, eqlist ] );
+		
+		fi;
+				
+		reddone1 := reddone1 or reddone;
+		
+		if reddone then
+		
+			eqlist[j] := erg[2];
+		
+			print ( `Reduce `, j , ` by `, i );
+			
+			break;
+						
+		fi;
+		
+		
+	od;
+
+	xtral := dxmakeeql ( [op(_zeroexprl)], fs );
+
+	eqlist := [op(eqlist), op(xtral)];
+
+	if nops(xtral) > 0 then
+	
+		print("xtral added **********************************", nops(xtral));
+	
+		reddone := true;
+		
+	fi;
+	
+	eqlist := select ( x->eqeq(x) <> 0, eqlist );
+	
+	if reddone then
+	
+		print ( map ( x->eqlt(x), eqlist ) );
+
+		j := 1;
+		
+	else
+	
+		j := j + 1;
+		
+	fi;
+
+
+	if j = 1 then
+		eqlist := dxsorteql ( eqlist, fs );
+	fi;
+	
+od;
+
+eqlist := dxsorteql ( eqlist, fs );
+
+print ( map ( x->eqlt(x), eqlist ) );
+
+debugprint ( eqlist );
+
+
+eqlist;
+
+end:
+
+
+
+
 #
 #
 
@@ -1153,264 +1314,265 @@ eqlist := eqlista;
 
 while true do
 
-eqlist := select ( x->eqeq(x) <> 0, eqlist );
-
-eqlist := dxsorteql ( eqlist, fs );
-
-_eqlistakt := eqlist;
-
-savestate ();
-
-
-#ttt := dsimplify(eval(value(subs(_eqsubsl, map ( eqeq, eqlist ) ))),symbolic);
-#ttt := map ((x,y)->tdsubs(y,x), ttt, _dxaddlist );
-
-#ttt := remove ( x->x=0, ttt );
-
-ttt := [];
-
-if nops ( ttt ) > 0 then
-
-
-	print ( `Reduktion war ` );
-	print ( eqj );
-	print ( `mit ` );
-	print ( eqi );
+	eqlist := select ( x->eqeq(x) <> 0, eqlist );
 	
-	print ( [eqi,eqj] );
+	eqlist := dxsorteql ( eqlist, fs );
 	
-	ERROR ( `**** equation violated` );
+	_eqlistakt := eqlist;
 	
-fi;
-
-print ( map ( x->eqlt(x), eqlist ) );
-
-if _interactice = true then
-
-	_skipfirst := askvalue ( `value of _skipfirst = `, [true, false]);
+	savestate ();
 	
-fi;
-
-#tdelta := diff(sigma,x)*diff(rho,y)-diff(sigma,y)*diff(rho,x);
-
-#tdelta := normal(eval(value(subs(_eqsubsl,tdelta))));
-
-#tdelta := tdsubs ( _dxaddlist, tdelta );
-
-#if tdelta <> 0 then 
-#	
-#	print ( `determinant ok` );
-#
-#else
-#
-#	print ( `Reduktion war ` );
-#	print ( eqj );
-#	print ( `mit ` );
-#	print ( eqi );
-#	
-#	ERROR ( `tdelta zero` );
-#
-#	RETURN ( [eqi,eqj] );
-#	
-#fi;
-
-nn := nops ( eqlist );
-
-reddone := false;
-
-_onlysimple := false;
-
-i := 1;
-
-_zeroexprl := {};
-
-# first try reduction of equations with same leading term
-
-if not ( _skipfirst = true ) then
-
-while i <= nn - 1 do
-
-	diterm := eqlt(eqlist[i]);
-
-	for j from i+1 to nn do
+	
+	#ttt := dsimplify(eval(value(subs(_eqsubsl, map ( eqeq, eqlist ) ))),symbolic);
+	#ttt := map ((x,y)->tdsubs(y,x), ttt, _dxaddlist );
+	
+	#ttt := remove ( x->x=0, ttt );
+	
+	ttt := [];
+	
+	if nops ( ttt ) > 0 then
+	
+	
+		print ( `Reduktion war ` );
+		print ( eqj );
+		print ( `mit ` );
+		print ( eqi );
 		
-		djterm := eqlt ( eqlist[j] );
+		print ( [eqi,eqj] );
 		
-		if djterm = diterm then
+		ERROR ( `**** equation violated` );
 		
-			erg := dxreduce ( eqlist[i], eqlist[j], fs );
-
-			if reddone = INCONSIST then
-
-				RETURN ( [ INCONSIST, eqlist ] );
-
-			fi;
-			
-			reddone := erg[1] or reddone;
-			
-			if erg[1] then
-			
-				debugprint ( i, ` .. `, j );
-			
-				eqlist[j] := erg[2];
-		
-			fi;
-			
-		else
-			
-			if reddone = false then
-			
-				break;
-				
-			else
-			
-				i := j - 1;
-				break;
-			
-			fi;
-							
-		fi;
-		
-	od;
+	fi;
 	
-	i := i + 1;	
+	print ( map ( x->eqlt(x), eqlist ) );
 	
-od;
-
-fi;
-
-_onlysimple := false;
-
-# now try reduction with quasilinear terms
-
-if not reddone and not ( _skipsecond = true ) then
-
-reddone := false;
-			
-for i from 1 to nn - 1 do
+	if _interactice = true then
 	
-	eqi := eqlist[i];
-
-	if eqdg ( eqi ) > 1 then next; fi;
-
-	diterm := eqlt ( eqlist[i] );
+		_skipfirst := askvalue ( `value of _skipfirst = `, [true, false]);
+		
+	fi;
+	
+	#tdelta := diff(sigma,x)*diff(rho,y)-diff(sigma,y)*diff(rho,x);
+	
+	#tdelta := normal(eval(value(subs(_eqsubsl,tdelta))));
+	
+	#tdelta := tdsubs ( _dxaddlist, tdelta );
+	
+	#if tdelta <> 0 then 
+	#	
+	#	print ( `determinant ok` );
+	#
+	#else
+	#
+	#	print ( `Reduktion war ` );
+	#	print ( eqj );
+	#	print ( `mit ` );
+	#	print ( eqi );
+	#	
+	#	ERROR ( `tdelta zero` );
+	#
+	#	RETURN ( [eqi,eqj] );
+	#	
+	#fi;
+	
+	nn := nops ( eqlist );
 	
 	reddone := false;
-	reddone1 := false;
-
-	for j from i+1 to nn do
-		
-		eqj := eqlist[j];
 	
-		erg := dxreduce ( eqlist[i], eqlist[j], fs );
+	_onlysimple := false;
+	
+	i := 1;
+	
+	_zeroexprl := {};
+	
+	# first try reduction of equations with same leading term
+	
+	if not ( _skipfirst = true ) then
+	
+		while i <= nn - 1 do
 		
-		reddone := erg[1];
+			diterm := eqlt(eqlist[i]);
 		
-		if reddone = INCONSIST then
-		
-			RETURN ( [ INCONSIST, eqlist ] );
-		
-		fi;
+			for j from i+1 to nn do
 				
-		reddone1 := reddone1 or reddone;
-		
-		if reddone then
-		
-			eqlist[j] := erg[2];
-		
-			debugprint ( i, `..`, j );
-			
-			
-		fi;
-		
-		if not ( _dxfastmode = true ) then
-			
-			if reddone then break; fi;
-		
-		fi;
-		
-	od;
-
-	reddone := reddone1;
-	if reddone = false then next; fi;
-	
-	break;
-	
-od;
-
-fi;
-
-# at last try every reduction
-
-if not reddone then
-
-reddone := false;
-			
-for i from 1 to nn - 1 do
-
-	diterm := eqlt ( eqlist[i] );
-	
-	reddone := false;
-	reddone1 := false;
-
-	for j from i+1 to nn do
-		
-		eqi := eqlist[i];
-		eqj := eqlist[j];
-	
-		erg := dxreduce ( eqlist[i], eqlist[j], fs );
-		
-		reddone := erg[1];
-		
-		if reddone = INCONSIST then
-		
-			RETURN ( [ INCONSIST, eqlist ] );
-		
-		fi;
+				djterm := eqlt ( eqlist[j] );
 				
-		reddone1 := reddone1 or reddone;
+				if djterm = diterm then
+				
+					erg := dxreduce ( eqlist[i], eqlist[j], fs );
 		
-		if reddone then
+					if reddone = INCONSIST then
 		
-			eqlist[j] := erg[2];
+						RETURN ( [ INCONSIST, eqlist ] );
 		
-			debugprint ( i, `..`, j );
+					fi;
+					
+					reddone := erg[1] or reddone;
+					
+					if erg[1] then
+					
+						debugprint ( i, ` .. `, j );
+					
+						eqlist[j] := erg[2];
+				
+					fi;
+					
+				else
+					
+					if reddone = false then
+					
+						break;
+						
+					else
+					
+						i := j - 1;
+						break;
+					
+					fi;
+									
+				fi;
+				
+			od;
 			
+			i := i + 1;	
 			
-		fi;
-		
-		if not ( _dxfastmode = true ) then
+		od;
+	
+	fi;
+	
+	_onlysimple := false;
+	
+	# now try reduction with quasilinear terms
+	
+	if not reddone and not ( _skipsecond = true ) then
+	
+		reddone := false;
+					
+		for i from 1 to nn - 1 do
 			
-			if reddone then break; fi;
+			eqi := eqlist[i];
 		
-		fi;
+			if eqdg ( eqi ) > 1 then next; fi;
 		
-	od;
+			diterm := eqlt ( eqlist[i] );
+			
+			reddone := false;
+			reddone1 := false;
+		
+			for j from i+1 to nn do
+				
+				eqj := eqlist[j];
+			
+				erg := dxreduce ( eqlist[i], eqlist[j], fs );
+				
+				reddone := erg[1];
+				
+				if reddone = INCONSIST then
+				
+					RETURN ( [ INCONSIST, eqlist ] );
+				
+				fi;
+						
+				reddone1 := reddone1 or reddone;
+				
+				if reddone then
+				
+					eqlist[j] := erg[2];
+				
+					debugprint ( i, `..`, j );
+					
+					
+				fi;
+				
+				if not ( _dxfastmode = true ) then
+					
+					if reddone then break; fi;
+				
+				fi;
+				
+			od;
+		
+			reddone := reddone1;
+			if reddone = false then next; fi;
+			
+			break;
+			
+		od;
+	
+	fi;
+	
+	# at last try every reduction
+	
+	if not reddone then
+	
+		reddone := false;
+					
+		for i from 1 to nn - 1 do
+		
+			diterm := eqlt ( eqlist[i] );
+			
+			reddone := false;
+			reddone1 := false;
+		
+			for j from i+1 to nn do
+				
+				eqi := eqlist[i];
+				eqj := eqlist[j];
+			
+				erg := dxreduce ( eqlist[i], eqlist[j], fs );
+				
+				reddone := erg[1];
+				
+				if reddone = INCONSIST then
+				
+					RETURN ( [ INCONSIST, eqlist ] );
+				
+				fi;
+						
+				reddone1 := reddone1 or reddone;
+				
+				if reddone then
+				
+					eqlist[j] := erg[2];
+				
+					debugprint ( i, `..`, j );
+					
+					
+				fi;
+				
+				if not ( _dxfastmode = true ) then
+					
+					if reddone then break; fi;
+				
+				fi;
+				
+			od;
+		
+			reddone := reddone1;
+			if reddone = false then next; fi;
+			
+			break;
+			
+		od;
+	
+	fi;
+	
+	#_zeroexprl := [];
+	
+	xtral := dxmakeeql ( [op(_zeroexprl)], fs );
+	
+	eqlist := [op(eqlist), op(xtral)];
+	
+	if reddone = false then break; fi;
 
-	reddone := reddone1;
-	if reddone = false then next; fi;
-	
-	break;
-	
 od;
 
-fi;
-
-#_zeroexprl := [];
-
-xtral := dxmakeeql ( [op(_zeroexprl)], fs );
-
-eqlist := [op(eqlist), op(xtral)];
-
-if reddone = false then break; fi;
-
-od;
-
-print ( eqlist );
+debugprint ( eqlist );
 
 eqlist;
 
 end:
+
 
 #
 #
@@ -1419,18 +1581,29 @@ end:
 #
 #
 
-dxreduceEqlist := proc ( eqlist1, eq2arg, fs )
 
-local eq2, res,
+dxreduceEqlistFirstNonZero := proc ( eqlist1, eq2arg, fs )
+
+local eq2, res, resel,
 		eqlist11,
 		erg,
 		reddone,
-		eq1;
+		eq1, i;
 
 if type ( eq2arg, list(list(anything)) ) then
 
-	res := map ( (x,y,z) -> dxreduceEqlist ( y, x, z ), eq2arg, eqlist1, fs );
-	res := select ( x-> eqeq(x) <> 0, res );
+	res := [];
+
+	for i from 1 to nops(eq2arg) do
+		resel := dxreduceEqlist( eqlist1, eq2arg[i], fs);
+	
+		if eqeq(resel) <> 0 then break; fi;
+	od;
+
+	res := [resel];
+	
+#	res := map ( (x,y,z) -> dxreduceEqlist ( y, x, z ), eq2arg, eqlist1, fs );
+#	res := select ( x-> eqeq(x) <> 0, res );
 	
  	RETURN ( res );
  	
@@ -1475,6 +1648,77 @@ RETURN ( eq2 );
 
 end:
 
+
+
+#
+#
+# eqlist1 are the relations, eq2arg is the equation to be reduced
+# or a list of such.
+#
+#
+
+dxreduceEqlist := proc ( eqlist1, eq2arg, fs )
+
+local eq2, res,
+		eqlist11,
+		erg,
+		reddone,
+		eq1;
+
+if type ( eq2arg, list(list(anything)) ) then
+
+	res := map ( (x,y,z) -> dxreduceEqlist ( y, x, z ), eq2arg, eqlist1, fs );
+	res := select ( x-> eqeq(x) <> 0, res );
+	
+ 	RETURN ( res );
+ 	
+fi;
+
+
+eq2 := eq2arg;
+
+eqlist11 := dxsorteql ( eqlist1, fs );
+
+#eqlist11 := reverse ( eqlist11 );
+
+while true do
+
+	reddone := false;
+
+	for eq1 in eqlist11 do
+	
+		erg := dxreduce ( eq1, eq2, fs );
+
+		if erg[1] = true then
+		
+			print("reduct done lm = ", eqlt(erg[2]));
+		
+			eq2 := erg[2];
+			
+			if eqeq(eq2) = 0 then
+				RETURN(eq2);
+			fi;
+			
+			reddone := true;
+				
+			break;
+			
+		fi;
+		
+	od;
+	
+	if reddone = false then
+	
+		break;
+		
+	fi;
+	
+od;
+
+RETURN ( eq2 );
+
+end:
+
 #
 #
 #
@@ -1495,10 +1739,12 @@ eq2 := [op(eq2), op(dxmakeeql ( [op(_zeroexprl)], fs )) ];
 
 while true do
 
+	print ("_zeroexprl = ", _zeroexprl);
+
 	res := dxreduceEqlist ( eql1, eq2, fs );
 
 	erg := [op(erg), op(res) ];
-
+	
 	eq2 := dxmakeeql ( [op(_zeroexprl)], fs );
 
 	if nops ( eq2 ) = 0 then
@@ -1530,6 +1776,11 @@ fi;
 
 varsrev := [seq ( vars[nops(vars)-i], i = 0..nops(vars)-1 )];
 
+#
+# sindex besteht aus Paaren [Monom, i] wo Monom aus diff(ff,v1,..vl) mit ff aus fs und vi aus vars ist
+# und i der Index in die Arbeitsliste von Gleichungen, die von dxmakeJanetBase bearbeitet werden.
+#
+
 
 L1 := sindex;
 
@@ -1537,9 +1788,13 @@ L1 := map ( x->[fdifflist(x[1]),x[2]], L1 );
 
 L1 := map ( x->[[op(x[1][2..nops(x[1])])],x[2]], L1 );
 
+# numboccur(v, u) = how often occurs u in v
+
 L1 := map ( (x,y)->[map((u,v)->numboccur(v,u),y,x[1]),x[2], 1, false ],
 				 L1, varsrev );
-
+				 
+				 
+				 
 _fsX := fs;
 
 _erglistX := [];
@@ -1555,6 +1810,7 @@ RETURN ( _erglistX );
 end:
 
 #
+# dxsyzEq is not used currently, superseded by dxsyzEqX below, candidate for removal
 #
 
 dxsyzEq := proc ( L1, n, a3, a4 )
@@ -1672,7 +1928,7 @@ end:
 dxsyzEqX := proc ( L1, n, a3, a4 )
 
 local  L, slist, pair, ii, jj, gg, dp1, dp2, dp3, dm1, dm2, vars,
-        ggeq;
+        ggeq, i, j;
         
 global _eqlistX, _erglistX, _fsX;
 
@@ -1684,10 +1940,22 @@ fi;
 
 L := map ( x->[x[1],x[2]], L1 );
 
-slist := grobnersyz3 ( L );
+#slist := grobnersyz3 ( L );
 
 #slist := remove ( x->nops ( x ) = 1, {op(slist)} );
 
+slist := [];
+
+for i from 2 to nops(L) do
+
+	for j from 1 to i - 1 do
+	
+		slist := [op(slist), [L[i][2],L[j][2]]];
+	
+	od;	
+od;
+
+print ("slist = ", slist);
 
 for pair in slist do
 
@@ -1869,12 +2137,14 @@ dxmakeJanetBase := proc ( eqlista, fsa )
 
 local eqlist, igblist, xtralist, savestate, fs;
 
-global _verbose, _fsglob, _skipred, _eqnr, _zeroexprl,
+global _verbose, _fsglob, _skipred, _eqnr, _zeroexprl, _eqsubsl_ext, _eqsubsl_ext_denom,
 		_eqsubsl, _coefffunl, _dxaddlist,
 		_cnstlist, _xtaylvar1,
-		_watchlist, _assertlist, _assumelist, _dagsubsinit;
+		_watchlist, _assertlist, _assumelist, _dagsubsinit, _dxmakeJanetBase_arg;
 
 fs := fsa;
+
+_dxmakeJanetBase_arg := eqlista;
 
 _dagsubsinit := true;
 
@@ -1968,9 +2238,10 @@ else
 fi;
 
 
+
 while true do
 
-	eqlist := dxautored ( eqlist, fs );
+	eqlist := dxautoredSimple ( eqlist, fs );
 
 	if nops(eqlist) > 0 and eqlist[1] = INCONSIST then
 	
@@ -2316,8 +2587,8 @@ _dagsubsinit := true;
 
 xtaylor := proc ( e, v, n, k )
 
-forget ( getsigmaval );
-forget ( getrhoval );
+#forget ( getsigmaval );
+#forget ( getrhoval );
 
 xtaylor1 ( e, v, n, k );
 
@@ -2325,6 +2596,8 @@ end;
 
 
 
+#
+# xtaylor1, original versions
 #
 #
 
@@ -2427,10 +2700,12 @@ end;
 
 #
 #
+#
+#
 
 getsigmaval := proc ( n, k )
 
-option remember;
+#option remember;
 
 mtaylor ( _sigmaval[k], _xtaylvar, n );
 
@@ -2441,7 +2716,7 @@ end;
 
 getrhoval := proc ( n, k )
 
-option remember;
+#option remember;
 
 mtaylor ( _rhoval[k], _xtaylvar, n );
 

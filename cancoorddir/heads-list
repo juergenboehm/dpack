@@ -1,5 +1,5 @@
 
-remdep ( [xi, eta, d[1]] );
+remdep ( [xi, eta, dUNIQ[1]] );
 
 depend ( [xi,eta], [x,y] );
 
@@ -9,7 +9,7 @@ depend ( [xi,eta], [x,y] );
 #   Group g 2, 15
 #
 
-remdep ( [xi, eta, b[1], a[2]] );
+remdep ( [xi, eta, bUNIQ[1], aUNIQ[2]] );
 
 depend ( [xi,eta], [x,y] );
 
@@ -29,7 +29,7 @@ depend ( [xi,eta], [x,y] );
 #   Group g 2, 26
 #
 
-remdep ( [xi, eta], a[1], c[1], d[1]  );
+remdep ( [xi, eta], aUNIQ[1], cUNIQ[1], dUNIQ[1]  );
 
 depend ( [xi,eta], [x,y] );
 
@@ -49,7 +49,7 @@ depend ( [xi,eta], [x,y] );
 #   Group g 3, 13
 #
 
-remdep ( [xi, eta, d[1]] );
+remdep ( [xi, eta, dUNIQ[1]] );
 
 depend ( [xi,eta], [x,y] );
 
@@ -109,7 +109,7 @@ depend ( [xi, eta, sigma, rho], [x,y] );
 #   Groups g 3, 17
 #
 
-remdep ( [xi, eta, c[1], b[1]] );
+remdep ( [xi, eta, cUNIQ[1], bUNIQ[1]] );
 
 depend ( [xi,eta], [x,y] );
 
@@ -129,7 +129,7 @@ depend ( [xi,eta], [x,y] );
 #   Group g 3, 24
 #
 
-remdep ( [sigma, rho, xi, eta, c[1], b[1]] );
+remdep ( [sigma, rho, xi, eta, cUNIQ[1], bUNIQ[1]] );
 
 depend ( [sigma, rho, xi, eta], [x, y] );
 
@@ -139,7 +139,7 @@ remdepcoeflist ();
 #
 # 	Gruppe g 3, 5
 
-remdep ( [sigma, rho, xi, eta, c[1], b[1]] );
+remdep ( [sigma, rho, xi, eta, cUNIQ[1], bUNIQ[1]] );
 
 depend ( [sigma, rho, xi, eta], [x, y] );
 
@@ -149,7 +149,7 @@ remdepcoeflist ();
 #
 # 	Gruppe g 3, 7
 
-remdep ( [sigma, rho, xi, eta, c[1], d[1]] );
+remdep ( [sigma, rho, xi, eta, cUNIQ[1], dUNIQ[1]] );
 
 depend ( [sigma, rho, xi, eta], [x, y] );
 
@@ -169,7 +169,7 @@ depend ( [xi,eta], [x,y] );
 #   Group g 3, 8
 #
 
-remdep ( [xi, eta, c[1]] );
+remdep ( [xi, eta, cUNIQ[1]] );
 
 depend ( [xi,eta], [x,y] );
 
@@ -269,7 +269,7 @@ depend ( [xi, eta, sigma, rho], [x,y] );
 #   Groups g 4, 18, 1
 #
 
-remdep ( [xi, eta, sigma, rho, d[1]] );
+remdep ( [xi, eta, sigma, rho, dUNIQ[1]] );
 
 depend ( [xi, eta, sigma, rho], [x,y] );
 
@@ -279,7 +279,7 @@ depend ( [xi, eta, sigma, rho], [x,y] );
 #   Groups g 4, 18, 2
 #
 
-remdep ( [xi, eta, d[1]] );
+remdep ( [xi, eta, dUNIQ[1]] );
 
 depend ( [xi,eta], [x,y] );
 
@@ -289,7 +289,7 @@ depend ( [xi,eta], [x,y] );
 #   Group g 4, 20
 #
 
-remdep ( [sigma, rho, xi, eta, e[1]] );
+remdep ( [sigma, rho, xi, eta, eUNIQ[1]] );
 
 depend ( [sigma, rho, xi, eta], [x, y] );
 
@@ -299,7 +299,7 @@ remdepcoeflist ();
 #
 # 	Gruppe g 4, 6
 
-remdep ( [xi, eta, c[1], d[1], b[1]] );
+remdep ( [xi, eta, cUNIQ[1], dUNIQ[1], bUNIQ[1]] );
 
 depend ( [xi,eta], [x,y] );
 

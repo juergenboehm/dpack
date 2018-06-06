@@ -460,10 +460,10 @@ end;
 
 igcoeffsetup := proc ( typinfo )
 
-local oldcotes,
+local oldcotes, eqsubsl_rs, eqsubsl_ls, eqsubsl_denoms, eqsubsl_numers, vars,
 		fs2;
 
-global _dxaddlist, _eqsubsl, 
+global _dxaddlist, _eqsubsl, _eqsubsl_ext, _eqsubsl_ext_numer, _eqsubsl_ext_denom,
 		_watchlist, _assertlist, _assumelist,
 		_cnstlist, _xtaylvar1;
 
@@ -478,6 +478,8 @@ if oldcotes <> [] then
 
 fi;
 
+# _dxaddlist enthält Zusatzassertions für typinfo aus der globalen Tabelle _addrelations
+# außerdem die Standardassertions z. B. für typinfo tfff: sigma_x = 0 usw.
 
 _dxaddlist := getdxaddlist ( typinfo, sigma, rho );
 
@@ -488,7 +490,28 @@ if assigned ( _dxaddlistadd ) then
 fi;
 
 
+#
+# _eqsubsl enthält die 'Hauptbeziehungsgleichungen' a[1] = G1(sigma, rho, sigma_x,..), a[2] = G2(sigma, rho, sigma_x,...),...
+# aus den Janet-Basen für den Typ typinfo
+# Diese Gleichungen werden letztlich nach sigma, rho, sigma_x,.. 'aufgelöst'
+#
+
 _eqsubsl := getEqsubsl ( typinfo, [xi,eta] );
+
+
+eqsubsl_rs := map(zz->[numer(rhs(zz)), denom(rhs(zz))], _eqsubsl);
+eqsubsl_ls := map(lhs, _eqsubsl);
+
+vars := op(fs2[1]);
+
+eqsubsl_denoms := seq(DenomUNIQ[i](vars), i = 1..nops(eqsubsl_rs));
+eqsubsl_numers := seq(NumerUNIQ[i](vars), i = 1..nops(eqsubsl_rs));
+
+_eqsubsl_ext := [seq(eqsubsl_ls[i] = eqsubsl_rs[i][1]/eqsubsl_denoms[i], i = 1..nops(eqsubsl_rs))];
+
+_eqsubsl_ext_numer := [seq(eqsubsl_numers[i] = eqsubsl_rs[i][1], i= 1..nops(eqsubsl_rs))];
+_eqsubsl_ext_denom := [seq(eqsubsl_denoms[i] = eqsubsl_rs[i][2], i= 1..nops(eqsubsl_rs))];
+
 
 
 
@@ -547,7 +570,7 @@ local res,
 		eqss,
 		ff;
 		
-global _dxaddlist, _eqsubsl, 
+global _dxaddlist, _eqsubsl,
 		_watchlist, _assertlist, _assumelist,
 		_cnstlist, _xtaylvar1;
 
@@ -577,6 +600,18 @@ oldcotes := setcotes ( fs1, order ( fs1 ) );
 
 
 igcoeffsetup ( typinfo );
+
+#
+# _eqsubsl enthält die 'Hauptbeziehungsgleichungen' a[1] = G1(sigma, rho, sigma_x,..), a[2] = ...,...
+# aus den Janet-Basen für den Typ typinfo
+# Diese Gleichungen werden letztlich nach sigma, rho, sigma_x,.. 'aufgelöst'
+#
+
+#
+# _dxaddlist enthält für einzelne spezielle Fälle hinzutretende Gleichungen aus der globalen Tabelle _addrelations
+# 
+#
+
 
 
 eqss := _eqsubsl;
@@ -611,8 +646,9 @@ remdep ( [op(_depcoeflist )] );
 
 print ( `Additionally assumed :`, _assumelist );
 
-print ( res );
+#print ( res );
 
+print ("Reduction found: nops(res) = ", nops(res) );
 
 
 res1 := res;
